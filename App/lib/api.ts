@@ -22,6 +22,7 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     if (session?.access_token) {
       headers.set('Authorization', `Bearer ${session.access_token}`);
     }
+    console.log(`[fetchApi] ${endpoint} -> Auth Header:`, headers.has('Authorization') ? 'PRESENT' : 'MISSING');
   }
 
   const response = await fetch(url, {
