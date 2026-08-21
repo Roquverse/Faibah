@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { CompanyApi, UploadApi, UsersApi } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
+import { useTheme } from 'next-themes';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -23,6 +24,10 @@ export default function SettingsPage() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Appearance State
+  const { theme, setTheme } = useTheme();
+  const [primaryColor, setPrimaryColor] = useState('#1C0A3E');
+
   // Notifications State (Mocked for UI)
   const [emailDigest, setEmailDigest] = useState(true);
   const [payrollAlerts, setPayrollAlerts] = useState(true);
@@ -32,6 +37,11 @@ export default function SettingsPage() {
 
   useEffect(() => {
     loadProfile();
+    // Load saved primary color
+    const savedColor = localStorage.getItem('primaryColor');
+    if (savedColor) {
+      setPrimaryColor(savedColor);
+    }
   }, []);
 
   const loadProfile = async () => {
@@ -127,6 +137,9 @@ export default function SettingsPage() {
         });
         setCompany(updated);
         window.dispatchEvent(new Event('company-updated'));
+      }
+      if (activeTab === 'appearance') {
+        localStorage.setItem('primaryColor', primaryColor);
       }
       
       setSuccessMsg('Settings saved successfully!');
@@ -653,7 +666,14 @@ export default function SettingsPage() {
                       
                       {/* Light Theme */}
                       <div className="relative">
-                        <input type="radio" name="theme" id="theme-light" className="peer sr-only" defaultChecked />
+                        <input 
+                          type="radio" 
+                          name="theme" 
+                          id="theme-light" 
+                          className="peer sr-only" 
+                          checked={theme === 'light'} 
+                          onChange={() => setTheme('light')} 
+                        />
                         <label htmlFor="theme-light" className="block cursor-pointer p-1 rounded-xl border-2 border-transparent peer-checked:border-[#1C0A3E] transition-all">
                           <div className="bg-[#F8F9FA] rounded-lg border border-gray-200 h-24 p-2 flex flex-col gap-2">
                             <div className="flex gap-2">
@@ -674,7 +694,14 @@ export default function SettingsPage() {
 
                       {/* Dark Theme */}
                       <div className="relative">
-                        <input type="radio" name="theme" id="theme-dark" className="peer sr-only" />
+                        <input 
+                          type="radio" 
+                          name="theme" 
+                          id="theme-dark" 
+                          className="peer sr-only" 
+                          checked={theme === 'dark'} 
+                          onChange={() => setTheme('dark')} 
+                        />
                         <label htmlFor="theme-dark" className="block cursor-pointer p-1 rounded-xl border-2 border-transparent peer-checked:border-[#1C0A3E] transition-all">
                           <div className="bg-[#1C0A3E] rounded-lg border border-gray-800 h-24 p-2 flex flex-col gap-2">
                             <div className="flex gap-2">
@@ -695,7 +722,14 @@ export default function SettingsPage() {
 
                       {/* System Theme */}
                       <div className="relative">
-                        <input type="radio" name="theme" id="theme-system" className="peer sr-only" />
+                        <input 
+                          type="radio" 
+                          name="theme" 
+                          id="theme-system" 
+                          className="peer sr-only" 
+                          checked={theme === 'system'} 
+                          onChange={() => setTheme('system')} 
+                        />
                         <label htmlFor="theme-system" className="block cursor-pointer p-1 rounded-xl border-2 border-transparent peer-checked:border-[#1C0A3E] transition-all">
                           <div className="bg-gradient-to-r from-[#F8F9FA] to-[#1C0A3E] rounded-lg border border-gray-200 h-24 flex items-center justify-center">
                             <div className="bg-white/90 backdrop-blur rounded-lg p-2 shadow-sm flex items-center gap-2">
@@ -717,7 +751,18 @@ export default function SettingsPage() {
                     <div className="flex flex-wrap gap-4">
                       {['#1C0A3E', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'].map((color) => (
                         <label key={color} className="relative cursor-pointer">
-                          <input type="radio" name="primaryColor" value={color} className="peer sr-only" defaultChecked={color === '#1C0A3E'} />
+                          <input 
+                            type="radio" 
+                            name="primaryColor" 
+                            value={color} 
+                            className="peer sr-only" 
+                            checked={primaryColor === color} 
+                            onChange={() => {
+                              setPrimaryColor(color);
+                              document.documentElement.style.setProperty('--primary', color);
+                              document.documentElement.style.setProperty('--color-primary', color);
+                            }}
+                          />
                           <div 
                             className="w-10 h-10 rounded-full border-2 border-transparent peer-checked:border-gray-900 peer-checked:p-0.5 transition-all flex items-center justify-center"
                           >

@@ -131,8 +131,7 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
-    if (!user) throw new BadRequestException('User not found');
-    return user;
+    return user || {};
   }
 
   async updateProfile(userId: string, data: any) {
