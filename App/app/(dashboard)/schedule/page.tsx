@@ -328,45 +328,26 @@ export default function SchedulePage() {
  <div className="bg-white rounded-3xl border border-gray-200 p-5">
  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Upcoming Schedule</h3>
  <div className="space-y-3">
- {appointments
- .filter(a => parseISO(a.date) >= new Date(new Date().setHours(0,0,0,0)))
- .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
- .slice(0, 3)
- .map(app => (
- <div key={app.id} className="flex gap-3 items-start group cursor-pointer" onClick={() => setViewAppointment(app)}>
- <div className="w-10 flex flex-col items-center shrink-0">
- <span className="text-[10px] font-bold text-gray-400 uppercase">{format(parseISO(app.date), 'MMM')}</span>
- <span className="text-sm font-extrabold text-gray-900">{format(parseISO(app.date), 'dd')}</span>
- </div>
- <div className={`flex-1 p-2.5 rounded-xl border ${getTypeStyles(app.type)}`}>
- <div className="text-xs font-bold mb-0.5 line-clamp-1">{app.title}</div>
- <div className="text-[10px] opacity-70">{app.startTime} - {app.endTime}</div>
- </div>
- </div>
- ))}
- 
- {/* Hardcoded integration examples as requested */}
- <div className="flex gap-3 items-start cursor-pointer">
- <div className="w-10 flex flex-col items-center shrink-0">
- <span className="text-[10px] font-bold text-gray-400 uppercase">Sep</span>
- <span className="text-sm font-extrabold text-gray-900">12</span>
- </div>
- <div className="flex-1 p-2.5 rounded-xl border bg-orange-50 text-orange-700 border-orange-200">
- <div className="text-xs font-bold mb-0.5 line-clamp-1">Invoice INV-0042 Due</div>
- <div className="text-[10px] opacity-70">Awaiting Payment • ₦1.5M</div>
- </div>
- </div>
- 
- <div className="flex gap-3 items-start cursor-pointer">
- <div className="w-10 flex flex-col items-center shrink-0">
- <span className="text-[10px] font-bold text-gray-400 uppercase">Sep</span>
- <span className="text-sm font-extrabold text-gray-900">15</span>
- </div>
- <div className="flex-1 p-2.5 rounded-xl border bg-blue-50 text-blue-700 border-blue-200">
- <div className="text-xs font-bold mb-0.5 line-clamp-1">Website MVP Milestone</div>
- <div className="text-[10px] opacity-70">Project Check-in</div>
- </div>
- </div>
+ {appointments.filter(a => parseISO(a.date) >= new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
+   <div className="text-sm text-gray-500 text-center py-4">No upcoming events</div>
+ ) : (
+   appointments
+     .filter(a => parseISO(a.date) >= new Date(new Date().setHours(0,0,0,0)))
+     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+     .slice(0, 3)
+     .map(app => (
+       <div key={app.id} className="flex gap-3 items-start group cursor-pointer" onClick={() => setViewAppointment(app)}>
+         <div className="w-10 flex flex-col items-center shrink-0">
+           <span className="text-[10px] font-bold text-gray-400 uppercase">{format(parseISO(app.date), 'MMM')}</span>
+           <span className="text-sm font-extrabold text-gray-900">{format(parseISO(app.date), 'dd')}</span>
+         </div>
+         <div className={`flex-1 p-2.5 rounded-xl border ${getTypeStyles(app.type)}`}>
+           <div className="text-xs font-bold mb-0.5 line-clamp-1">{app.title}</div>
+           <div className="text-[10px] opacity-70">{app.startTime} - {app.endTime}</div>
+         </div>
+       </div>
+     ))
+ )}
  </div>
  </div>
 
