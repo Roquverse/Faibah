@@ -41,8 +41,9 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = !isPublicRoute && !request.nextUrl.pathname.match(/\.(.*)$/) // ignore static files
 
   if (isProtectedRoute && !user) {
-    const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || 'http://localhost:3000'
-    return NextResponse.redirect(new URL('/login', landingUrl))
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
   }
   
   if (isAuthRoute && user) {
@@ -51,10 +52,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // If user hits the dashboard login route but we want to force them to landing auth
+  // Force unauthenticated users to the local login page if they hit an unknown route, though handled above
   if (isAuthRoute && !user) {
-    const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || 'http://localhost:3000'
-    return NextResponse.redirect(new URL('/login', landingUrl))
+    // Let them access the local login route since they are unauthenticated
+    return supabaseResponse
   }
 
   return supabaseResponse
