@@ -19,15 +19,16 @@ export default function Pricing() {
             </div>
             <div className={styles.price}>
               <span className={styles.currency}>₦</span>
-              <span className={styles.amount}>0</span>
+              <span className={styles.amount}>900</span>
               <span className={styles.period}>/mo</span>
             </div>
             <button className={styles.buttonOutline}>Get started</button>
             <ul className={styles.features}>
-              <li><Check size={16} /> 1 Client & 1 Project</li>
-              <li><Check size={16} /> Standard Invoicing</li>
+              <li><Check size={16} /> Tasks & Time Tracking</li>
+              <li><Check size={16} /> Basic Invoicing</li>
               <li><Check size={16} /> Includes Watermark & Ads</li>
-              <li style={{ opacity: 0.5 }}><X size={16} /> No AI Features</li>
+              <li style={{ opacity: 0.5 }}><X size={16} /> No AI or Proposals</li>
+              <li style={{ opacity: 0.5 }}><X size={16} /> No Project Page or Schedule</li>
             </ul>
             <div className={styles.learnMoreWrapper}>
               <a href="#" className={styles.learnMore}>Learn more</a>
@@ -45,41 +46,17 @@ export default function Pricing() {
             </div>
             <div className={styles.price}>
               <span className={styles.currency}>₦</span>
-              <span className={styles.amount}>900</span>
+              <span className={styles.amount}>3,500</span>
               <span className={styles.period}>/mo</span>
             </div>
             <div className={styles.bestChoice}>Best choice</div>
             <button className={styles.buttonSolid}>Get started</button>
             <ul className={styles.features}>
-              <li><Check size={16} /> Unlimited Clients & Projects</li>
-              <li><Check size={16} /> Full AI Features Access</li>
+              <li><Check size={16} /> Everything in Basic</li>
+              <li><Check size={16} /> AI Proposals & Quotations</li>
+              <li><Check size={16} /> Full Project Page & Schedule</li>
+              <li><Check size={16} /> Channels & Company Management</li>
               <li><Check size={16} /> No Watermarks or Ads</li>
-              <li><Check size={16} /> Priority Support</li>
-              <li><Check size={16} /> Custom Branding</li>
-            </ul>
-            <div className={styles.learnMoreWrapper}>
-              <a href="#" className={styles.learnMore}>Learn more</a>
-            </div>
-          </div>
-
-          {/* Advanced Plan */}
-          <div className={styles.card}>
-            <div className={styles.planHeader}>
-              <div className={styles.planName}>Advanced plan</div>
-              <div className={styles.planDesc}>Best for small agencies.</div>
-            </div>
-            <div className={styles.price}>
-              <span className={styles.currency}>₦</span>
-              <span className={styles.amount}>1,500</span>
-              <span className={styles.period}>/mo</span>
-            </div>
-            <button className={styles.buttonOutline}>Get started</button>
-            <ul className={styles.features}>
-              <li><Check size={16} /> Everything in Pro Plan</li>
-              <li><Check size={16} /> Advanced Analytics & Reports</li>
-              <li><Check size={16} /> Team Collaboration (5 Users)</li>
-              <li><Check size={16} /> Dedicated Account Manager</li>
-              <li><Check size={16} /> API Access</li>
             </ul>
             <div className={styles.learnMoreWrapper}>
               <a href="#" className={styles.learnMore}>Learn more</a>
