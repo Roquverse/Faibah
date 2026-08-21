@@ -101,12 +101,23 @@ export default function OnboardingPage() {
         clientPhoneOnly
       };
 
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error('No active session found');
+      }
+
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
       const res = await fetch(`${API_URL}/users/onboarding`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ ...payload, email: session.user.email }),
       });
+
 
       if (!res.ok) {
         throw new Error('Failed to save onboarding data');
