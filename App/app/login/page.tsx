@@ -26,7 +26,8 @@ export default function LoginPage() {
     setIsLoading(false);
 
     if (error) {
-      alert(error.message);
+      const currentKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'undefined';
+      alert(`${error.message} (Key used starts with: ${currentKey.substring(0, 10)}...)`);
       return;
     }
 
