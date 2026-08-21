@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [company, setCompany] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
+  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -49,23 +50,46 @@ export default function SettingsPage() {
   };
 
   const handlePasswordChange = async () => {
-    if (newPassword !== confirmPassword) {
-      setErrorMsg('Passwords do not match');
+    const sanitizedOld = oldPassword.trim();
+    const sanitizedNew = newPassword.trim();
+    const sanitizedConfirm = confirmPassword.trim();
+
+    if (!sanitizedOld) {
+      setErrorMsg('Please enter your current password');
       return;
     }
-    if (newPassword.length < 8) {
-      setErrorMsg('Password must be at least 8 characters');
+    if (sanitizedNew !== sanitizedConfirm) {
+      setErrorMsg('New passwords do not match');
+      return;
+    }
+    if (sanitizedNew.length < 8) {
+      setErrorMsg('New password must be at least 8 characters');
       return;
     }
 
     try {
       setIsChangingPassword(true);
       const supabase = createClient();
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
       
-      if (error) throw error;
+      // Verify old password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: sanitizedOld,
+      });
+
+      if (signInError) {
+        throw new Error('Incorrect current password');
+      }
+
+      // Update to new password
+      const { error: updateError } = await supabase.auth.updateUser({ 
+        password: sanitizedNew 
+      });
+      
+      if (updateError) throw updateError;
       
       setSuccessMsg('Password updated successfully');
+      setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => setSuccessMsg(''), 3000);
@@ -84,8 +108,8 @@ export default function SettingsPage() {
     try {
       if (activeTab === 'profile') {
         const updated = await UsersApi.updateProfile({
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.firstName?.trim() || '',
+          lastName: user.lastName?.trim() || '',
           avatarUrl: user.avatarUrl,
         });
         setUser(updated);
@@ -279,39 +303,6 @@ export default function SettingsPage() {
                       className="w-full md:w-1/2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-500 cursor-not-allowed" 
                     />
                     <p className="text-xs text-gray-400 mt-2">Email is linked to your authentication provider.</p>
-                  </div>
-
-                  <div className="pt-2">
-                    <h4 className="text-sm font-bold text-gray-900 mb-4">Change Password</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                      <div>
-                        <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">New Password</label>
-                        <input 
-                          type="password"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Confirm Password</label>
-                        <input 
-                          type="password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
-                        />
-                      </div>
-                    </div>
-                    <button 
-                      onClick={handlePasswordChange}
-                      disabled={isChangingPassword || !newPassword || !confirmPassword}
-                      className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                    >
-                      {isChangingPassword ? 'Updating...' : 'Update Password'}
-                    </button>
                   </div>
                 </div>
               </div>
@@ -594,8 +585,62 @@ export default function SettingsPage() {
               </div>
             )}
 
+            {activeTab === 'security' && (
+              <div className="animate-in fade-in max-w-3xl">
+                <div className="mb-6">
+                  <h3 className="text-base font-bold text-gray-900 tracking-tight">Security</h3>
+                  <p className="text-sm text-gray-500 mt-1">Manage your account security and authentication methods.</p>
+                </div>
+                
+                <div className="border border-gray-200 rounded-xl bg-white p-6 md:p-8 space-y-6">
+                  <div className="pt-2">
+                    <h4 className="text-sm font-bold text-gray-900 mb-4">Change Password</h4>
+                    <div className="mb-6 max-w-md">
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Current Password</label>
+                      <input 
+                        type="password"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 max-w-2xl">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">New Password</label>
+                        <input 
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Confirm New Password</label>
+                        <input 
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                        />
+                      </div>
+                    </div>
+                    <button 
+                      onClick={handlePasswordChange}
+                      disabled={isChangingPassword || !oldPassword || !newPassword || !confirmPassword}
+                      className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                      {isChangingPassword ? 'Updating...' : 'Update Password'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Placeholders for new tabs */}
-            {['security', 'appearance', 'integrations', 'localization'].includes(activeTab) && (
+            {['appearance', 'integrations', 'localization'].includes(activeTab) && (
               <div className="animate-in fade-in max-w-3xl flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-gray-200 text-center">
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                   {(() => {
