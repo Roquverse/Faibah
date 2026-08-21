@@ -14,6 +14,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { ChannelsModule } from './channels/channels.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     TimeLogsModule,
     AppointmentsModule,
     ChannelsModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [

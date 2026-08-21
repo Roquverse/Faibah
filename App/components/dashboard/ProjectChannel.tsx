@@ -18,6 +18,7 @@ import {
   Hash,
   Image as ImageIcon
 } from 'lucide-react';
+import { UploadApi } from '@/lib/api';
 
 interface ChannelMessage {
   id: string;
@@ -372,9 +373,42 @@ export default function ProjectChannel({ projectId, isClientView = false }: Proj
           )}
           
           <div className={`flex items-end gap-3 rounded-xl border p-2 transition-colors ${visibility === 'INTERNAL' && !isClientView ? 'border-amber-300 bg-amber-50/30 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500' : 'border-gray-200 bg-white focus-within:border-[#A5D149] focus-within:ring-1 focus-within:ring-[#A5D149]'}`}>
-            <button className="p-2.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0">
+            <label className="p-2.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0 cursor-pointer">
               <Paperclip className="w-5 h-5" />
-            </button>
+              <input 
+                type="file" 
+                className="hidden" 
+                accept="image/*,application/pdf"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const isImage = file.type.includes('image');
+                    const uploadCall = isImage ? UploadApi.uploadImage(file) : UploadApi.uploadPdf(file);
+                    const result = await uploadCall;
+                    if (result?.url) {
+                      const newMessage: ChannelMessage = {
+                        id: `m${Date.now()}`,
+                        senderId: isClientView ? 'c1' : 't1',
+                        senderName: isClientView ? 'Acme Client' : 'Diana Taylor',
+                        senderAvatar: `https://ui-avatars.com/api/?name=${isClientView ? 'Acme+Client' : 'Diana+Taylor'}`,
+                        senderType: isClientView ? 'CLIENT' : 'TEAM',
+                        content: draft || `Attached ${isImage ? 'an image' : 'a file'}`,
+                        attachmentUrl: result.url,
+                        visibility: isClientView ? 'CLIENT_VISIBLE' : visibility,
+                        messageType: 'FILE',
+                        topic: selectedTopicFilter === 'ALL' ? 'General' : selectedTopicFilter,
+                        createdAt: new Date().toISOString(),
+                      };
+                      setMessages([...messages, newMessage]);
+                      setDraft('');
+                    }
+                  } catch (error) {
+                    console.error('File upload failed', error);
+                  }
+                }}
+              />
+            </label>
             
             <textarea 
               ref={textareaRef}

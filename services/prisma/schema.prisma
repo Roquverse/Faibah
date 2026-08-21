@@ -26,6 +26,7 @@ model Company {
   taxRegistered       Boolean  @default(false)
   taxRate             Float?
   commPreference      String?
+  logoUrl             String?
   createdAt           DateTime @default(now())
 
   users     User[]
@@ -37,6 +38,7 @@ model User {
   email     String   @unique
   password  String
   phone     String?
+  avatarUrl String?
   userType  UserType?
   role      Role     @default(CONTRACTOR)
   companyId String?

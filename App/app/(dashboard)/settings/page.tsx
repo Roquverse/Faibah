@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Save, Building2, CreditCard, Users, Bell, Loader2 } from 'lucide-react';
-import { CompanyApi } from '@/lib/api';
+import { CompanyApi, UploadApi } from '@/lib/api';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('business');
@@ -140,29 +140,39 @@ export default function SettingsPage() {
                 
                 <div className="space-y-6 max-w-2xl">
                   {/* Logo Upload */}
-                  <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
-                    <div className="w-24 h-24 shrink-0 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden relative group">
-                      <div className="text-gray-400 text-xs font-medium uppercase tracking-wider text-center p-2 group-hover:opacity-0 transition-opacity">Upload Logo</div>
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const url = URL.createObjectURL(file);
-                            const el = document.getElementById('logo-preview') as HTMLImageElement;
-                            if (el) { el.src = url; el.classList.remove('hidden'); }
-                          }
-                        }}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      />
-                      <img id="logo-preview" className="absolute inset-0 w-full h-full object-cover hidden" alt="Logo Preview" />
+                    <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
+                      <div className="w-24 h-24 shrink-0 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden relative group">
+                        <div className="text-gray-400 text-xs font-medium uppercase tracking-wider text-center p-2 group-hover:opacity-0 transition-opacity">Upload Logo</div>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                setIsSaving(true);
+                                const result = await UploadApi.uploadImage(file);
+                                if (result?.url) {
+                                  setCompany({ ...company, logoUrl: result.url });
+                                }
+                              } catch (error: any) {
+                                setErrorMsg('Failed to upload logo.');
+                              } finally {
+                                setIsSaving(false);
+                              }
+                            }
+                          }}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        />
+                        {company?.logoUrl && (
+                          <img src={company.logoUrl} className="absolute inset-0 w-full h-full object-cover z-0" alt="Company Logo" />
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-gray-900 mb-1">Company Logo</h4>
+                        <p className="text-sm text-gray-500 max-w-md">Upload a high-resolution logo to be featured on your dashboard, proposals, and invoices. Recommended size is 256x256px.</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-900 mb-1">Company Logo</h4>
-                      <p className="text-sm text-gray-500 max-w-md">Upload a high-resolution logo to be featured on your dashboard, proposals, and invoices. Recommended size is 256x256px.</p>
-                    </div>
-                  </div>
 
                   {/* Basic Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

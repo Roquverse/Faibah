@@ -88,3 +88,16 @@ export const AppointmentsApi = {
     method: 'DELETE',
   }),
 };
+
+export const UploadApi = {
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return fetchApi('/upload/image', { method: 'POST', body: formData });
+  },
+  uploadPdf: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return fetchApi('/upload/pdf', { method: 'POST', body: formData });
+  }
+};
