@@ -155,8 +155,6 @@ export default function SettingsPage() {
     { id: 'billing', icon: CreditCard, label: 'Billing & Plan' },
     { id: 'team', icon: Users, label: 'Team & Roles' },
     { id: 'appearance', icon: Palette, label: 'Appearance' },
-    { id: 'integrations', icon: LayoutGrid, label: 'Integrations' },
-    { id: 'localization', icon: Globe, label: 'Localization' },
   ];
 
   return (
@@ -639,22 +637,100 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* Placeholders for new tabs */}
-            {['appearance', 'integrations', 'localization'].includes(activeTab) && (
-              <div className="animate-in fade-in max-w-3xl flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-gray-200 text-center">
-                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                  {(() => {
-                    const Icon = TABS.find(t => t.id === activeTab)?.icon;
-                    return Icon ? <Icon className="w-8 h-8 text-gray-400" /> : null;
-                  })()}
+            {activeTab === 'appearance' && (
+              <div className="animate-in fade-in max-w-3xl">
+                <div className="mb-6">
+                  <h3 className="text-base font-bold text-gray-900 tracking-tight">Appearance</h3>
+                  <p className="text-sm text-gray-500 mt-1">Customize how your dashboard looks and feels.</p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-2">Coming Soon</h3>
-                <p className="text-sm text-gray-500 max-w-sm">
-                  We're still building out the {TABS.find(t => t.id === activeTab)?.label} features. Check back later!
-                </p>
+                
+                <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
+                  
+                  {/* Theme Section */}
+                  <div className="p-6 md:p-8 border-b border-gray-100">
+                    <h4 className="text-sm font-bold text-gray-900 mb-4">Interface Theme</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      
+                      {/* Light Theme */}
+                      <div className="relative">
+                        <input type="radio" name="theme" id="theme-light" className="peer sr-only" defaultChecked />
+                        <label htmlFor="theme-light" className="block cursor-pointer p-1 rounded-xl border-2 border-transparent peer-checked:border-[#1C0A3E] transition-all">
+                          <div className="bg-[#F8F9FA] rounded-lg border border-gray-200 h-24 p-2 flex flex-col gap-2">
+                            <div className="flex gap-2">
+                              <div className="w-1/3 bg-white rounded shadow-sm h-full flex flex-col gap-1 p-1">
+                                <div className="h-1 bg-gray-200 rounded w-1/2"></div>
+                                <div className="h-1 bg-gray-200 rounded w-full"></div>
+                                <div className="h-1 bg-gray-200 rounded w-full"></div>
+                              </div>
+                              <div className="w-2/3 bg-white rounded shadow-sm h-full flex flex-col gap-1.5 p-2">
+                                <div className="h-2 bg-gray-200 rounded w-1/3"></div>
+                                <div className="h-8 bg-gray-100 rounded w-full mt-auto"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-center mt-3 text-sm font-medium text-gray-900">Light Mode</div>
+                        </label>
+                      </div>
+
+                      {/* Dark Theme */}
+                      <div className="relative">
+                        <input type="radio" name="theme" id="theme-dark" className="peer sr-only" />
+                        <label htmlFor="theme-dark" className="block cursor-pointer p-1 rounded-xl border-2 border-transparent peer-checked:border-[#1C0A3E] transition-all">
+                          <div className="bg-[#1C0A3E] rounded-lg border border-gray-800 h-24 p-2 flex flex-col gap-2">
+                            <div className="flex gap-2">
+                              <div className="w-1/3 bg-[#2A105D] rounded shadow-sm h-full flex flex-col gap-1 p-1">
+                                <div className="h-1 bg-white/20 rounded w-1/2"></div>
+                                <div className="h-1 bg-white/20 rounded w-full"></div>
+                                <div className="h-1 bg-white/20 rounded w-full"></div>
+                              </div>
+                              <div className="w-2/3 bg-[#2A105D] rounded shadow-sm h-full flex flex-col gap-1.5 p-2">
+                                <div className="h-2 bg-white/20 rounded w-1/3"></div>
+                                <div className="h-8 bg-white/10 rounded w-full mt-auto"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-center mt-3 text-sm font-medium text-gray-700">Dark Mode</div>
+                        </label>
+                      </div>
+
+                      {/* System Theme */}
+                      <div className="relative">
+                        <input type="radio" name="theme" id="theme-system" className="peer sr-only" />
+                        <label htmlFor="theme-system" className="block cursor-pointer p-1 rounded-xl border-2 border-transparent peer-checked:border-[#1C0A3E] transition-all">
+                          <div className="bg-gradient-to-r from-[#F8F9FA] to-[#1C0A3E] rounded-lg border border-gray-200 h-24 flex items-center justify-center">
+                            <div className="bg-white/90 backdrop-blur rounded-lg p-2 shadow-sm flex items-center gap-2">
+                              <Globe className="w-4 h-4 text-gray-700" />
+                            </div>
+                          </div>
+                          <div className="text-center mt-3 text-sm font-medium text-gray-700">System</div>
+                        </label>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  {/* Primary Color */}
+                  <div className="p-6 md:p-8">
+                    <h4 className="text-sm font-bold text-gray-900 mb-1">Primary Color</h4>
+                    <p className="text-sm text-gray-500 mb-4">Choose the main accent color for your dashboard.</p>
+                    
+                    <div className="flex flex-wrap gap-4">
+                      {['#1C0A3E', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'].map((color) => (
+                        <label key={color} className="relative cursor-pointer">
+                          <input type="radio" name="primaryColor" value={color} className="peer sr-only" defaultChecked={color === '#1C0A3E'} />
+                          <div 
+                            className="w-10 h-10 rounded-full border-2 border-transparent peer-checked:border-gray-900 peer-checked:p-0.5 transition-all flex items-center justify-center"
+                          >
+                            <div className="w-full h-full rounded-full" style={{ backgroundColor: color }}></div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
               </div>
             )}
-
         </div>
       </div>
     </div>
