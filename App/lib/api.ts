@@ -31,6 +31,7 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.error(`[fetchApi] Error ${response.status} from ${url}:`, errorText);
     let errorMsg = 'An error occurred during the API request.';
     try {
       const parsed = JSON.parse(errorText);
@@ -38,7 +39,7 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     } catch (e) {
       errorMsg = errorText || errorMsg;
     }
-    throw new Error(errorMsg);
+    throw new Error(`${errorMsg} (URL: ${url}, Status: ${response.status})`);
   }
 
   // Handle 204 No Content
