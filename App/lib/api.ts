@@ -56,6 +56,7 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 export const CompanyApi = {
   getProfile: () => fetchApi('/company/profile'),
   updateProfile: (data: any) => fetchApi('/company/profile', { method: 'PATCH', body: JSON.stringify(data) }),
+  getOverview: () => fetchApi('/company/overview'),
 };
 
 export const UsersApi = {

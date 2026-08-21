@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer, YAxis, CartesianGrid } from 'recharts';
 import { Users, DollarSign, FolderGit2, CheckCircle2, ChevronRight, ChevronLeft, Phone, ArrowUpRight, ArrowDownRight, Briefcase, Search, Clock } from 'lucide-react';
 import Image from 'next/image';
-import { AppointmentsApi } from '@/lib/api';
+import { AppointmentsApi, CompanyApi, ProjectsApi } from '@/lib/api';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday, parseISO, addMonths, subMonths } from 'date-fns';
 
 type AppointmentType = 'MEETING' | 'CALL' | 'DEADLINE' | 'REMINDER';
@@ -18,20 +18,44 @@ interface Appointment {
  type: AppointmentType;
 }
 
-const performanceData = [
- { name: 'Jan', revenue: 4000, visit: 2400 },
- { name: 'Feb', revenue: 3000, visit: 1398 },
- { name: 'Mar', revenue: 2000, visit: 9800 },
- { name: 'Apr', revenue: 2780, visit: 3908 },
- { name: 'May', revenue: 1890, visit: 4800 },
- { name: 'Jun', revenue: 6900, visit: 3800 },
- { name: 'Jul', revenue: 3490, visit: 4300 },
- { name: 'Aug', revenue: 5490, visit: 4300 },
-];
-
 export default function OverviewPage() {
  const [currentDate, setCurrentDate] = useState(new Date());
  const [appointments, setAppointments] = useState<Appointment[]>([]);
+ const [overview, setOverview] = useState<any>(null);
+ const [activeProjectsList, setActiveProjectsList] = useState<any[]>([]);
+
+ useEffect(() => {
+   loadAppointments();
+   loadOverview();
+   loadActiveProjects();
+ }, [currentDate]);
+
+ const loadAppointments = async () => {
+   try {
+     const data = await AppointmentsApi.getAll();
+     setAppointments(data);
+   } catch (e) {
+     console.error(e);
+   }
+ };
+
+ const loadOverview = async () => {
+   try {
+     const data = await CompanyApi.getOverview();
+     setOverview(data);
+   } catch (e) {
+     console.error(e);
+   }
+ };
+
+ const loadActiveProjects = async () => {
+   try {
+     const data = await ProjectsApi.getAll();
+     setActiveProjectsList(data.filter((p: any) => p.status === 'ONGOING' || p.status === 'AWAITING_PAYMENT'));
+   } catch (e) {
+     console.error(e);
+   }
+ };
 
  useEffect(() => {
  loadAppointments();
@@ -61,10 +85,10 @@ export default function OverviewPage() {
  
  {/* Row 1: Stat Cards */}
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
- <StatCard title="Active Clients" value="118" icon={<Users className="w-4 h-4 text-gray-500" />} change="+12%" isPositive={true} />
- <StatCard title="Total Revenue" value="₦96.7M" icon={<DollarSign className="w-4 h-4 text-gray-500" />} change="+12%" isPositive={true} />
- <StatCard title="Active Projects" value="42" icon={<FolderGit2 className="w-4 h-4 text-gray-500" />} change="-8%" isPositive={false} />
- <StatCard title="Total Closed" value="231" icon={<CheckCircle2 className="w-4 h-4 text-gray-500" />} change="+12%" isPositive={true} />
+ <StatCard title="Active Clients" value={overview?.activeClients || 0} icon={<Users className="w-4 h-4 text-gray-500" />} change="" isPositive={true} />
+ <StatCard title="Total Revenue" value={`₦${((overview?.totalRevenue || 0) / 1000).toFixed(1)}K`} icon={<DollarSign className="w-4 h-4 text-gray-500" />} change="" isPositive={true} />
+ <StatCard title="Active Projects" value={overview?.activeProjects || 0} icon={<FolderGit2 className="w-4 h-4 text-gray-500" />} change="" isPositive={false} />
+ <StatCard title="Total Closed" value={overview?.totalClosed || 0} icon={<CheckCircle2 className="w-4 h-4 text-gray-500" />} change="" isPositive={true} />
  </div>
 
  {/* Row 2: Complex Grid */}
@@ -91,7 +115,7 @@ export default function OverviewPage() {
  </div>
  <div className="h-56 w-full">
  <ResponsiveContainer width="100%" height="100%">
- <LineChart data={performanceData}>
+ <LineChart data={overview?.performanceData || []}>
  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `${val/1000}k`} />
@@ -186,55 +210,38 @@ export default function OverviewPage() {
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-200">
- <tr className="hover:bg-gray-50/50">
- <td className="px-6 py-4">
- <div className="font-medium text-gray-900">Maison Sterling</div>
- <div className="text-[11px] text-gray-500 mt-0.5">Web App</div>
- </td>
- <td className="px-6 py-4 text-gray-600">Enterprise</td>
- <td className="px-6 py-4 font-medium text-gray-900">₦1.5M</td>
- <td className="px-6 py-4">
- <div className="flex -space-x-1.5">
- <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" className="w-6 h-6 rounded-full border border-white" />
- <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" className="w-6 h-6 rounded-full border border-white" />
- </div>
- </td>
- <td className="px-6 py-4">
- <div className="flex items-center gap-2">
- <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
- <div className="w-[80%] h-full bg-gray-900 rounded-full"></div>
- </div>
- <span className="text-[11px] font-medium text-gray-500">80%</span>
- </div>
- </td>
- <td className="px-6 py-4 text-right">
- <span className="text-[11px] font-medium text-[#346E3A]">On Track</span>
- </td>
- </tr>
- <tr className="hover:bg-gray-50/50">
- <td className="px-6 py-4">
- <div className="font-medium text-gray-900">The Orchid</div>
- <div className="text-[11px] text-gray-500 mt-0.5">Brand Identity</div>
- </td>
- <td className="px-6 py-4 text-gray-600">Startup</td>
- <td className="px-6 py-4 font-medium text-gray-900">₦520K</td>
- <td className="px-6 py-4">
- <div className="flex -space-x-1.5">
- <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" className="w-6 h-6 rounded-full border border-white" />
- </div>
- </td>
- <td className="px-6 py-4">
- <div className="flex items-center gap-2">
- <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
- <div className="w-[45%] h-full bg-gray-900 rounded-full"></div>
- </div>
- <span className="text-[11px] font-medium text-gray-500">45%</span>
- </div>
- </td>
- <td className="px-6 py-4 text-right">
- <span className="text-[11px] font-medium text-gray-500">At Risk</span>
- </td>
- </tr>
+ {activeProjectsList.length === 0 ? (
+   <tr>
+     <td colSpan={6} className="px-6 py-8 text-center text-gray-500 text-sm">No active projects</td>
+   </tr>
+ ) : (
+   activeProjectsList.map((project, idx) => (
+     <tr key={project.id || idx} className="hover:bg-gray-50/50">
+     <td className="px-6 py-4">
+     <div className="font-medium text-gray-900">{project.name}</div>
+     <div className="text-[11px] text-gray-500 mt-0.5">{project.client?.name || 'Unknown Client'}</div>
+     </td>
+     <td className="px-6 py-4 text-gray-600">Enterprise</td>
+     <td className="px-6 py-4 font-medium text-gray-900">N/A</td>
+     <td className="px-6 py-4">
+     <div className="flex -space-x-1.5">
+     <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(project.name)}&background=random`} className="w-6 h-6 rounded-full border border-white" />
+     </div>
+     </td>
+     <td className="px-6 py-4">
+     <div className="flex items-center gap-2">
+     <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+     <div className="w-[50%] h-full bg-gray-900 rounded-full"></div>
+     </div>
+     <span className="text-[11px] font-medium text-gray-500">50%</span>
+     </div>
+     </td>
+     <td className="px-6 py-4 text-right">
+     <span className="text-[11px] font-medium text-[#346E3A]">{project.status}</span>
+     </td>
+     </tr>
+   ))
+ )}
  </tbody>
  </table>
  </div>
@@ -333,12 +340,7 @@ export default function OverviewPage() {
  <h3 className="text-base font-semibold text-gray-900 tracking-tight mb-6">Top Clients</h3>
  
  <div className="space-y-4">
- {[
- { name: 'Jessica Chen', company: 'TechFlow', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop' },
- { name: 'John Doe', company: 'Acme Corp', img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop' },
- { name: 'Hailee S.', company: 'Globex', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop' },
- { name: 'Evan Chris', company: 'Initech', img: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop' },
- ].map((contact, i) => (
+ {(overview?.topClients || []).length > 0 ? overview.topClients.map((contact: any, i: number) => (
  <div key={i} className="flex items-center justify-between group cursor-pointer">
  <div className="flex items-center gap-3">
  <img src={contact.img} className="w-8 h-8 rounded-full border border-gray-200 object-cover" />
@@ -351,7 +353,9 @@ export default function OverviewPage() {
  <Phone className="w-3.5 h-3.5" />
  </button>
  </div>
- ))}
+ )) : (
+   <div className="text-sm text-gray-500 text-center py-4">No clients yet</div>
+ )}
  </div>
  </div>
 

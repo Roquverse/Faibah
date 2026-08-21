@@ -14,4 +14,9 @@ export class CompanyController {
   updateProfile(@Body() body: any) {
     return this.companyService.updateProfile(body);
   }
+
+  @Get('overview')
+  getOverview() {
+    return this.companyService.getOverview();
+  }
 }

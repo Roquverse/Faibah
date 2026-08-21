@@ -25,13 +25,7 @@ interface Project {
   attachmentsCount?: number;
 }
 
-const mockProjects: Project[] = [
-  { id: '1', title: 'Website Redesign', client: { name: 'Acme Corp', avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop' }, status: 'ONGOING', invoiceStatus: 'Draft', tags: [{ label: 'Internal', bgColor: 'bg-green-50', textColor: 'text-green-700', dotColor: 'text-green-500' }, { label: 'Urgent', bgColor: 'bg-red-50', textColor: 'text-red-700', dotColor: 'text-red-500' }], dueDate: '11 Jan 2025', commentsCount: 4, attachmentsCount: 1 },
-  { id: '2', title: 'Brand Identity', client: { name: 'Globex', avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop' }, status: 'DRAFT', tags: [{ label: 'Lead', bgColor: 'bg-orange-50', textColor: 'text-orange-700', dotColor: 'text-orange-500' }], dueDate: '15 Feb 2025', commentsCount: 0, attachmentsCount: 2 },
-  { id: '3', title: 'Mobile App MVP', client: { name: 'Soylent', avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&h=100&fit=crop' }, status: 'AWAITING_PAYMENT', invoiceStatus: 'Sent', tags: [{ label: 'Internal', bgColor: 'bg-green-50', textColor: 'text-green-700', dotColor: 'text-green-500' }], dueDate: '20 Mar 2025', commentsCount: 1, attachmentsCount: 0 },
-  { id: '4', title: 'SEO Audit', client: { name: 'Initech', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop' }, status: 'COMPLETED', invoiceStatus: 'Paid', tags: [{ label: 'Internal', bgColor: 'bg-green-50', textColor: 'text-green-700', dotColor: 'text-green-500' }, { label: 'Lead', bgColor: 'bg-orange-50', textColor: 'text-orange-700', dotColor: 'text-orange-500' }], dueDate: '11 Jan 2025', commentsCount: 2, attachmentsCount: 1 },
-  { id: '5', title: 'Social Media Strategy', client: { name: 'Umbrella', avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop' }, status: 'ONGOING', tags: [{ label: 'Urgent', bgColor: 'bg-red-50', textColor: 'text-red-700', dotColor: 'text-red-500' }], dueDate: '05 Apr 2025', commentsCount: 8, attachmentsCount: 3 },
-];
+
 
 const COLUMNS: { id: ProjectStatus; label: string; dotColor: string }[] = [
   { id: 'DRAFT', label: 'Draft', dotColor: 'text-gray-400' },
@@ -70,12 +64,10 @@ export default function ProjectsPage() {
         commentsCount: Math.floor(Math.random() * 5),
         attachmentsCount: Math.floor(Math.random() * 3),
       }));
-      // If db is empty, show mock projects for demo purposes until db has data
-      setProjects(mapped.length > 0 ? mapped : mockProjects);
+      setProjects(mapped);
     } catch (error) {
       console.error('Failed to load projects:', error);
-      // Fallback to mock on failure
-      setProjects(mockProjects);
+      setProjects([]);
     } finally {
       setIsLoading(false);
     }
