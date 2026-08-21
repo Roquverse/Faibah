@@ -1,0 +1,397 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id                  String   @id @default(uuid())
+  name                String
+  workType            String?
+  billingModel        String?
+  hourlyRate          Float?
+  requireDeposit      Boolean  @default(false)
+  depositPercent      Float?
+  teamSize            String?
+  assignRoles         Boolean  @default(false)
+  multipleMilestones  Boolean  @default(false)
+  itemizeMaterials    Boolean  @default(false)
+  defaultCurrency     String   @default("NGN")
+  taxRegistered       Boolean  @default(false)
+  taxRate             Float?
+  commPreference      String?
+  createdAt           DateTime @default(now())
+
+  users     User[]
+  clients   Client[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  phone     String?
+  userType  UserType?
+  role      Role     @default(CONTRACTOR)
+  companyId String?
+  company   Company?  @relation(fields: [companyId], references: [id])
+  createdAt DateTime @default(now())
+
+  timeLogs       TimeLog[]
+  projectMembers ProjectMember[]
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  PROJECT_MANAGER
+  CONTRACTOR
+}
+
+enum UserType {
+  PROFESSIONAL
+  CLIENT
+}
+
+enum ClientType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum CommChannel {
+  WHATSAPP
+  EMAIL
+  BOTH
+}
+
+model Client {
+  id               String       @id @default(uuid())
+  clientType       ClientType   @default(INDIVIDUAL)
+  companyName      String?
+  name             String
+  email            String?
+  whatsappNumber   String?
+  country          String?
+  city             String?
+  address          String?
+  taxId            String?
+  logoUrl          String?
+  preferredChannel CommChannel?
+  referralSource   String?
+  notes            String?
+  currency         String       @default("USD")
+  createdAt        DateTime     @default(now())
+
+  companyId        String
+  company          Company      @relation(fields: [companyId], references: [id])
+
+  projects         Project[]
+  quotations       Quotation[]
+  invoices         Invoice[]
+  contacts         ClientContact[]
+}
+
+model ClientContact {
+  id             String   @id @default(uuid())
+  clientId       String
+  client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name           String
+  email          String?
+  whatsappNumber String?
+  role           String?
+  isPrimary      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  projectMembers ProjectMember[]
+}
+
+enum ProjectStatus {
+  DRAFT
+  ONGOING
+  AWAITING_PAYMENT
+  COMPLETED
+  CANCELLED
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  name      String
+  currency  String
+  status    ProjectStatus @default(DRAFT)
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  createdAt DateTime @default(now())
+
+  tasks       Task[]
+  proposals   Proposal[]
+  quotations  Quotation[]
+  invoices    Invoice[]
+  channel     ProjectChannel?
+  members     ProjectMember[]
+}
+
+enum ProjectMemberType {
+  TEAM_USER
+  CLIENT_CONTACT
+}
+
+enum ProjectRole {
+  OWNER
+  PROJECT_MANAGER
+  CONTRACTOR
+  PRIMARY_CONTACT
+  VIEWER
+}
+
+enum ProjectMemberStatus {
+  INVITED
+  ACTIVE
+}
+
+model ProjectMember {
+  id                String              @id @default(uuid())
+  projectId         String
+  project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  memberType        ProjectMemberType
+  
+  userId            String?
+  user              User?               @relation(fields: [userId], references: [id])
+  
+  clientContactId   String?
+  clientContact     ClientContact?      @relation(fields: [clientContactId], references: [id])
+  
+  role              ProjectRole
+  invitedBy         String?
+  status            ProjectMemberStatus @default(INVITED)
+  createdAt         DateTime            @default(now())
+}
+
+model Proposal {
+  id        String   @id @default(uuid())
+  content   String
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+model Quotation {
+  id        String   @id @default(uuid())
+  status    QuotationStatus @default(DRAFT)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  currency  String   @default("NGN")
+  taxRate   Float?
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  items     QuotationItem[]
+  invoices  Invoice[]
+}
+
+model QuotationItem {
+  id          String    @id @default(uuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+  description String
+  quantity    Int       @default(1)
+  unitPrice   Float
+  amount      Float
+  createdAt   DateTime  @default(now())
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  BILLING
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  status      TaskStatus @default(TODO)
+  billable    Boolean  @default(true)
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id])
+  createdAt   DateTime @default(now())
+
+  timeLogs    TimeLog[]
+  invoiceItems InvoiceItem[]
+}
+
+model TimeLog {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  startTime DateTime
+  endTime   DateTime?
+  createdAt DateTime @default(now())
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  CANCELLED
+}
+
+model Invoice {
+  id          String   @id @default(uuid())
+  status      InvoiceStatus @default(DRAFT)
+  dueDate     DateTime?
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  quotationId String?
+  quotation   Quotation? @relation(fields: [quotationId], references: [id])
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  currency    String   @default("NGN")
+  taxRate     Float?
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  items       InvoiceItem[]
+  payments    PaymentRecord[]
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  taskId      String?
+  task        Task?    @relation(fields: [taskId], references: [id])
+  description String?
+  quantity    Int      @default(1)
+  unitPrice   Float?
+  amount      Float
+  createdAt   DateTime @default(now())
+}
+
+model PaymentRecord {
+  id        String   @id @default(uuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  amount    Float
+  provider  String   @default("manual") // 'manual' or 'paystack'
+  createdAt DateTime @default(now())
+}
+
+enum ActivityType {
+  PAYMENT
+  CREATE
+  UPDATE
+  VIEW
+  SEND
+}
+
+model ActivityEvent {
+  id        String   @id @default(uuid())
+  message   String
+  type      ActivityType
+  createdAt DateTime @default(now())
+}
+
+enum AppointmentType {
+  MEETING
+  CALL
+  DEADLINE
+  REMINDER
+}
+
+model Appointment {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  link        String?  // e.g. Zoom or Google Meet link
+  date        DateTime // The specific day
+  startTime   String?  // e.g., "14:00"
+  endTime     String?  // e.g., "15:00"
+  type        AppointmentType @default(MEETING)
+  createdAt   DateTime @default(now())
+}
+
+model ProjectChannel {
+  id        String   @id @default(uuid())
+  projectId String   @unique
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+
+  messages  ChannelMessage[]
+}
+
+enum ChannelSenderType {
+  TEAM
+  CLIENT
+}
+
+enum ChannelMessageVisibility {
+  INTERNAL
+  CLIENT_VISIBLE
+}
+
+enum ChannelMessageType {
+  TEXT
+  FILE
+  REVIEW_REQUEST
+}
+
+enum ChannelReviewStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+model ChannelMessage {
+  id             String                   @id @default(uuid())
+  channelId      String
+  channel        ProjectChannel           @relation(fields: [channelId], references: [id])
+  senderId       String
+  senderType     ChannelSenderType
+  content        String
+  attachmentUrl  String?
+  visibility     ChannelMessageVisibility @default(CLIENT_VISIBLE)
+  messageType    ChannelMessageType       @default(TEXT)
+  reviewStatus   ChannelReviewStatus?
+  topic          String?
+  createdAt      DateTime                 @default(now())
+
+  mentions       ChannelMention[]
+  reactions      ChannelReaction[]
+}
+
+model ChannelMention {
+  id                String         @id @default(uuid())
+  messageId         String
+  message           ChannelMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  mentionedUserId   String?
+  mentionedClientId String?
+}
+
+model ChannelReaction {
+  id          String            @id @default(uuid())
+  messageId   String
+  message     ChannelMessage    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  reactorId   String
+  reactorType ChannelSenderType
+  emoji       String
+  createdAt   DateTime          @default(now())
+}

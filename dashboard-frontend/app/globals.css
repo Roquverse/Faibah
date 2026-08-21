@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand - Faibah Colors */
+  --primary: #FBDF4B;
+  --secondary: #A5D149;
+  --deep-green: #346E3A;
+
+  /* Surfaces - Dashboard Light Theme */
+  --background: #F4F7FE;
+  --surface-01: #FFFFFF;
+  --surface-02: #F8F9FA;
+  --surface-03: #E9ECEF;
+
+  /* Semantic */
+  --success: #A5D149;
+  --warning: #FBDF4B;
+  --danger: #FF6B5F;
+  --muted: #64748B;
+
+  /* Global text color for light background */
+  --foreground: #0F172A;
+}
+
+@theme inline {
+  /* Typography */
+  --font-sans: var(--font-manrope);
+  --font-heading: var(--font-plus-jakarta-sans);
+
+  /* Colors */
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-deep-green: var(--deep-green);
+  --color-background: var(--background);
+  --color-surface-01: var(--surface-01);
+  --color-surface-02: var(--surface-02);
+  --color-surface-03: var(--surface-03);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-muted: var(--muted);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}

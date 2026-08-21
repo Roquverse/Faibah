@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand */
+  --primary: #FBDF4B;
+  --secondary: #A5D149;
+  --deep-green: #346E3A;
+
+  /* Surfaces */
+  --background: #000000;
+  --surface-01: #111111;
+  --surface-02: #191919;
+  --surface-03: #242424;
+
+  /* Light */
+  --mint: #DDEBE5;
+  --off-white: #F6F8EF;
+  --white: #FFFFFF;
+
+  /* Semantic */
+  --success: #A5D149;
+  --warning: #FBDF4B;
+  --danger: #FF6B5F;
+  --muted: #777777;
+
+  /* Global text color for dark background */
+  --foreground: #FFFFFF;
+}
+
+@theme inline {
+  /* Typography */
+  --font-sans: var(--font-manrope);
+  --font-heading: var(--font-plus-jakarta-sans);
+
+  /* Colors */
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-deep-green: var(--deep-green);
+  --color-background: var(--background);
+  --color-surface-01: var(--surface-01);
+  --color-surface-02: var(--surface-02);
+  --color-surface-03: var(--surface-03);
+  --color-mint: var(--mint);
+  --color-off-white: var(--off-white);
+  --color-white: var(--white);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-muted: var(--muted);
+  --color-foreground: var(--foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}

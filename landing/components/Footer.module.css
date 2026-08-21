@@ -1,0 +1,135 @@
+.footer {
+  position: relative;
+  background-color: #f6f8ef;
+  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+  padding: 8rem 2rem 2rem;
+  overflow: hidden;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+}
+
+.topSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6rem;
+}
+
+.brandCol {
+  flex: 1;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #111;
+  margin-bottom: 2rem;
+}
+
+.logoMark {
+  width: 24px;
+  height: 24px;
+  background: #3B82F6;
+  border-radius: 6px;
+  position: relative;
+}
+
+.logoMark::before, .logoMark::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 2px;
+}
+
+.logoMark::before { top: 4px; left: 4px; }
+.logoMark::after { bottom: 4px; right: 4px; }
+
+.slogan {
+  font-family: var(--font-plus-jakarta-sans), sans-serif;
+  font-size: 2.5rem;
+  font-weight: 500;
+  color: #111;
+  line-height: 1.2;
+}
+
+.linksCol {
+  display: flex;
+  gap: 6rem;
+}
+
+.linkGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.linkGroup a {
+  color: #666;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.linkGroup a::before {
+  content: '→';
+  margin-right: 0.5rem;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: all 0.2s ease;
+}
+
+.linkGroup a:hover {
+  color: #111;
+}
+
+.linkGroup a:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.bottomSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.copyright, .legalLinks a {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.legalLinks {
+  display: flex;
+  gap: 2rem;
+}
+
+.legalLinks a:hover {
+  color: #111;
+}
+
+@media (max-width: 1024px) {
+  .topSection {
+    flex-direction: column;
+    gap: 4rem;
+  }
+  .bottomSection {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
