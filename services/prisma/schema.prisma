@@ -37,10 +37,11 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
+  firstName String?
+  lastName  String?
   phone     String?
   avatarUrl String?
   userType  UserType?
-  role      Role     @default(CONTRACTOR)
   companyId String?
   company   Company?  @relation(fields: [companyId], references: [id])
   createdAt DateTime @default(now())

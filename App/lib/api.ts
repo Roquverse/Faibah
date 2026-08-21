@@ -58,6 +58,11 @@ export const CompanyApi = {
   updateProfile: (data: any) => fetchApi('/company/profile', { method: 'PATCH', body: JSON.stringify(data) }),
 };
 
+export const UsersApi = {
+  getProfile: () => fetchApi('/users/profile'),
+  updateProfile: (data: any) => fetchApi('/users/profile', { method: 'PATCH', body: JSON.stringify(data) }),
+};
+
 export const ClientsApi = {
   getAll: () => fetchApi('/clients'),
   getById: (id: string) => fetchApi(`/clients/${id}`),

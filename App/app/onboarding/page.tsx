@@ -108,6 +108,10 @@ export default function OnboardingPage() {
         throw new Error('No active session found');
       }
 
+      const fullName = session.user.user_metadata?.full_name || '';
+      const [firstName, ...lastNames] = fullName.split(' ');
+      const lastName = lastNames.join(' ');
+
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
       const res = await fetch(`${API_URL}/users/onboarding`, {
         method: 'POST',
@@ -115,7 +119,7 @@ export default function OnboardingPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ ...payload, email: session.user.email }),
+        body: JSON.stringify({ ...payload, email: session.user.email, firstName, lastName }),
       });
 
 

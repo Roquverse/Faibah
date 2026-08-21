@@ -5,7 +5,8 @@ import {
   Building2, CreditCard, Users, Bell, Loader2,
   User, Shield, Palette, LayoutGrid, Globe, ChevronRight, Save
 } from 'lucide-react';
-import { CompanyApi, UploadApi } from '@/lib/api';
+import { CompanyApi, UploadApi, UsersApi } from '@/lib/api';
+import { createClient } from '@/lib/supabase/client';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -14,6 +15,10 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [company, setCompany] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -30,12 +35,44 @@ export default function SettingsPage() {
 
   const loadProfile = async () => {
     try {
-      const data = await CompanyApi.getProfile();
-      setCompany(data);
+      const [companyData, userData] = await Promise.all([
+        CompanyApi.getProfile(),
+        UsersApi.getProfile()
+      ]);
+      setCompany(companyData);
+      setUser(userData);
     } catch (error) {
       console.error('Failed to load profile:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      setErrorMsg('Passwords do not match');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setErrorMsg('Password must be at least 8 characters');
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      
+      if (error) throw error;
+      
+      setSuccessMsg('Password updated successfully');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (error: any) {
+      setErrorMsg(error.message || 'Failed to update password');
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -45,6 +82,15 @@ export default function SettingsPage() {
     setSuccessMsg('');
     setErrorMsg('');
     try {
+      if (activeTab === 'profile') {
+        const updated = await UsersApi.updateProfile({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          avatarUrl: user.avatarUrl,
+        });
+        setUser(updated);
+      }
+
       if (activeTab === 'business' || activeTab === 'billing' || activeTab === 'team') {
         const updated = await CompanyApi.updateProfile({
           name: company.name,
@@ -167,10 +213,35 @@ export default function SettingsPage() {
                   {/* Avatar Upload */}
                   <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
                     <div className="w-20 h-20 shrink-0 bg-[#F4F1FA] rounded-full flex items-center justify-center overflow-hidden relative group">
-                      <User className="w-8 h-8 text-[#1C0A3E]" />
+                      {user?.avatarUrl ? (
+                        <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-8 h-8 text-[#1C0A3E]" />
+                      )}
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                         <span className="text-white text-[10px] font-bold uppercase tracking-wider">Change</span>
                       </div>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            try {
+                              setIsSaving(true);
+                              const result = await UploadApi.uploadImage(file);
+                              if (result?.url) {
+                                setUser({ ...user, avatarUrl: result.url });
+                              }
+                            } catch (error: any) {
+                              setErrorMsg('Failed to upload avatar.');
+                            } finally {
+                              setIsSaving(false);
+                            }
+                          }
+                        }}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
                     </div>
                     <div className="pt-2">
                       <h4 className="text-sm font-bold text-gray-900 mb-1">Profile Photo</h4>
@@ -183,7 +254,8 @@ export default function SettingsPage() {
                       <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">First Name</label>
                       <input 
                         type="text" 
-                        defaultValue="Faiba"
+                        value={user?.firstName || ''}
+                        onChange={(e) => setUser({...user, firstName: e.target.value})}
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
                       />
                     </div>
@@ -191,31 +263,55 @@ export default function SettingsPage() {
                       <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Last Name</label>
                       <input 
                         type="text" 
-                        defaultValue="Pro"
+                        value={user?.lastName || ''}
+                        onChange={(e) => setUser({...user, lastName: e.target.value})}
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
                       />
                     </div>
                   </div>
 
-                  <div>
+                  <div className="pb-6 border-b border-gray-100">
                     <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
                     <input 
                       type="email" 
-                      defaultValue="hello@faiba.pro"
-                      readOnly
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-500 cursor-not-allowed" 
-                    />
-                    <p className="text-xs text-gray-400 mt-2">Email changes require verification.</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Role</label>
-                    <input 
-                      type="text" 
-                      defaultValue="Personal Manager"
+                      value={user?.email || ''}
                       readOnly
                       className="w-full md:w-1/2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-500 cursor-not-allowed" 
                     />
+                    <p className="text-xs text-gray-400 mt-2">Email is linked to your authentication provider.</p>
+                  </div>
+
+                  <div className="pt-2">
+                    <h4 className="text-sm font-bold text-gray-900 mb-4">Change Password</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">New Password</label>
+                        <input 
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Confirm Password</label>
+                        <input 
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                        />
+                      </div>
+                    </div>
+                    <button 
+                      onClick={handlePasswordChange}
+                      disabled={isChangingPassword || !newPassword || !confirmPassword}
+                      className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                      {isChangingPassword ? 'Updating...' : 'Update Password'}
+                    </button>
                   </div>
                 </div>
               </div>

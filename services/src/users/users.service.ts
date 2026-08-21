@@ -7,6 +7,8 @@ export class UsersService {
 
   async completeOnboarding(payload: any, supabaseUserId: string) {
     const {
+      firstName,
+      lastName,
       userType,
       businessName,
       phone,
@@ -41,11 +43,14 @@ export class UsersService {
         id: supabaseUserId,
         email: payload.email || `${supabaseUserId}@faibah.user`,
         password: '', // No local password - auth is handled by Supabase
-        role: 'OWNER',
+        firstName: firstName || null,
+        lastName: lastName || null,
         userType: userType === 'professional' ? 'PROFESSIONAL' : 'CLIENT',
         phone: userType === 'professional' ? phone : clientPhoneOnly,
       },
       update: {
+        firstName: firstName || null,
+        lastName: lastName || null,
         userType: userType === 'professional' ? 'PROFESSIONAL' : 'CLIENT',
         phone: userType === 'professional' ? phone : clientPhoneOnly,
       }
@@ -120,5 +125,20 @@ export class UsersService {
     }
 
     throw new BadRequestException('Invalid userType');
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) throw new BadRequestException('User not found');
+    return user;
+  }
+
+  async updateProfile(userId: string, data: any) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
   }
 }
