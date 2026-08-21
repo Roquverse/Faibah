@@ -8,7 +8,7 @@ import {
 import { CompanyApi, UploadApi } from '@/lib/api';
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState('notifications');
+  const [activeTab, setActiveTab] = useState('profile');
   
   // State
   const [isLoading, setIsLoading] = useState(true);
@@ -90,7 +90,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="p-8 w-full max-w-6xl mx-auto font-sans min-h-screen bg-[#F8F9FA]">
+    <div className="p-8 w-full font-sans min-h-screen bg-[#F8F9FA]">
       
       {/* Header */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -154,10 +154,75 @@ export default function SettingsPage() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 max-w-3xl">
+        <div className="flex-1">
             
+            {activeTab === 'profile' && (
+              <div className="animate-in fade-in max-w-3xl">
+                <div className="mb-6">
+                  <h3 className="text-base font-bold text-gray-900 tracking-tight">My Profile</h3>
+                  <p className="text-sm text-gray-500 mt-1">Manage your personal information and login credentials.</p>
+                </div>
+                
+                <div className="border border-gray-200 rounded-xl bg-white p-6 md:p-8 space-y-6">
+                  {/* Avatar Upload */}
+                  <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
+                    <div className="w-20 h-20 shrink-0 bg-[#F4F1FA] rounded-full flex items-center justify-center overflow-hidden relative group">
+                      <User className="w-8 h-8 text-[#1C0A3E]" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <span className="text-white text-[10px] font-bold uppercase tracking-wider">Change</span>
+                      </div>
+                    </div>
+                    <div className="pt-2">
+                      <h4 className="text-sm font-bold text-gray-900 mb-1">Profile Photo</h4>
+                      <p className="text-sm text-gray-500 max-w-md">Recommended size is 256x256px.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">First Name</label>
+                      <input 
+                        type="text" 
+                        defaultValue="Faiba"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Last Name</label>
+                      <input 
+                        type="text" 
+                        defaultValue="Pro"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
+                    <input 
+                      type="email" 
+                      defaultValue="hello@faiba.pro"
+                      readOnly
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-500 cursor-not-allowed" 
+                    />
+                    <p className="text-xs text-gray-400 mt-2">Email changes require verification.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Role</label>
+                    <input 
+                      type="text" 
+                      defaultValue="Personal Manager"
+                      readOnly
+                      className="w-full md:w-1/2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-500 cursor-not-allowed" 
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'notifications' && (
-              <div className="animate-in fade-in">
+              <div className="animate-in fade-in max-w-3xl">
                 <div className="mb-6">
                   <h3 className="text-base font-bold text-gray-900 tracking-tight">Notification Preferences</h3>
                   <p className="text-sm text-gray-500 mt-1">Choose how and when you'd like to be notified.</p>
@@ -240,7 +305,7 @@ export default function SettingsPage() {
             )}
 
             {activeTab === 'business' && (
-              <div className="animate-in fade-in">
+              <div className="animate-in fade-in max-w-3xl">
                 <div className="mb-6">
                   <h3 className="text-base font-bold text-gray-900 tracking-tight">Business Profile</h3>
                   <p className="text-sm text-gray-500 mt-1">Update your company details, contact information, and registration.</p>
@@ -340,7 +405,7 @@ export default function SettingsPage() {
             )}
 
             {activeTab === 'billing' && (
-              <div className="animate-in fade-in">
+              <div className="animate-in fade-in max-w-3xl">
                 <div className="mb-6">
                   <h3 className="text-base font-bold text-gray-900 tracking-tight">Billing & Defaults</h3>
                   <p className="text-sm text-gray-500 mt-1">Configure your default currency, tax rates, and deposit requirements.</p>
@@ -402,7 +467,7 @@ export default function SettingsPage() {
             )}
 
             {activeTab === 'team' && (
-              <div className="animate-in fade-in">
+              <div className="animate-in fade-in max-w-3xl">
                 <div className="mb-6">
                   <h3 className="text-base font-bold text-gray-900 tracking-tight">Team Settings</h3>
                   <p className="text-sm text-gray-500 mt-1">Manage your team size and structure.</p>
@@ -434,8 +499,8 @@ export default function SettingsPage() {
             )}
 
             {/* Placeholders for new tabs */}
-            {['profile', 'security', 'appearance', 'integrations', 'localization'].includes(activeTab) && (
-              <div className="animate-in fade-in flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-gray-200 text-center">
+            {['security', 'appearance', 'integrations', 'localization'].includes(activeTab) && (
+              <div className="animate-in fade-in max-w-3xl flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-gray-200 text-center">
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                   {(() => {
                     const Icon = TABS.find(t => t.id === activeTab)?.icon;
