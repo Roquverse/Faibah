@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ProjectsApi, CompanyApi, ClientsApi } from '@/lib/api';
 import dynamic from 'next/dynamic';
+import DOMPurify from 'isomorphic-dompurify';
 import 'react-quill-new/dist/quill.snow.css';
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false, loading: () => <p>Loading editor...</p> });
@@ -546,7 +547,7 @@ export default function NewProjectProposal() {
  >
  <div 
  className="ql-editor"
- dangerouslySetInnerHTML={{ __html: proposalHTML }}
+ dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proposalHTML) }}
  />
  </div>
  </div>
