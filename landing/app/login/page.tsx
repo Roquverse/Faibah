@@ -55,7 +55,7 @@ export default function LoginPage() {
               Sign in to Faibah
             </h1>
             <p className="text-gray-500 text-sm">
-              One solution for all your business CRM problems
+              One solution for all your Project & Invoicing solution
             </p>
           </div>
 
@@ -145,12 +145,12 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 type="button"
-                className="flex-1 flex items-center justify-center gap-2 py-3 border border-gray-200 rounded-xl bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none transition-all active:scale-[0.98]"
+                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2.5 border border-gray-200 rounded-lg bg-white text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition-all shadow-sm"
               >
-                <svg viewBox="0 0 24 24" className="w-5 h-5">
+                <svg viewBox="0 0 24 24" className="w-4 h-4">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -161,9 +161,9 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                className="flex-1 flex items-center justify-center gap-2 py-3 border border-gray-200 rounded-xl bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none transition-all active:scale-[0.98]"
+                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2.5 border border-gray-200 rounded-lg bg-white text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition-all shadow-sm"
               >
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current text-black">
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-black">
                   <path d="M16.365 14.736c-.035-3.23 2.656-4.793 2.778-4.873-1.493-2.193-3.805-2.493-4.636-2.528-1.97-.2-3.847 1.163-4.85 1.163-1.002 0-2.55-1.127-4.168-1.096-2.09.03-4.015 1.218-5.088 3.08-2.18 3.784-.555 9.387 1.558 12.44 1.042 1.5 2.277 3.178 3.905 3.12 1.562-.06 2.155-.99 4.043-.99 1.886 0 2.42.99 4.045.96 1.683-.03 2.748-1.503 3.78-3.007 1.194-1.745 1.685-3.435 1.71-3.522-.04-.015-3.18-1.22-3.21-4.783h.133z" />
                   <path d="M14.938 5.753c.857-1.04 1.436-2.484 1.278-3.923-1.24.05-2.735.827-3.62 1.865-.79.882-1.484 2.355-1.298 3.77 1.385.108 2.78-.66 3.64-1.712z" />
                 </svg>
