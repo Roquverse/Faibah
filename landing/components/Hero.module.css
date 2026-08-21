@@ -541,32 +541,16 @@
     text-align: center;
   }
 
-  /* Hide the peripheral floating elements by default, but show selected ones */
   .floatingElement {
     display: none;
   }
 
-  .topLeft {
-    display: block;
-    top: 140px;
-    left: 2%;
-    transform: scale(0.85);
-    transform-origin: top left;
-    opacity: 0.95;
-  }
-
-  .bottomLeft {
-    display: block;
-    bottom: 5%;
-    right: 2%;
-    left: auto;
-    transform: scale(0.85);
-    transform-origin: bottom right;
-    opacity: 0.95;
-  }
-
-  .bottomRight {
-    display: none;
+  .topLeft,
+  .topRight,
+  .bottomLeft,
+  .bottomRight,
+  .topCenter {
+    display: none !important;
   }
 
   .topCenter {

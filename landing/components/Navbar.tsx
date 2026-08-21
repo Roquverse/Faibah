@@ -39,7 +39,7 @@ export default function Navbar() {
         <div className={styles.mobileOverlay} onClick={() => setIsOpen(false)}>
           <div className={styles.mobileMenu} onClick={(e) => e.stopPropagation()}>
             <div className={styles.mobileHeader}>
-              <div className={styles.mobileBrand}>Faibah</div>
+              <img src="/logo.png" alt="Faibah" height={32} />
               <button onClick={() => setIsOpen(false)} className={styles.closeButton}>
                 <X size={24} color="#111" />
               </button>
