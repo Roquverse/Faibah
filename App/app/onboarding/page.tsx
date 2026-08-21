@@ -123,7 +123,6 @@ export default function OnboardingPage() {
         throw new Error('Failed to save onboarding data');
       }
 
-      const supabase = createClient();
       await supabase.auth.updateUser({
         data: { onboarding_completed: true }
       });
