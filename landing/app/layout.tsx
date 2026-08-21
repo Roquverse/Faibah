@@ -15,6 +15,9 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Faibah - Invoicing & Kanban",
   description: "All-in-one Invoicing & Kanban platform",
+  icons: {
+    icon: '/favicon.png'
+  }
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
