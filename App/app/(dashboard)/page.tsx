@@ -123,57 +123,67 @@ export default function OverviewPage() {
  <button className="text-[11px] font-medium text-gray-500 hover:text-gray-900 transition-colors">View All</button>
  </div>
 
- {/* Closest Subscription */}
- <div className="bg-white rounded-xl p-5 border border-gray-200">
- <div className="flex items-center justify-between mb-4">
- <div>
- <h3 className="font-semibold text-gray-900 tracking-tight">Cloud Hosting</h3>
- <p className="text-xs font-medium text-gray-500">INV-092 • Acme Corp</p>
- </div>
- <button className="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:text-gray-900 transition-colors"><ArrowUpRight className="w-4 h-4" /></button>
- </div>
- 
- <div className="h-28 bg-gray-50 border border-gray-100 rounded-lg mb-4 flex flex-col justify-center px-4 relative">
- <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 text-[10px] font-medium">
- <Clock className="w-3 h-3 text-[#FBDF4B]" /> 4 Days Left
- </div>
- <div className="text-xs font-medium text-gray-500 mb-1">Upcoming Charge</div>
- <div className="text-2xl font-semibold text-gray-900 tracking-tight">₦120,000</div>
- </div>
+ {(!overview?.subscriptions || overview.subscriptions.length === 0) ? (
+   <div className="bg-white rounded-xl p-5 border border-gray-200 text-center text-sm text-gray-500 py-8">
+     No active subscriptions
+   </div>
+ ) : (
+   <>
+     {/* Closest Subscription */}
+     {(() => {
+       const closest = overview.subscriptions[0];
+       const daysLeft = Math.ceil((new Date(closest.nextBillingDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+       return (
+         <div className="bg-white rounded-xl p-5 border border-gray-200">
+           <div className="flex items-center justify-between mb-4">
+             <div>
+               <h3 className="font-semibold text-gray-900 tracking-tight">{closest.name}</h3>
+               <p className="text-xs font-medium text-gray-500">{closest.invoiceRef ? closest.invoiceRef + ' • ' : ''}{closest.client?.name}</p>
+             </div>
+             <button className="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:text-gray-900 transition-colors"><ArrowUpRight className="w-4 h-4" /></button>
+           </div>
+           
+           <div className="h-28 bg-gray-50 border border-gray-100 rounded-lg mb-4 flex flex-col justify-center px-4 relative">
+             <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 text-[10px] font-medium">
+               <Clock className="w-3 h-3 text-[#FBDF4B]" /> {daysLeft} Days Left
+             </div>
+             <div className="text-xs font-medium text-gray-500 mb-1">Upcoming Charge</div>
+             <div className="text-2xl font-semibold text-gray-900 tracking-tight">₦{closest.amount.toLocaleString()}</div>
+           </div>
 
- <div className="flex justify-between text-center px-1">
- <div><div className="text-sm font-semibold text-gray-900 tracking-tight">Monthly</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Frequency</div></div>
- <div><div className="text-sm font-semibold text-gray-900 tracking-tight">Aug 24</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Due Date</div></div>
- <div><div className="text-sm font-semibold text-[#346E3A] tracking-tight">Active</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Status</div></div>
- </div>
- </div>
+           <div className="flex justify-between text-center px-1">
+             <div><div className="text-sm font-semibold text-gray-900 tracking-tight capitalize">{closest.frequency.toLowerCase()}</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Frequency</div></div>
+             <div><div className="text-sm font-semibold text-gray-900 tracking-tight">{format(new Date(closest.nextBillingDate), 'MMM d')}</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Due Date</div></div>
+             <div><div className="text-sm font-semibold text-[#346E3A] tracking-tight">Active</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Status</div></div>
+           </div>
+         </div>
+       );
+     })()}
 
- {/* Other Subscriptions List */}
- <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
- <div className="divide-y divide-gray-100">
- <div className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer group">
- <div>
- <div className="font-medium text-gray-900 text-sm tracking-tight mb-0.5">Maintenance Retainer</div>
- <div className="text-[11px] text-gray-500 font-medium">₦450,000 • Yearly</div>
- </div>
- <div className="text-right">
- <div className="text-xs font-semibold text-gray-900 mb-0.5 group-hover:text-[#346E3A] transition-colors">12 Days</div>
- <div className="text-[10px] text-gray-400 font-medium">Sep 1</div>
- </div>
- </div>
-
- <div className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer group">
- <div>
- <div className="font-medium text-gray-900 text-sm tracking-tight mb-0.5">SEO Package</div>
- <div className="text-[11px] text-gray-500 font-medium">₦85,000 • Monthly</div>
- </div>
- <div className="text-right">
- <div className="text-xs font-semibold text-gray-900 mb-0.5 group-hover:text-[#346E3A] transition-colors">15 Days</div>
- <div className="text-[10px] text-gray-400 font-medium">Sep 4</div>
- </div>
- </div>
- </div>
- </div>
+     {/* Other Subscriptions List */}
+     {overview.subscriptions.length > 1 && (
+       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+         <div className="divide-y divide-gray-100">
+           {overview.subscriptions.slice(1).map((sub: any, idx: number) => {
+             const daysLeft = Math.ceil((new Date(sub.nextBillingDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+             return (
+               <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer group">
+                 <div>
+                   <div className="font-medium text-gray-900 text-sm tracking-tight mb-0.5">{sub.name}</div>
+                   <div className="text-[11px] text-gray-500 font-medium">₦{sub.amount.toLocaleString()} • {sub.frequency.charAt(0) + sub.frequency.slice(1).toLowerCase()}</div>
+                 </div>
+                 <div className="text-right">
+                   <div className="text-xs font-semibold text-gray-900 mb-0.5 group-hover:text-[#346E3A] transition-colors">{daysLeft} Days</div>
+                   <div className="text-[10px] text-gray-400 font-medium">{format(new Date(sub.nextBillingDate), 'MMM d')}</div>
+                 </div>
+               </div>
+             );
+           })}
+         </div>
+       </div>
+     )}
+   </>
+ )}
  </div>
  </div>
 
@@ -245,27 +255,21 @@ export default function OverviewPage() {
  <h3 className="text-base font-semibold text-gray-900 tracking-tight mb-6">Reminders</h3>
  
  <div className="space-y-4">
- <div className="flex items-start justify-between group cursor-pointer">
- <div>
- <div className="font-medium text-gray-900 text-sm mb-1">Follow-Ups</div>
- <div className="text-xs text-gray-500 mb-3">15 leads need follow up</div>
- <div className="flex -space-x-1.5">
- <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" className="w-6 h-6 rounded-full border border-white" />
- <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" className="w-6 h-6 rounded-full border border-white" />
- <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" className="w-6 h-6 rounded-full border border-white" />
- <div className="w-6 h-6 rounded-full bg-gray-100 border border-white flex items-center justify-center text-[9px] font-medium text-gray-600">+12</div>
- </div>
- </div>
- </div>
-
- <div className="h-px bg-gray-100"></div>
-
- <div className="flex items-start justify-between group cursor-pointer">
- <div>
- <div className="font-medium text-gray-900 text-sm mb-1">Visits</div>
- <div className="text-xs text-gray-500">2 Properties and 3 Leads</div>
- </div>
- </div>
+ {(!overview?.reminders || overview.reminders.length === 0) ? (
+   <div className="text-sm text-gray-500 text-center py-4">No reminders</div>
+ ) : (
+   overview.reminders.map((reminder: any, idx: number) => (
+     <React.Fragment key={idx}>
+       <div className="flex items-start justify-between group cursor-pointer">
+         <div>
+           <div className="font-medium text-gray-900 text-sm mb-1">{reminder.title}</div>
+           <div className="text-xs text-gray-500 mb-3">{reminder.description}</div>
+         </div>
+       </div>
+       {idx < overview.reminders.length - 1 && <div className="h-px bg-gray-100"></div>}
+     </React.Fragment>
+   ))
+ )}
  </div>
  </div>
 

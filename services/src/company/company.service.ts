@@ -64,18 +64,38 @@ export class CompanyService {
       img: c.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random`
     }));
 
-    // Generate basic performance data (e.g. by month)
-    // For simplicity, returning mocked monthly data since full date aggregation is complex in pure Prisma
-    const performanceData = [
-      { name: 'Jan', revenue: 4000, visit: 0 },
-      { name: 'Feb', revenue: 3000, visit: 0 },
-      { name: 'Mar', revenue: 2000, visit: 0 },
-      { name: 'Apr', revenue: 2780, visit: 0 },
-      { name: 'May', revenue: 1890, visit: 0 },
-      { name: 'Jun', revenue: 6900, visit: 0 },
-      { name: 'Jul', revenue: 3490, visit: 0 },
-      { name: 'Aug', revenue: 5490, visit: 0 },
-    ];
+    // Generate performance data
+    const currentYear = new Date().getFullYear();
+    const payments = await this.prisma.paymentRecord.findMany({
+      where: {
+        invoice: { project: { client: { companyId } } },
+        createdAt: { gte: new Date(`${currentYear}-01-01T00:00:00.000Z`) }
+      },
+      select: { amount: true, createdAt: true }
+    });
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const performanceData = months.map(m => ({ name: m, revenue: 0, visit: 0 }));
+    
+    payments.forEach(p => {
+      const monthIndex = p.createdAt.getMonth();
+      performanceData[monthIndex].revenue += p.amount;
+    });
+
+    // Subscriptions
+    const subscriptions = await this.prisma.subscription.findMany({
+      where: { companyId, status: 'ACTIVE' },
+      include: { client: { select: { name: true } } },
+      orderBy: { nextBillingDate: 'asc' },
+      take: 3,
+    });
+
+    // Reminders
+    const reminders = await this.prisma.reminder.findMany({
+      where: { companyId },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
 
     return {
       activeClients,
@@ -83,7 +103,9 @@ export class CompanyService {
       totalClosed,
       totalRevenue,
       topClients,
-      performanceData
+      performanceData,
+      subscriptions,
+      reminders
     };
   }
 }

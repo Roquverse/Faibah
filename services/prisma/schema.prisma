@@ -29,8 +29,10 @@ model Company {
   logoUrl             String?
   createdAt           DateTime @default(now())
 
-  users     User[]
-  clients   Client[]
+  users         User[]
+  clients       Client[]
+  subscriptions Subscription[]
+  reminders     Reminder[]
 }
 
 model User {
@@ -98,6 +100,7 @@ model Client {
   quotations       Quotation[]
   invoices         Invoice[]
   contacts         ClientContact[]
+  subscriptions    Subscription[]
 }
 
 model ClientContact {
@@ -397,4 +400,41 @@ model ChannelReaction {
   reactorType ChannelSenderType
   emoji       String
   createdAt   DateTime          @default(now())
+}
+
+enum SubscriptionFrequency {
+  MONTHLY
+  YEARLY
+  WEEKLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+model Subscription {
+  id              String   @id @default(uuid())
+  name            String
+  invoiceRef      String?  
+  amount          Float
+  frequency       SubscriptionFrequency
+  nextBillingDate DateTime
+  status          SubscriptionStatus @default(ACTIVE)
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id])
+  createdAt       DateTime @default(now())
+}
+
+model Reminder {
+  id          String   @id @default(uuid())
+  title       String   
+  description String?  
+  iconType    String?  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  createdAt   DateTime @default(now())
 }
