@@ -21,6 +21,14 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
       headers.set('Authorization', `Bearer ${session.access_token}`);
+      // Debug: decode the JWT header and payload
+      try {
+        const parts = session.access_token.split('.');
+        const header = JSON.parse(atob(parts[0]));
+        const payload = JSON.parse(atob(parts[1]));
+        console.log('[fetchApi] JWT header:', header);
+        console.log('[fetchApi] JWT payload iss/role/sub:', payload.iss, payload.role, payload.sub?.substring(0, 8));
+      } catch (e) {}
     }
     console.log(`[fetchApi] ${endpoint} -> Auth Header:`, headers.has('Authorization') ? 'PRESENT' : 'MISSING');
   }
