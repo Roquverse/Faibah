@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, Video, Phone, Users, CheckCircle2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, Video, Phone, Users, CheckCircle2, X, DollarSign, FolderGit2 } from 'lucide-react';
 import { AppointmentsApi } from '@/lib/api';
 
 type AppointmentType = 'MEETING' | 'CALL' | 'DEADLINE' | 'REMINDER';
@@ -91,25 +91,29 @@ export default function SchedulePage() {
  return appointments.filter(app => isSameDay(parseISO(app.date), day)).sort((a, b) => a.startTime.localeCompare(b.startTime));
  };
 
- const getTypeStyles = (type: AppointmentType) => {
- switch (type) {
- case 'MEETING': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
- case 'CALL': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
- case 'DEADLINE': return 'bg-rose-50 text-rose-700 border-rose-200';
- case 'REMINDER': return 'bg-amber-50 text-amber-700 border-amber-200';
- default: return 'bg-gray-50 text-gray-700 border-gray-200';
- }
- };
+  const getTypeStyles = (type: string) => {
+    switch (type) {
+      case 'MEETING': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'CALL': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'DEADLINE': return 'bg-rose-50 text-rose-700 border-rose-200';
+      case 'REMINDER': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'INVOICE': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'MILESTONE': return 'bg-blue-50 text-blue-700 border-blue-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
 
- const getTypeIcon = (type: AppointmentType) => {
- switch (type) {
- case 'MEETING': return <Users className="w-3 h-3 mr-1" />;
- case 'CALL': return <Phone className="w-3 h-3 mr-1" />;
- case 'DEADLINE': return <Clock className="w-3 h-3 mr-1" />;
- case 'REMINDER': return <CheckCircle2 className="w-3 h-3 mr-1" />;
- default: return null;
- }
- };
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'MEETING': return <Users className="w-3 h-3 mr-1" />;
+      case 'CALL': return <Phone className="w-3 h-3 mr-1" />;
+      case 'DEADLINE': return <Clock className="w-3 h-3 mr-1" />;
+      case 'REMINDER': return <CheckCircle2 className="w-3 h-3 mr-1" />;
+      case 'INVOICE': return <DollarSign className="w-3 h-3 mr-1" />;
+      case 'MILESTONE': return <FolderGit2 className="w-3 h-3 mr-1" />;
+      default: return null;
+    }
+  };
 
  return (
  <div className="p-8 w-full font-sans">

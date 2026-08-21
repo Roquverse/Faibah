@@ -6,9 +6,55 @@ export class AppointmentsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.appointment.findMany({
+    const appointments = await this.prisma.appointment.findMany({
       orderBy: { date: 'asc' },
     });
+
+    const pendingInvoices = await this.prisma.invoice.findMany({
+      where: {
+        status: { in: ['DRAFT', 'SENT'] },
+        dueDate: { not: null },
+      },
+      include: {
+        items: { select: { amount: true } }
+      }
+    });
+
+    const invoiceItems = pendingInvoices.map(inv => {
+      const totalAmount = inv.items.reduce((sum, item) => sum + item.amount, 0);
+      return {
+        id: inv.id,
+        title: `Invoice ${inv.invoiceRef || 'INV-XXX'} Due`,
+        description: `Awaiting Payment • ₦${(totalAmount / 1000000).toFixed(1)}M`, // Simple formatting for mockup
+        date: inv.dueDate,
+        startTime: '09:00',
+        endTime: '17:00',
+        type: 'INVOICE',
+        amount: totalAmount,
+      };
+    });
+
+    const pendingTasks = await this.prisma.task.findMany({
+      where: {
+        dueDate: { not: null },
+        status: { not: 'DONE' },
+      }
+    });
+
+    const taskItems = pendingTasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      description: 'Project Check-in',
+      date: task.dueDate,
+      startTime: '10:00',
+      endTime: '11:00',
+      type: 'MILESTONE',
+    }));
+
+    const unified = [...appointments, ...invoiceItems, ...taskItems];
+    unified.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    return unified;
   }
 
   async create(data: any) {
