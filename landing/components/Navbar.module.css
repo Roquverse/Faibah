@@ -208,6 +208,17 @@
 }
 
 @media (max-width: 768px) {
+  .navbarContainer {
+    padding: 0.6rem 1rem;
+    gap: 0.5rem;
+  }
+  .brand img {
+    width: 90px !important;
+  }
+  .requestDemo {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
   .navLinks {
     display: none;
   }
