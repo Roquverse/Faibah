@@ -1,29 +1,41 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { passportJwtSecret } from 'jwks-rsa';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
-    const secret = process.env.JWT_SECRET || 'supersecret_mvp_key';
-    console.log('[JwtStrategy] Using secret (first 10 chars):', secret.substring(0, 10));
+    // Supabase now uses ES256 (asymmetric) by default for newer projects.
+    // We must verify using JWKS (public keys) from Supabase's well-known endpoint.
+    const jwksUri = `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`;
+    console.log('[JwtStrategy] Using JWKS URI:', jwksUri);
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: secret,
+      secretOrKeyProvider: passportJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri,
+      }),
+      algorithms: ['ES256', 'HS256'], // support both old and new Supabase projects
     });
   }
 
   async validate(payload: any) {
-    console.log('[JwtStrategy] validate() called with payload:', JSON.stringify(payload).substring(0, 100));
+    console.log('[JwtStrategy] validate() called, sub:', payload?.sub?.substring(0, 8));
     if (!payload.sub) {
       throw new UnauthorizedException();
     }
-    return { 
-      userId: payload.sub, 
-      email: payload.email, 
-      role: payload.role, 
-      companyId: payload.companyId 
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      companyId: payload.companyId,
     };
   }
 }
