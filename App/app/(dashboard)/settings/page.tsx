@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, Building2, CreditCard, Users, Bell, Loader2 } from 'lucide-react';
+import { 
+  Building2, CreditCard, Users, Bell, Loader2,
+  User, Shield, Palette, LayoutGrid, Globe, ChevronRight, Save
+} from 'lucide-react';
 import { CompanyApi, UploadApi } from '@/lib/api';
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState('business');
+  const [activeTab, setActiveTab] = useState('notifications');
   
   // State
   const [isLoading, setIsLoading] = useState(true);
@@ -13,6 +16,13 @@ export default function SettingsPage() {
   const [company, setCompany] = useState<any>(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Notifications State (Mocked for UI)
+  const [emailDigest, setEmailDigest] = useState(true);
+  const [payrollAlerts, setPayrollAlerts] = useState(true);
+  const [newApplicants, setNewApplicants] = useState(false);
+  const [mentions, setMentions] = useState(true);
+  const [productUpdates, setProductUpdates] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -30,27 +40,26 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
-    if (!company) return;
+    if (!company && activeTab !== 'notifications') return;
     setIsSaving(true);
     setSuccessMsg('');
     setErrorMsg('');
     try {
-      const updated = await CompanyApi.updateProfile({
-        name: company.name,
-        workType: company.workType,
-        defaultCurrency: company.defaultCurrency,
-        taxRate: company.taxRate ? parseFloat(company.taxRate) : null,
-        requireDeposit: company.requireDeposit,
-        depositPercent: company.depositPercent ? parseFloat(company.depositPercent) : null,
-        teamSize: company.teamSize,
-      });
-      setCompany(updated);
+      if (activeTab === 'business' || activeTab === 'billing' || activeTab === 'team') {
+        const updated = await CompanyApi.updateProfile({
+          name: company.name,
+          workType: company.workType,
+          defaultCurrency: company.defaultCurrency,
+          taxRate: company.taxRate ? parseFloat(company.taxRate) : null,
+          requireDeposit: company.requireDeposit,
+          depositPercent: company.depositPercent ? parseFloat(company.depositPercent) : null,
+          teamSize: company.teamSize,
+        });
+        setCompany(updated);
+        window.dispatchEvent(new Event('company-updated'));
+      }
       
-      // Dispatch a custom event to notify Sidebar/Header of the update
-      window.dispatchEvent(new Event('company-updated'));
       setSuccessMsg('Settings saved successfully!');
-      
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (error: any) {
       console.error('Failed to save profile:', error);
@@ -68,77 +77,176 @@ export default function SettingsPage() {
     );
   }
 
+  const TABS = [
+    { id: 'profile', icon: User, label: 'My Profile' },
+    { id: 'business', icon: Building2, label: 'Company' },
+    { id: 'notifications', icon: Bell, label: 'Notifications' },
+    { id: 'security', icon: Shield, label: 'Security' },
+    { id: 'billing', icon: CreditCard, label: 'Billing & Plan' },
+    { id: 'team', icon: Users, label: 'Team & Roles' },
+    { id: 'appearance', icon: Palette, label: 'Appearance' },
+    { id: 'integrations', icon: LayoutGrid, label: 'Integrations' },
+    { id: 'localization', icon: Globe, label: 'Localization' },
+  ];
+
   return (
-    <div className="p-8 w-full max-w-6xl mx-auto font-sans">
+    <div className="p-8 w-full max-w-6xl mx-auto font-sans min-h-screen bg-[#F8F9FA]">
       
       {/* Header */}
-      <div className="mb-8 flex justify-between items-start">
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Settings</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your business profile, billing, and team preferences.</p>
+          <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">Settings</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your profile, workspace, and platform preferences.</p>
         </div>
         
-        {/* Floating Toast Messages */}
-        <div className="flex flex-col gap-2 min-w-[250px]">
+        <div className="flex items-center gap-3">
           {successMsg && (
-            <div className="px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-medium animate-in fade-in slide-in-from-top-2">
+            <div className="px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-medium animate-in fade-in slide-in-from-right-4 mr-2">
               {successMsg}
             </div>
           )}
           {errorMsg && (
-            <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-medium animate-in fade-in slide-in-from-top-2">
+            <div className="px-4 py-2 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium animate-in fade-in slide-in-from-right-4 mr-2">
               {errorMsg}
             </div>
           )}
+          
+          <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+            Cancel
+          </button>
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 bg-[#1C0A3E] text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-[#2A105D] transition-colors disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col md:flex-row gap-12">
         
         {/* Sidebar Nav */}
-        <div className="w-full md:w-64 shrink-0 space-y-1">
-          <button 
-            onClick={() => setActiveTab('business')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeTab === 'business' ? 'bg-gray-50 text-[#346E3A]' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-          >
-            <Building2 className="w-4 h-4" />
-            Business Profile
-          </button>
-          <button 
-            onClick={() => setActiveTab('billing')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeTab === 'billing' ? 'bg-gray-50 text-[#346E3A]' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-          >
-            <CreditCard className="w-4 h-4" />
-            Billing & Defaults
-          </button>
-          <button 
-            onClick={() => setActiveTab('team')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeTab === 'team' ? 'bg-gray-50 text-[#346E3A]' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-          >
-            <Users className="w-4 h-4" />
-            Team Settings
-          </button>
-          <button 
-            onClick={() => setActiveTab('notifications')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeTab === 'notifications' ? 'bg-gray-50 text-[#346E3A]' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-          >
-            <Bell className="w-4 h-4" />
-            Notifications
-          </button>
+        <div className="w-full md:w-[240px] shrink-0">
+          <div className="bg-white rounded-xl border border-gray-200 p-2 space-y-0.5">
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button 
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive 
+                      ? 'bg-[#F4F1FA] text-gray-900' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <tab.icon className={`w-4 h-4 ${isActive ? 'text-gray-900' : 'text-gray-500'}`} />
+                    {tab.label}
+                  </div>
+                  {isActive && <ChevronRight className="w-4 h-4 text-gray-400" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1">
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="flex-1 max-w-3xl">
             
-            {activeTab === 'business' && (
-              <div className="p-8 space-y-8 animate-in fade-in">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-1">Business Profile</h3>
-                  <p className="text-sm text-gray-500">Update your company details, contact information, and registration.</p>
+            {activeTab === 'notifications' && (
+              <div className="animate-in fade-in">
+                <div className="mb-6">
+                  <h3 className="text-base font-bold text-gray-900 tracking-tight">Notification Preferences</h3>
+                  <p className="text-sm text-gray-500 mt-1">Choose how and when you'd like to be notified.</p>
                 </div>
                 
-                <div className="space-y-6 max-w-2xl">
+                <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
+                  
+                  {/* Toggle Item */}
+                  <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">Email digest</div>
+                      <div className="text-sm text-gray-500 mt-1">Daily summary of key HR activity.</div>
+                    </div>
+                    <button 
+                      onClick={() => setEmailDigest(!emailDigest)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emailDigest ? 'bg-[#1C0A3E]' : 'bg-gray-200'}`}
+                    >
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${emailDigest ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Toggle Item */}
+                  <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">Payroll alerts</div>
+                      <div className="text-sm text-gray-500 mt-1">Notify me before each payroll cycle.</div>
+                    </div>
+                    <button 
+                      onClick={() => setPayrollAlerts(!payrollAlerts)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${payrollAlerts ? 'bg-[#1C0A3E]' : 'bg-gray-200'}`}
+                    >
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${payrollAlerts ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Toggle Item */}
+                  <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">New applicants</div>
+                      <div className="text-sm text-gray-500 mt-1">Push notification when a new candidate applies.</div>
+                    </div>
+                    <button 
+                      onClick={() => setNewApplicants(!newApplicants)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${newApplicants ? 'bg-[#1C0A3E]' : 'bg-gray-200'}`}
+                    >
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${newApplicants ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Toggle Item */}
+                  <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">Mentions</div>
+                      <div className="text-sm text-gray-500 mt-1">Email me when teammates @mention me.</div>
+                    </div>
+                    <button 
+                      onClick={() => setMentions(!mentions)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${mentions ? 'bg-[#1C0A3E]' : 'bg-gray-200'}`}
+                    >
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${mentions ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Toggle Item */}
+                  <div className="p-5 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">Product updates</div>
+                      <div className="text-sm text-gray-500 mt-1">Occasional emails about new features.</div>
+                    </div>
+                    <button 
+                      onClick={() => setProductUpdates(!productUpdates)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${productUpdates ? 'bg-[#1C0A3E]' : 'bg-gray-200'}`}
+                    >
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${productUpdates ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'business' && (
+              <div className="animate-in fade-in">
+                <div className="mb-6">
+                  <h3 className="text-base font-bold text-gray-900 tracking-tight">Business Profile</h3>
+                  <p className="text-sm text-gray-500 mt-1">Update your company details, contact information, and registration.</p>
+                </div>
+                
+                <div className="border border-gray-200 rounded-xl bg-white p-6 md:p-8 space-y-6">
                   {/* Logo Upload */}
                     <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
                       <div className="w-24 h-24 shrink-0 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden relative group">
@@ -200,7 +308,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  {/* Contact Info (Mocked since not in Prisma Model yet) */}
+                  {/* Contact Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Company Email</label>
@@ -228,28 +336,17 @@ export default function SettingsPage() {
                     <input type="text" defaultValue="RC-1234567" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" />
                   </div>
                 </div>
-
-                <div className="pt-6 border-t border-gray-100 flex justify-end">
-                  <button 
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#F3D740] transition-colors disabled:opacity-50"
-                  >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
               </div>
             )}
 
             {activeTab === 'billing' && (
-              <div className="p-8 space-y-8 animate-in fade-in">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-1">Billing & Defaults</h3>
-                  <p className="text-sm text-gray-500">Configure your default currency, tax rates, and deposit requirements.</p>
+              <div className="animate-in fade-in">
+                <div className="mb-6">
+                  <h3 className="text-base font-bold text-gray-900 tracking-tight">Billing & Defaults</h3>
+                  <p className="text-sm text-gray-500 mt-1">Configure your default currency, tax rates, and deposit requirements.</p>
                 </div>
                 
-                <div className="space-y-6 max-w-lg">
+                <div className="border border-gray-200 rounded-xl bg-white p-6 md:p-8 space-y-6">
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Default Currency</label>
@@ -301,102 +398,54 @@ export default function SettingsPage() {
                     />
                   </div>
                 </div>
-
-                <div className="pt-6 border-t border-gray-100 flex justify-end">
-                  <button 
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#F3D740] transition-colors disabled:opacity-50"
-                  >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {isSaving ? 'Saving...' : 'Save Settings'}
-                  </button>
-                </div>
               </div>
             )}
 
             {activeTab === 'team' && (
-              <div className="p-8 animate-in fade-in">
-                <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-1">Team Settings</h3>
-                <p className="text-sm text-gray-500 mb-8">Manage your team size and structure.</p>
-                
-                <div className="max-w-lg mb-8">
-                  <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Team Size</label>
-                  <select 
-                    value={company?.teamSize || ''}
-                    onChange={(e) => setCompany({...company, teamSize: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white"
-                  >
-                    <option value="Just me (Solo)">Just me (Solo)</option>
-                    <option value="2-5 people">2-5 people</option>
-                    <option value="6-15 people">6-15 people</option>
-                    <option value="15+ people">15+ people</option>
-                  </select>
+              <div className="animate-in fade-in">
+                <div className="mb-6">
+                  <h3 className="text-base font-bold text-gray-900 tracking-tight">Team Settings</h3>
+                  <p className="text-sm text-gray-500 mt-1">Manage your team size and structure.</p>
                 </div>
+                
+                <div className="border border-gray-200 rounded-xl bg-white p-6 md:p-8">
+                  <div className="max-w-lg mb-8">
+                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Team Size</label>
+                    <select 
+                      value={company?.teamSize || ''}
+                      onChange={(e) => setCompany({...company, teamSize: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white"
+                    >
+                      <option value="Just me (Solo)">Just me (Solo)</option>
+                      <option value="2-5 people">2-5 people</option>
+                      <option value="6-15 people">6-15 people</option>
+                      <option value="15+ people">15+ people</option>
+                    </select>
+                  </div>
 
-                <div className="p-6 bg-[#F8F9FA] rounded-xl border border-gray-200 border-dashed text-center">
-                  <p className="text-sm text-gray-600 mb-4 font-medium">To invite team members and assign roles, upgrade to the Agency plan.</p>
-                  <button className="px-5 py-2.5 bg-white border border-gray-200 text-gray-900 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors">
-                    Upgrade Plan
-                  </button>
-                </div>
-                
-                <div className="pt-6 border-t border-gray-100 flex justify-end">
-                  <button 
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#F3D740] transition-colors disabled:opacity-50"
-                  >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {isSaving ? 'Saving...' : 'Save Settings'}
-                  </button>
+                  <div className="p-6 bg-[#F8F9FA] rounded-xl border border-gray-200 border-dashed text-center">
+                    <p className="text-sm text-gray-600 mb-4 font-medium">To invite team members and assign roles, upgrade to the Agency plan.</p>
+                    <button className="px-5 py-2.5 bg-white border border-gray-200 text-gray-900 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors">
+                      Upgrade Plan
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
-            {activeTab === 'notifications' && (
-              <div className="p-8 animate-in fade-in">
-                <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-1">Notifications</h3>
-                <p className="text-sm text-gray-500 mb-8">Choose how you want to receive updates.</p>
-                
-                <div className="space-y-6">
-                  <label className="flex items-start gap-4 cursor-pointer group">
-                    <div className="relative flex items-center justify-center w-5 h-5 mt-0.5">
-                      <input type="checkbox" defaultChecked className="peer appearance-none w-5 h-5 border border-gray-200 rounded bg-white checked:bg-[#346E3A] checked:border-[#346E3A] transition-colors" />
-                      <div className="absolute pointer-events-none opacity-0 peer-checked:opacity-100 text-white">
-                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm font-semibold text-gray-900 group-hover:text-[#346E3A] transition-colors">Email Notifications</span>
-                      <span className="block text-xs text-gray-500 mt-1">Receive updates when invoices are paid or quotes are accepted.</span>
-                    </div>
-                  </label>
-                  
-                  <label className="flex items-start gap-4 cursor-pointer group">
-                    <div className="relative flex items-center justify-center w-5 h-5 mt-0.5">
-                      <input type="checkbox" className="peer appearance-none w-5 h-5 border border-gray-200 rounded bg-white checked:bg-[#346E3A] checked:border-[#346E3A] transition-colors" />
-                      <div className="absolute pointer-events-none opacity-0 peer-checked:opacity-100 text-white">
-                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm font-semibold text-gray-900 group-hover:text-[#346E3A] transition-colors">WhatsApp Notifications</span>
-                      <span className="block text-xs text-gray-500 mt-1">Get instant alerts on your WhatsApp number.</span>
-                    </div>
-                  </label>
+            {/* Placeholders for new tabs */}
+            {['profile', 'security', 'appearance', 'integrations', 'localization'].includes(activeTab) && (
+              <div className="animate-in fade-in flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-gray-200 text-center">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                  {TABS.find(t => t.id === activeTab)?.icon({ className: "w-8 h-8 text-gray-400" })}
                 </div>
-                
-                <div className="pt-8 mt-8 border-t border-gray-100 flex justify-end">
-                  <button className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#F3D740] transition-colors">
-                    <Save className="w-4 h-4" />
-                    Save Preferences
-                  </button>
-                </div>
+                <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-2">Coming Soon</h3>
+                <p className="text-sm text-gray-500 max-w-sm">
+                  We're still building out the {TABS.find(t => t.id === activeTab)?.label} features. Check back later!
+                </p>
               </div>
             )}
 
-          </div>
         </div>
       </div>
     </div>
