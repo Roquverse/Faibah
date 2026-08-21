@@ -31,7 +31,8 @@ export function Board({ clientId }: { clientId: string }) {
 
   useEffect(() => {
     // Fetch board by client
-    fetch(`http://localhost:3005/boards/by-client/${clientId}`)
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+    fetch(`${API_URL}/boards/by-client/${clientId}`)
       .then(res => res.json())
       .then(data => {
         setBoardData(data);
@@ -67,7 +68,8 @@ export function Board({ clientId }: { clientId: string }) {
 
       // Persist
       try {
-        await fetch(`http://localhost:3005/tasks/${activeId}/status`, {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+        await fetch(`${API_URL}/tasks/${activeId}/status`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
@@ -93,7 +95,8 @@ export function Board({ clientId }: { clientId: string }) {
     if (!title || !boardData) return;
 
     try {
-      const res = await fetch('http://localhost:3005/tasks', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+      const res = await fetch(`${API_URL}/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ boardId: boardData.id, title })

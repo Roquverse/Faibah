@@ -33,9 +33,11 @@ export default function LoginPage() {
     const hasCompletedOnboarding = data.user?.user_metadata?.onboarding_completed;
 
     if (hasCompletedOnboarding) {
-      window.location.href = 'http://localhost:3001/';
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+      window.location.href = `${APP_URL}/`;
     } else {
-      window.location.href = 'http://localhost:3001/onboarding';
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+      window.location.href = `${APP_URL}/onboarding`;
     }
   };
 

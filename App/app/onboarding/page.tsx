@@ -101,7 +101,8 @@ export default function OnboardingPage() {
         clientPhoneOnly
       };
 
-      const res = await fetch('http://localhost:3005/users/onboarding', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+      const res = await fetch(`${API_URL}/users/onboarding`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

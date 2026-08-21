@@ -22,7 +22,9 @@ async function bootstrap() {
       'http://localhost:3000',
       'http://localhost:3001',
       /\.railway\.app$/, // Allow Railway domains dynamically
-      /\.faibah\.com$/,  // Placeholder for production domain
+      'https://faibah.com',
+      'https://app.faibah.com',
+      /\.faibah\.com$/,
     ],
     credentials: true,
   });

@@ -45,7 +45,8 @@ export function TimeTracker({ taskId, userId, initialTimeLogs = [] }: TimeTracke
 
   const handleStart = async () => {
     try {
-      await fetch(`http://localhost:3005/tasks/${taskId}/time-logs/start`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+      await fetch(`${API_URL}/tasks/${taskId}/time-logs/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
@@ -58,7 +59,8 @@ export function TimeTracker({ taskId, userId, initialTimeLogs = [] }: TimeTracke
 
   const handleStop = async () => {
     try {
-      await fetch(`http://localhost:3005/tasks/${taskId}/time-logs/stop`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+      await fetch(`${API_URL}/tasks/${taskId}/time-logs/stop`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
