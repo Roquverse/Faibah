@@ -57,18 +57,7 @@ export default function OverviewPage() {
    }
  };
 
- useEffect(() => {
- loadAppointments();
- }, [currentDate]);
 
- const loadAppointments = async () => {
- try {
- const data = await AppointmentsApi.getAll();
- setAppointments(data);
- } catch (e) {
- console.error(e);
- }
- };
 
  const monthStart = startOfMonth(currentDate);
  const monthEnd = endOfMonth(monthStart);
