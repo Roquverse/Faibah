@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ProjectsApi, CompanyApi, ClientsApi } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import DOMPurify from 'isomorphic-dompurify';
 import 'react-quill-new/dist/quill.snow.css';
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false, loading: () => <p>Loading editor...</p> });
@@ -49,6 +48,13 @@ export default function NewProjectProposal() {
  <h2>[Section Sub-heading]</h2>
  <p>[Start typing your paragraph here...]</p>
  `);
+ const [sanitizedHTML, setSanitizedHTML] = useState('');
+
+ React.useEffect(() => {
+   import('dompurify').then((DOMPurify) => {
+     setSanitizedHTML(DOMPurify.default.sanitize(proposalHTML));
+   });
+ }, [proposalHTML]);
 
  React.useEffect(() => {
  async function loadData() {
@@ -547,7 +553,7 @@ export default function NewProjectProposal() {
  >
  <div 
  className="ql-editor"
- dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proposalHTML) }}
+ dangerouslySetInnerHTML={{ __html: sanitizedHTML }}
  />
  </div>
  </div>
