@@ -114,6 +114,17 @@ export default function ClientsPage() {
     }
   };
 
+  const handleDeleteClient = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this client? This action cannot be undone.')) return;
+    try {
+      await ClientsApi.delete(id);
+      fetchClients();
+    } catch (error) {
+      console.error(error);
+      alert('Failed to delete client');
+    }
+  };
+
   const toggleSelectAll = () => {
     if (selectedClients.length === clients.length) {
       setSelectedClients([]);
@@ -335,8 +346,12 @@ export default function ClientsPage() {
                       >
                         Edit
                       </button>
-                      <button className="p-1.5 text-gray-400 hover:text-gray-900 transition-colors">
-                        <MoreHorizontal className="w-4 h-4" />
+                      <button 
+                        onClick={() => handleDeleteClient(client.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete Client"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>

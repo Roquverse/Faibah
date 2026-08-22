@@ -29,24 +29,7 @@ export class ClientsService {
       }
     });
     
-    // Auto-create a mock client if none exist so the frontend dropdown isn't empty
-    if (clients.length === 0) {
-      const defaultClient = await this.prisma.client.create({
-        data: {
-          name: 'Acme Corporation',
-          currency: 'NGN',
-          companyId: company.id,
-        },
-      });
-      return [
-        {
-          ...defaultClient,
-          activeProjects: 0,
-          totalBilled: 0,
-          outstanding: 0,
-        }
-      ];
-    }
+
     
     // Compute dynamic fields
     return clients.map(client => {
@@ -137,6 +120,12 @@ export class ClientsService {
         preferredChannel: data.preferredChannel,
         referralSource: data.referralSource,
       }
+    });
+  }
+
+  async deleteClient(id: string) {
+    return this.prisma.client.delete({
+      where: { id },
     });
   }
 

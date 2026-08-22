@@ -72,6 +72,7 @@ export const ClientsApi = {
   addContact: (clientId: string, data: any) => fetchApi(`/clients/${clientId}/contacts`, { method: 'POST', body: JSON.stringify(data) }),
   updateContact: (clientId: string, contactId: string, data: any) => fetchApi(`/clients/${clientId}/contacts/${contactId}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteContact: (clientId: string, contactId: string) => fetchApi(`/clients/${clientId}/contacts/${contactId}`, { method: 'DELETE' }),
+  delete: (id: string) => fetchApi(`/clients/${id}`, { method: 'DELETE' }),
 };
 
 export const ProjectsApi = {

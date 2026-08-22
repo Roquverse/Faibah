@@ -24,6 +24,11 @@ export class ClientsController {
   updateClient(@Param('id') id: string, @Body() data: any) {
     return this.clientsService.updateClient(id, data);
   }
+
+  @Delete(':id')
+  deleteClient(@Param('id') id: string) {
+    return this.clientsService.deleteClient(id);
+  }
   
   @Post(':id/contacts')
   addContact(@Param('id') id: string, @Body() data: any) {
