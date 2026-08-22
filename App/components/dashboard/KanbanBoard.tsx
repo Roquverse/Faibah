@@ -16,6 +16,8 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     { id: 7, title: 'Develop Metrics for KPIs', status: 'DONE', tags: ['Dev', 'Done'], dueDate: 'Feb 22, 2025', progress: 100 },
   ]);
 
+  const [selectedTask, setSelectedTask] = useState<any | null>(null);
+
   const columns = [
     { id: 'TODO', label: 'To-do', count: 3 },
     { id: 'IN_PROGRESS', label: 'In progress', count: 3 },
@@ -24,7 +26,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   ];
 
   return (
-    <div className="h-full flex flex-col bg-[#F9F9FA]">
+    <div className="h-full flex flex-col bg-[#F9F9FA] relative">
       
       {/* Board Header Toolbar */}
       <div className="h-16 flex items-center justify-between px-6 shrink-0 border-b border-gray-100">
@@ -45,7 +47,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
             <Filter className="w-4 h-4" /> Filter
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-sm shadow-indigo-600/20">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#346E3A] text-white rounded-lg text-sm font-bold hover:bg-[#2b592f] shadow-sm shadow-[#346E3A]/20">
             <Plus className="w-4 h-4" /> Add Tasks
           </button>
         </div>
@@ -73,7 +75,11 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
               {/* Cards List */}
               <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-10">
                 {tasks.filter(t => t.status === col.id).map(task => (
-                  <div key={task.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group cursor-grab active:cursor-grabbing">
+                  <div 
+                    key={task.id} 
+                    onClick={() => setSelectedTask(task)}
+                    className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group cursor-pointer active:cursor-grabbing"
+                  >
                     
                     {/* Tags */}
                     <div className="flex items-center justify-between mb-3">
@@ -90,7 +96,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     </div>
 
                     {/* Title */}
-                    <h4 className="font-bold text-gray-900 text-sm mb-2">{task.title}</h4>
+                    <h4 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-[#346E3A] transition-colors">{task.title}</h4>
                     
                     {/* Date */}
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 mb-4">
@@ -106,7 +112,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                       </div>
                       <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-indigo-400 rounded-full" 
+                          className="h-full bg-[#A5D149] rounded-full" 
                           style={{ width: `${task.progress}%` }}
                         />
                       </div>
@@ -115,10 +121,10 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     {/* Footer (Comments, Attachements, Avatars) */}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                       <div className="flex items-center gap-3 text-[11px] font-bold text-gray-400">
-                        <div className="flex items-center gap-1 hover:text-gray-900 cursor-pointer transition-colors">
+                        <div className="flex items-center gap-1 hover:text-gray-900 transition-colors">
                           <MessageSquare className="w-3.5 h-3.5" /> 7
                         </div>
-                        <div className="flex items-center gap-1 hover:text-gray-900 cursor-pointer transition-colors">
+                        <div className="flex items-center gap-1 hover:text-gray-900 transition-colors">
                           <Paperclip className="w-3.5 h-3.5" /> 8
                         </div>
                       </div>
@@ -145,6 +151,88 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
 
         </div>
       </div>
+
+      {/* Task Detail Modal / Slide-over */}
+      {selectedTask && (
+        <div className="absolute inset-y-0 right-0 w-[400px] bg-white shadow-2xl border-l border-gray-200 z-50 flex flex-col animate-in slide-in-from-right duration-300">
+          
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-900">Task Details</h2>
+            <button 
+              onClick={() => setSelectedTask(null)}
+              className="p-2 text-gray-400 hover:text-gray-900 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <Plus className="w-5 h-5 rotate-45" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                {selectedTask.tags.map((tag: string, idx: number) => (
+                  <span key={idx} className="px-2 py-1 bg-[#A5D149]/20 text-[#346E3A] text-xs font-bold rounded uppercase tracking-wider">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedTask.title}</h3>
+              <div className="flex items-center gap-4 text-sm font-semibold text-gray-500">
+                <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-gray-400" /> Due {selectedTask.dueDate}</span>
+                <span className="flex items-center gap-1.5 border border-gray-200 px-2 py-1 rounded-md bg-gray-50 uppercase text-[10px] tracking-wider text-gray-600">{selectedTask.status.replace('_', ' ')}</span>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Description</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                This is a mock description for the task. It provides more context and details about what needs to be done. We can implement a rich text editor here later for full collaboration.
+              </p>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-end mb-2">
+                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Progress</h4>
+                <span className="text-xs font-bold text-gray-500">{selectedTask.progress}%</span>
+              </div>
+              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-[#346E3A] rounded-full" 
+                  style={{ width: `${selectedTask.progress}%` }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Assignees</h4>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <img src="https://ui-avatars.com/api/?name=J&background=random" className="w-8 h-8 rounded-full border border-gray-200" />
+                  <span className="text-sm font-semibold text-gray-700">John Doe</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <img src="https://ui-avatars.com/api/?name=A&background=random" className="w-8 h-8 rounded-full border border-gray-200" />
+                  <span className="text-sm font-semibold text-gray-700">Alice S.</span>
+                </div>
+                <button className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:border-gray-400 transition-colors">
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+            <button className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-xl hover:bg-gray-50 transition-colors">
+              Edit Task
+            </button>
+            <button className="flex-1 py-2.5 bg-[#346E3A] text-white font-bold text-sm rounded-xl hover:bg-[#2b592f] shadow-sm transition-colors">
+              Mark Complete
+            </button>
+          </div>
+
+        </div>
+      )}
 
     </div>
   );
