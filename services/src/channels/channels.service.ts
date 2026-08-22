@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { EventsGateway } from '../events/events.gateway';
 
 @Injectable()
 export class ChannelsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventsGateway: EventsGateway
+  ) {}
 
   async getChannelForProject(projectId: string, channelName: string = 'general') {
     let channel: any = await this.prisma.projectChannel.findFirst({
@@ -45,6 +49,7 @@ export class ChannelsService {
         messageType: data.messageType || 'TEXT',
         reviewStatus: data.messageType === 'REVIEW_REQUEST' ? 'PENDING' : null,
         topic: data.topic || null,
+        taskId: data.taskId || null,
         mentions: data.mentions && data.mentions.length > 0 ? {
           create: data.mentions.map((m: any) => ({
             mentionedUserId: m.type === 'TEAM' ? m.id : null,
@@ -58,6 +63,7 @@ export class ChannelsService {
       }
     });
     
+    this.eventsGateway.broadcastToProject(projectId, 'new_message', message);
     return message;
   }
 

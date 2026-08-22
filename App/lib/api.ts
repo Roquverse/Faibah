@@ -109,3 +109,9 @@ export const UploadApi = {
     return fetchApi('/upload/pdf', { method: 'POST', body: formData });
   }
 };
+
+export const TasksApi = {
+  getTasks: (projectId: string) => fetchApi(`/tasks/project/${projectId}`),
+  createTask: (data: any) => fetchApi('/tasks', { method: 'POST', body: JSON.stringify(data) }),
+  updateStatus: (id: string, status: string) => fetchApi(`/tasks/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+};

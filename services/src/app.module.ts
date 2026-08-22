@@ -15,6 +15,7 @@ import { ChannelsModule } from './channels/channels.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { UploadModule } from './upload/upload.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UploadModule } from './upload/upload.module';
     AppointmentsModule,
     ChannelsModule,
     UploadModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [

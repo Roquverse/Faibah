@@ -1,28 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, MessageSquare, Paperclip, MoreHorizontal, Calendar, ArrowUpRight } from 'lucide-react';
+import { TasksApi } from '@/lib/api';
+import { io } from 'socket.io-client';
 
 interface KanbanBoardProps {
   projectId: string;
 }
 
 export default function KanbanBoard({ projectId }: KanbanBoardProps) {
-  const [tasks, setTasks] = useState([
-    { id: 1, title: 'Prepare Q4 Budget Report', status: 'TODO', tags: ['Report', 'Budget'], dueDate: 'Mar 15, 2025', progress: 0 },
-    { id: 2, title: 'SaaS Website Project', status: 'TODO', tags: ['SaaS', 'Urgent'], dueDate: 'April 12, 2025', progress: 0 },
-    { id: 3, title: 'Personal Fintech Management', status: 'IN_PROGRESS', tags: ['Fintech', 'Dashboard'], dueDate: 'May 24, 2025', progress: 20 },
-    { id: 4, title: 'Email Marketing Dashboard', status: 'IN_PROGRESS', tags: ['Email', 'Marketing'], dueDate: 'June 30, 2025', progress: 40 },
-    { id: 5, title: 'Ai Chat bot User interface Des...', status: 'IN_REVISION', tags: ['Ai', 'Urgent'], dueDate: 'March 22, 2025', progress: 80 },
-    { id: 6, title: 'Follow-up with New Leads', status: 'IN_REVISION', tags: ['Follow-up', 'Urgent'], dueDate: 'March 22, 2025', progress: 80 },
-    { id: 7, title: 'Develop Metrics for KPIs', status: 'DONE', tags: ['Dev', 'Done'], dueDate: 'Feb 22, 2025', progress: 100 },
-  ]);
-
+  const [tasks, setTasks] = useState<any[]>([]);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
 
+  useEffect(() => {
+    if (!projectId || projectId === 'all') return;
+
+    // Initial fetch
+    TasksApi.getTasks(projectId).then(setTasks).catch(console.error);
+
+    // Socket setup
+    const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005');
+    
+    socket.on('connect', () => {
+      socket.emit('joinProject', projectId);
+    });
+
+    socket.on('task_created', (newTask) => {
+      setTasks(prev => [newTask, ...prev]);
+    });
+
+    socket.on('task_status_changed', (updatedTask) => {
+      setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+      setSelectedTask(prev => prev?.id === updatedTask.id ? updatedTask : prev);
+    });
+
+    socket.on('new_message', (msg) => {
+      // Re-fetch tasks if we get a new message so counts are correct
+      // This is a naive approach, we could just update the specific task's msg count
+      if (msg.taskId) {
+        TasksApi.getTasks(projectId).then(setTasks).catch(console.error);
+      }
+    });
+
+    return () => {
+      socket.emit('leaveProject', projectId);
+      socket.disconnect();
+    };
+  }, [projectId]);
+
   const columns = [
-    { id: 'TODO', label: 'To-do', count: 3 },
-    { id: 'IN_PROGRESS', label: 'In progress', count: 3 },
-    { id: 'IN_REVISION', label: 'In Revision', count: 3 },
-    { id: 'DONE', label: 'Done', count: 3 },
+    { id: 'TODO', label: 'To-do', count: tasks.filter(t => t.status === 'TODO').length },
+    { id: 'IN_PROGRESS', label: 'In progress', count: tasks.filter(t => t.status === 'IN_PROGRESS').length },
+    { id: 'IN_REVISION', label: 'In Revision', count: tasks.filter(t => t.status === 'IN_REVISION').length },
+    { id: 'DONE', label: 'Done', count: tasks.filter(t => t.status === 'DONE').length },
   ];
 
   return (
@@ -84,7 +113,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     {/* Tags */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex gap-2">
-                        {task.tags.map((tag, idx) => (
+                        {(task.labels || []).map((tag: string, idx: number) => (
                           <span key={idx} className="px-2 py-1 bg-gray-50 text-gray-600 text-[10px] font-bold rounded uppercase tracking-wider">
                             {tag}
                           </span>
@@ -99,21 +128,23 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     <h4 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-[#346E3A] transition-colors">{task.title}</h4>
                     
                     {/* Date */}
-                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 mb-4">
-                      <Calendar className="w-3 h-3" />
-                      {task.dueDate}
-                    </div>
+                    {task.dueDate && (
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 mb-4">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(task.dueDate).toLocaleDateString()}
+                      </div>
+                    )}
 
                     {/* Progress */}
                     <div className="mb-4">
                       <div className="flex justify-between text-[10px] font-bold text-gray-400 mb-1.5">
                         <span>Progress</span>
-                        <span>{task.progress}%</span>
+                        <span>{task.progressPercent || 0}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-[#A5D149] rounded-full" 
-                          style={{ width: `${task.progress}%` }}
+                          style={{ width: `${task.progressPercent || 0}%` }}
                         />
                       </div>
                     </div>
@@ -122,18 +153,21 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                       <div className="flex items-center gap-3 text-[11px] font-bold text-gray-400">
                         <div className="flex items-center gap-1 hover:text-gray-900 transition-colors">
-                          <MessageSquare className="w-3.5 h-3.5" /> 7
+                          <MessageSquare className="w-3.5 h-3.5" /> {task._count?.messages || 0}
                         </div>
                         <div className="flex items-center gap-1 hover:text-gray-900 transition-colors">
-                          <Paperclip className="w-3.5 h-3.5" /> 8
+                          <Paperclip className="w-3.5 h-3.5" /> 0
                         </div>
                       </div>
                       <div className="flex -space-x-2">
-                        <img src="https://ui-avatars.com/api/?name=J&background=random" className="w-6 h-6 rounded-full border-2 border-white relative z-20" />
-                        <img src="https://ui-avatars.com/api/?name=A&background=random" className="w-6 h-6 rounded-full border-2 border-white relative z-10" />
-                        <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 text-[10px] font-bold text-gray-600 flex items-center justify-center relative z-0">
-                          4+
-                        </div>
+                        {task.assignees?.slice(0, 3).map((assignee: any) => (
+                           <img key={assignee.id} src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'U'}&background=random`} className="w-6 h-6 rounded-full border-2 border-white relative z-20" />
+                        ))}
+                        {(task.assignees?.length || 0) > 3 && (
+                          <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 text-[10px] font-bold text-gray-600 flex items-center justify-center relative z-0">
+                            +{(task.assignees?.length || 0) - 3}
+                          </div>
+                        )}
                       </div>
                     </div>
                     
@@ -170,7 +204,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
             
             <div>
               <div className="flex items-center gap-2 mb-3">
-                {selectedTask.tags.map((tag: string, idx: number) => (
+                {(selectedTask.labels || []).map((tag: string, idx: number) => (
                   <span key={idx} className="px-2 py-1 bg-[#A5D149]/20 text-[#346E3A] text-xs font-bold rounded uppercase tracking-wider">
                     {tag}
                   </span>
@@ -178,27 +212,29 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedTask.title}</h3>
               <div className="flex items-center gap-4 text-sm font-semibold text-gray-500">
-                <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-gray-400" /> Due {selectedTask.dueDate}</span>
+                {selectedTask.dueDate && (
+                  <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-gray-400" /> Due {new Date(selectedTask.dueDate).toLocaleDateString()}</span>
+                )}
                 <span className="flex items-center gap-1.5 border border-gray-200 px-2 py-1 rounded-md bg-gray-50 uppercase text-[10px] tracking-wider text-gray-600">{selectedTask.status.replace('_', ' ')}</span>
               </div>
             </div>
 
             <div>
               <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Description</h4>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                This is a mock description for the task. It provides more context and details about what needs to be done. We can implement a rich text editor here later for full collaboration.
+              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                {selectedTask.description || "No description provided."}
               </p>
             </div>
 
             <div>
               <div className="flex justify-between items-end mb-2">
                 <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Progress</h4>
-                <span className="text-xs font-bold text-gray-500">{selectedTask.progress}%</span>
+                <span className="text-xs font-bold text-gray-500">{selectedTask.progressPercent || 0}%</span>
               </div>
               <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-[#346E3A] rounded-full" 
-                  style={{ width: `${selectedTask.progress}%` }}
+                  style={{ width: `${selectedTask.progressPercent || 0}%` }}
                 />
               </div>
             </div>
@@ -206,14 +242,12 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
             <div>
               <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Assignees</h4>
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <img src="https://ui-avatars.com/api/?name=J&background=random" className="w-8 h-8 rounded-full border border-gray-200" />
-                  <span className="text-sm font-semibold text-gray-700">John Doe</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <img src="https://ui-avatars.com/api/?name=A&background=random" className="w-8 h-8 rounded-full border border-gray-200" />
-                  <span className="text-sm font-semibold text-gray-700">Alice S.</span>
-                </div>
+                {selectedTask.assignees?.map((assignee: any) => (
+                  <div key={assignee.id} className="flex items-center gap-2">
+                    <img src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'U'}&background=random`} className="w-8 h-8 rounded-full border border-gray-200" />
+                    <span className="text-sm font-semibold text-gray-700">{assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'Unknown'}</span>
+                  </div>
+                ))}
                 <button className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:border-gray-400 transition-colors">
                   <Plus className="w-4 h-4" />
                 </button>

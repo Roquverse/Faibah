@@ -107,13 +107,24 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
   const [isAddingNewClientContact, setIsAddingNewClientContact] = useState(false);
   const [teamInviteInput, setTeamInviteInput] = useState('');
   
-  // Info Panel Tabs
   const [infoTab, setInfoTab] = useState<'info' | 'files' | 'members'>('info');
 
   // Mentions logic
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Tasks logic
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (projectId && projectId !== 'all') {
+      import('@/lib/api').then(({ TasksApi }) => {
+        TasksApi.getTasks(projectId).then(setTasks).catch(console.error);
+      });
+    }
+  }, [projectId]);
 
   // Filter messages
   const visibleMessages = messages.filter(m => {
@@ -151,7 +162,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
     if (!draft.trim()) return;
 
     // Optional: detect topic if we implemented a composer dropdown, default to General for now
-    const newMessage: ChannelMessage = {
+    const newMessage: ChannelMessage & { taskId?: string } = {
       id: `m${Date.now()}`,
       senderId: isClientView ? 'c1' : 't1',
       senderName: isClientView ? 'Acme Client' : 'Diana Taylor',
@@ -162,10 +173,12 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
       messageType: 'TEXT',
       topic: selectedTopicFilter === 'ALL' ? 'General' : selectedTopicFilter,
       createdAt: new Date().toISOString(),
+      taskId: selectedTaskId || undefined,
     };
 
     setMessages([...messages, newMessage]);
     setDraft('');
+    setSelectedTaskId(null);
     setShowMentions(false);
   };
 
@@ -251,6 +264,12 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                   {message.topic && (
                     <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded ml-2">
                       {message.topic}
+                    </span>
+                  )}
+                  {/* @ts-ignore - custom type for now */}
+                  {message.taskId && (
+                    <span className="text-[10px] font-bold text-[#346E3A] bg-[#A5D149]/20 border border-[#A5D149]/30 px-1.5 py-0.5 rounded ml-2">
+                      Task Link
                     </span>
                   )}
                   {!isClientView && message.visibility === 'INTERNAL' && (
@@ -374,42 +393,58 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
           )}
           
           <div className={`flex items-end gap-3 rounded-xl border p-2 transition-colors ${visibility === 'INTERNAL' && !isClientView ? 'border-amber-300 bg-amber-50/30 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500' : 'border-gray-200 bg-white focus-within:border-[#A5D149] focus-within:ring-1 focus-within:ring-[#A5D149]'}`}>
-            <label className="p-2.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0 cursor-pointer">
-              <Paperclip className="w-5 h-5" />
-              <input 
-                type="file" 
-                className="hidden" 
-                accept="image/*,application/pdf"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  try {
-                    const isImage = file.type.includes('image');
-                    const uploadCall = isImage ? UploadApi.uploadImage(file) : UploadApi.uploadPdf(file);
-                    const result = await uploadCall;
-                    if (result?.url) {
-                      const newMessage: ChannelMessage = {
-                        id: `m${Date.now()}`,
-                        senderId: isClientView ? 'c1' : 't1',
-                        senderName: isClientView ? 'Acme Client' : 'Diana Taylor',
-                        senderAvatar: `https://ui-avatars.com/api/?name=${isClientView ? 'Acme+Client' : 'Diana+Taylor'}`,
-                        senderType: isClientView ? 'CLIENT' : 'TEAM',
-                        content: draft || `Attached ${isImage ? 'an image' : 'a file'}`,
-                        attachmentUrl: result.url,
-                        visibility: isClientView ? 'CLIENT_VISIBLE' : visibility,
-                        messageType: 'FILE',
-                        topic: selectedTopicFilter === 'ALL' ? 'General' : selectedTopicFilter,
-                        createdAt: new Date().toISOString(),
-                      };
-                      setMessages([...messages, newMessage]);
-                      setDraft('');
+            <div className="flex flex-col gap-2 shrink-0">
+              <label className="p-2.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer w-max">
+                <Paperclip className="w-5 h-5" />
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*,application/pdf"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const isImage = file.type.includes('image');
+                      const uploadCall = isImage ? UploadApi.uploadImage(file) : UploadApi.uploadPdf(file);
+                      const result = await uploadCall;
+                      if (result?.url) {
+                        const newMessage: ChannelMessage & { taskId?: string } = {
+                          id: `m${Date.now()}`,
+                          senderId: isClientView ? 'c1' : 't1',
+                          senderName: isClientView ? 'Acme Client' : 'Diana Taylor',
+                          senderAvatar: `https://ui-avatars.com/api/?name=${isClientView ? 'Acme+Client' : 'Diana+Taylor'}`,
+                          senderType: isClientView ? 'CLIENT' : 'TEAM',
+                          content: draft || `Attached ${isImage ? 'an image' : 'a file'}`,
+                          attachmentUrl: result.url,
+                          visibility: isClientView ? 'CLIENT_VISIBLE' : visibility,
+                          messageType: 'FILE',
+                          topic: selectedTopicFilter === 'ALL' ? 'General' : selectedTopicFilter,
+                          createdAt: new Date().toISOString(),
+                          taskId: selectedTaskId || undefined,
+                        };
+                        setMessages([...messages, newMessage]);
+                        setDraft('');
+                        setSelectedTaskId(null);
+                      }
+                    } catch (error) {
+                      console.error('File upload failed', error);
                     }
-                  } catch (error) {
-                    console.error('File upload failed', error);
-                  }
-                }}
-              />
-            </label>
+                  }}
+                />
+              </label>
+              {tasks.length > 0 && (
+                <select 
+                  value={selectedTaskId || ''} 
+                  onChange={(e) => setSelectedTaskId(e.target.value || null)}
+                  className="text-[10px] max-w-[100px] border border-gray-200 rounded p-1 truncate"
+                >
+                  <option value="">No Task</option>
+                  {tasks.map(t => (
+                    <option key={t.id} value={t.id}>{t.title}</option>
+                  ))}
+                </select>
+              )}
+            </div>
             
             <textarea 
               ref={textareaRef}
