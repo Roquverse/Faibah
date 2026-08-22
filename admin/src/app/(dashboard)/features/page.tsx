@@ -12,12 +12,12 @@ const FLAGS = [
 
 export default function FeatureFlagsPage() {
   return (
-    <div className="p-8 max-w-[1400px] mx-auto space-y-8">
+    <div className="p-8 max-w-[1400px] mx-auto space-y-8 bg-[#F8F9FA] min-h-screen">
       
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">Feature Flags</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Feature Flags</h1>
           <p className="text-sm text-muted mt-1">Manage global feature rollouts and platform toggles.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -26,10 +26,10 @@ export default function FeatureFlagsPage() {
             <input 
               type="text" 
               placeholder="Search flags..." 
-              className="pl-9 pr-4 py-1.5 bg-background border border-hairline text-sm focus:outline-none focus:border-accent w-64 transition-colors"
+              className="pl-9 pr-4 py-2 bg-surface border border-hairline rounded-lg text-sm focus:outline-none focus:border-accent w-64 card-shadow"
             />
           </div>
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-accent text-white hover:bg-accent/90 transition-colors text-sm font-semibold">
+          <button className="flex items-center gap-2 px-4 py-2 bg-accent text-white hover:bg-accent/90 transition-colors text-sm font-semibold rounded-lg card-shadow">
             <Flag size={14} /> New Flag
           </button>
         </div>
@@ -38,7 +38,7 @@ export default function FeatureFlagsPage() {
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {FLAGS.map(flag => (
-          <div key={flag.id} className="border border-hairline bg-surface p-5 flex flex-col gap-4">
+          <div key={flag.id} className="bg-surface rounded-2xl border border-hairline card-shadow p-6 flex flex-col gap-4">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-semibold text-foreground mono-num text-sm">{flag.name}</h3>

@@ -5,15 +5,15 @@ import { Save, Key, Globe, Shield, CreditCard } from 'lucide-react';
 
 export default function ConfigPage() {
   return (
-    <div className="p-8 max-w-[1000px] mx-auto space-y-8">
+    <div className="p-8 max-w-[1000px] mx-auto space-y-8 bg-[#F8F9FA] min-h-screen">
       
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">Platform Configuration</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Platform Configuration</h1>
           <p className="text-sm text-muted mt-1">Global settings, API keys, and limits.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-accent text-white hover:bg-accent/90 transition-colors text-sm font-semibold">
+        <button className="flex items-center gap-2 px-4 py-2 bg-accent text-white hover:bg-accent/90 transition-colors text-sm font-semibold rounded-lg card-shadow">
           <Save size={16} /> Save Changes
         </button>
       </div>
@@ -22,16 +22,16 @@ export default function ConfigPage() {
         
         {/* Nav */}
         <div className="md:col-span-1 flex flex-col gap-1">
-          <button className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-accent bg-accent/10 border-l-2 border-accent text-left">
+          <button className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-accent bg-accent/10 border-l-2 border-accent text-left rounded-r-lg">
             <Globe size={16} /> General
           </button>
-          <button className="flex items-center gap-3 px-3 py-2 text-sm text-muted hover:text-foreground text-left border-l-2 border-transparent hover:bg-background/50 transition-colors">
+          <button className="flex items-center gap-3 px-3 py-2 text-sm text-muted hover:text-foreground text-left border-l-2 border-transparent hover:bg-background/50 transition-colors rounded-r-lg">
             <Key size={16} /> API Keys
           </button>
-          <button className="flex items-center gap-3 px-3 py-2 text-sm text-muted hover:text-foreground text-left border-l-2 border-transparent hover:bg-background/50 transition-colors">
+          <button className="flex items-center gap-3 px-3 py-2 text-sm text-muted hover:text-foreground text-left border-l-2 border-transparent hover:bg-background/50 transition-colors rounded-r-lg">
             <CreditCard size={16} /> Billing Config
           </button>
-          <button className="flex items-center gap-3 px-3 py-2 text-sm text-muted hover:text-foreground text-left border-l-2 border-transparent hover:bg-background/50 transition-colors">
+          <button className="flex items-center gap-3 px-3 py-2 text-sm text-muted hover:text-foreground text-left border-l-2 border-transparent hover:bg-background/50 transition-colors rounded-r-lg">
             <Shield size={16} /> Security
           </button>
         </div>
@@ -39,7 +39,7 @@ export default function ConfigPage() {
         {/* Form Content */}
         <div className="md:col-span-3 space-y-8">
           
-          <section className="border border-hairline bg-surface">
+          <section className="bg-surface rounded-2xl border border-hairline card-shadow">
             <div className="p-4 border-b border-hairline">
               <h3 className="font-semibold text-foreground text-sm">Platform Basics</h3>
             </div>
@@ -57,7 +57,7 @@ export default function ConfigPage() {
             </div>
           </section>
 
-          <section className="border border-hairline bg-surface">
+          <section className="bg-surface rounded-2xl border border-hairline card-shadow mt-8">
             <div className="p-4 border-b border-hairline">
               <h3 className="font-semibold text-foreground text-sm">Default Limits (Free Tier)</h3>
             </div>

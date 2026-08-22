@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #346E3A;
-  --color-accent-hover: #2B5A2F;
-  --color-danger: #DC2626;
-  --color-danger-hover: #B91C1C;
-  --color-success: #16A34A;
+  --color-accent: #16A34A; /* Faibah Green */
+  --color-accent-hover: #15803d;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-success: #22c55e;
   
   --color-background: var(--bg-color);
   --color-surface: var(--surface-color);
@@ -17,12 +17,13 @@
 :root {
   --bg-color: #F8F9FA;
   --surface-color: #FFFFFF;
-  --hairline-color: #E5E7EB;
+  --hairline-color: #F3F4F6;
   --text-color: #111827;
   --muted-color: #6B7280;
 }
 
 .dark {
+  /* We will keep dark mode variables just in case, but default is light */
   --bg-color: #0A0A0B;
   --surface-color: #121213;
   --hairline-color: #1F1F22;
@@ -37,11 +38,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Base resets to enforce flat design */
-* {
-  box-shadow: none !important;
-}
-
+/* Base styles for standard UI */
 .mono-num {
   font-family: var(--font-mono), monospace;
+}
+
+/* Helper for smooth shadows */
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
 }

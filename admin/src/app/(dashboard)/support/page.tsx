@@ -11,12 +11,12 @@ const TICKETS = [
 
 export default function SupportPage() {
   return (
-    <div className="p-8 max-w-[1400px] mx-auto space-y-8">
+    <div className="p-8 max-w-[1400px] mx-auto space-y-8 bg-[#F8F9FA] min-h-screen">
       
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">Support Tickets</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Support Tickets</h1>
           <p className="text-sm text-muted mt-1">Manage platform and tenant support inquiries.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -25,10 +25,10 @@ export default function SupportPage() {
             <input 
               type="text" 
               placeholder="Search tickets..." 
-              className="pl-9 pr-4 py-1.5 bg-background border border-hairline text-sm focus:outline-none focus:border-accent w-64 transition-colors"
+              className="pl-9 pr-4 py-2 bg-surface border border-hairline rounded-lg text-sm focus:outline-none focus:border-accent w-64 card-shadow"
             />
           </div>
-          <button className="flex items-center gap-2 px-3 py-1.5 border border-hairline bg-surface hover:bg-background transition-colors text-sm font-medium">
+          <button className="flex items-center gap-2 px-4 py-2 border border-hairline bg-surface hover:bg-background transition-colors text-sm font-medium rounded-lg card-shadow">
             <Filter size={14} /> Filter
           </button>
         </div>
@@ -38,7 +38,7 @@ export default function SupportPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Ticket List */}
-        <div className="lg:col-span-1 border border-hairline bg-surface flex flex-col h-[700px]">
+        <div className="lg:col-span-1 bg-surface rounded-2xl border border-hairline card-shadow flex flex-col h-[700px] overflow-hidden">
           <div className="p-4 border-b border-hairline">
             <h3 className="font-semibold text-sm text-foreground">Open Tickets (3)</h3>
           </div>
@@ -63,7 +63,7 @@ export default function SupportPage() {
         </div>
 
         {/* Ticket Detail (Placeholder) */}
-        <div className="lg:col-span-2 border border-hairline bg-surface flex flex-col h-[700px]">
+        <div className="lg:col-span-2 bg-surface rounded-2xl border border-hairline card-shadow flex flex-col h-[700px] overflow-hidden">
           <div className="p-6 border-b border-hairline flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-foreground">Webhook signature validation fails</h2>
