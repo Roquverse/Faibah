@@ -16,6 +16,8 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { UploadModule } from './upload/upload.module';
 import { EventsModule } from './events/events.module';
+import { QuotationsModule } from './quotations/quotations.module';
+import { InvoicesModule } from './invoices/invoices.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { EventsModule } from './events/events.module';
     ChannelsModule,
     UploadModule,
     EventsModule,
+    QuotationsModule,
+    InvoicesModule,
   ],
   controllers: [AppController],
   providers: [

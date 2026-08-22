@@ -1,34 +1,33 @@
-'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, MoreHorizontal, FileText, CheckCircle2, XCircle, Clock, Copy, Send, Download } from 'lucide-react';
 import Link from 'next/link';
-
-interface Invoice {
-  id: string;
-  projectTitle: string;
-  client: string;
-  status: 'DRAFT' | 'SENT' | 'PAID' | 'CANCELLED';
-  amount: string;
-  dueDate: string;
-  daysOverdue?: number;
-  sourceQuotationId?: string;
-}
-
-const mockInvoices: Invoice[] = [
-  { id: 'INV-022', projectTitle: 'Website Redesign', client: 'Acme Corp', status: 'PAID', amount: '₦180,000', dueDate: 'Oct 30, 2023', sourceQuotationId: 'Q-001' },
-  { id: 'INV-023', projectTitle: 'Mobile App MVP', client: 'Soylent Corp', status: 'SENT', amount: '₦1,850,000', dueDate: 'Nov 12, 2023', daysOverdue: 5 },
-  { id: 'INV-024', projectTitle: 'Brand Identity', client: 'Globex Inc', status: 'DRAFT', amount: '₦120,000', dueDate: 'Nov 15, 2023' },
-  { id: 'INV-025', projectTitle: 'SEO Audit', client: 'Initech', status: 'CANCELLED', amount: '₦80,000', dueDate: 'Nov 20, 2023' },
-];
+import { InvoicesApi } from '@/lib/api';
+import NewInvoiceModal from '@/components/dashboard/NewInvoiceModal';
 
 export default function InvoicesPage() {
-  const getStatusBadge = (status: Invoice['status']) => {
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchInvoices = async () => {
+    try {
+      const data = await InvoicesApi.getAll();
+      setInvoices(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'DRAFT': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700"><FileText className="w-3.5 h-3.5" /> Draft</span>;
       case 'SENT': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700"><Clock className="w-3.5 h-3.5" /> Sent</span>;
       case 'PAID': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700"><CheckCircle2 className="w-3.5 h-3.5" /> Paid</span>;
       case 'CANCELLED': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700"><XCircle className="w-3.5 h-3.5" /> Cancelled</span>;
+      default: return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700">{status}</span>;
     }
   };
 
@@ -75,7 +74,7 @@ export default function InvoicesPage() {
               className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64"
             />
           </div>
-          <button className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent">
+          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent">
             <Plus className="w-4 h-4" />
             New Invoice
           </button>
@@ -92,61 +91,75 @@ export default function InvoicesPage() {
               <th className="px-6 py-4 text-center">Status</th>
               <th className="px-6 py-4 text-right">Amount</th>
               <th className="px-6 py-4 text-right">Due Date</th>
-              <th className="px-6 py-4 text-right">Days Overdue</th>
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {mockInvoices.map(invoice => (
-              <tr key={invoice.id} className="hover:bg-gray-50 transition-colors cursor-pointer group">
-                <td className="px-6 py-4 font-medium text-gray-900">{invoice.id}</td>
-                <td className="px-6 py-4">
-                  <div className="font-semibold text-gray-900 mb-0.5 flex items-center gap-2">
-                    {invoice.client}
-                    {invoice.sourceQuotationId && (
-                      <Link href={`/quotations/${invoice.sourceQuotationId}`} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-bold text-gray-600 hover:bg-gray-200 transition-colors">
-                        &larr; from Quotation #{invoice.sourceQuotationId}
-                      </Link>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500">{invoice.projectTitle}</div>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  {getStatusBadge(invoice.status)}
-                </td>
-                <td className="px-6 py-4 text-right font-bold text-gray-900">{invoice.amount}</td>
-                <td className="px-6 py-4 text-right text-gray-500">{invoice.dueDate}</td>
-                <td className="px-6 py-4 text-right">
-                  {invoice.daysOverdue ? (
-                    <span className={`text-sm font-semibold text-red-500`}>
-                      {invoice.daysOverdue} days
-                    </span>
-                  ) : (
-                    <span className="text-gray-300">-</span>
-                  )}
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {invoice.status === 'SENT' && (
-                      <>
-                        <button className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors" title="Send Reminder">
-                          Reminder
-                        </button>
-                        <button className="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors" title="Mark Paid Manually">
-                          Mark Paid
-                        </button>
-                      </>
-                    )}
-                    <button className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
+            {invoices.map(invoice => {
+              const totalAmount = invoice.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
+              const formattedTotal = totalAmount + (totalAmount * ((invoice.taxRate || 0) / 100));
+
+              return (
+                <tr key={invoice.id} className="hover:bg-gray-50 transition-colors cursor-pointer group">
+                  <td className="px-6 py-4 font-medium text-gray-900">{invoice.invoiceRef || invoice.id.slice(0, 8).toUpperCase()}</td>
+                  <td className="px-6 py-4">
+                    <div className="font-semibold text-gray-900 mb-0.5 flex items-center gap-2">
+                      {invoice.client?.name || 'Unknown Client'}
+                      {invoice.quotationId && (
+                        <Link href={`/quotations/${invoice.quotationId}`} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-bold text-gray-600 hover:bg-gray-200 transition-colors">
+                          &larr; from Quotation #{invoice.quotationId.slice(0, 8).toUpperCase()}
+                        </Link>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500">{invoice.project?.name || 'No Project Linked'}</div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {getStatusBadge(invoice.status)}
+                  </td>
+                  <td className="px-6 py-4 text-right font-bold text-gray-900">
+                    {invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}
+                    {formattedTotal.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-right text-gray-500">
+                    {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : '-'}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {invoice.status === 'SENT' && (
+                        <>
+                          <button className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors" title="Send Reminder">
+                            Reminder
+                          </button>
+                          <button className="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors" title="Mark Paid Manually">
+                            Mark Paid
+                          </button>
+                        </>
+                      )}
+                      <button className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {invoices.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No invoices found.</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
+
+      <NewInvoiceModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={() => {
+          setIsModalOpen(false);
+          fetchInvoices();
+        }} 
+      />
 
     </div>
   );
