@@ -39,6 +39,7 @@ interface ChannelMessage {
 interface ProjectChannelProps {
   projectId: string;
   isClientView?: boolean;
+  channelName?: string;
 }
 
 // Mock members
@@ -92,7 +93,7 @@ const MOCK_MESSAGES: ChannelMessage[] = [
   }
 ];
 
-export default function ProjectChannel({ projectId, isClientView = false }: ProjectChannelProps) {
+export default function ProjectChannel({ projectId, isClientView = false, channelName }: ProjectChannelProps) {
   const [messages, setMessages] = useState<ChannelMessage[]>(MOCK_MESSAGES);
   const [draft, setDraft] = useState('');
   const [visibility, setVisibility] = useState<'INTERNAL' | 'CLIENT_VISIBLE'>('CLIENT_VISIBLE');

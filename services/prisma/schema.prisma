@@ -138,7 +138,7 @@ model Project {
   proposals   Proposal[]
   quotations  Quotation[]
   invoices    Invoice[]
-  channel     ProjectChannel?
+  channels    ProjectChannel[]
   members     ProjectMember[]
 }
 
@@ -225,6 +225,7 @@ model QuotationItem {
 enum TaskStatus {
   TODO
   IN_PROGRESS
+  IN_REVISION
   DONE
   BILLING
 }
@@ -339,8 +340,9 @@ model Appointment {
 
 model ProjectChannel {
   id        String   @id @default(uuid())
-  projectId String   @unique
+  projectId String
   project   Project  @relation(fields: [projectId], references: [id])
+  name      String   @default("general")
   createdAt DateTime @default(now())
 
   messages  ChannelMessage[]
