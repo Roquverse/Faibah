@@ -35,6 +35,35 @@ export default function InvoicesPage() {
     }
   };
 
+  // KPI Calculations
+  const defaultCurrency = invoices.length > 0 ? (invoices[0].currency === 'NGN' ? '₦' : invoices[0].currency === 'USD' ? '$' : invoices[0].currency) : '₦';
+
+  let outstandingTotal = 0;
+  let overdueTotal = 0;
+  let thisMonthCollected = 0;
+
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  invoices.forEach(inv => {
+    const total = (inv.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0) * (1 + (inv.taxRate || 0) / 100);
+    
+    if (inv.status === 'SENT') {
+      outstandingTotal += total;
+      if (inv.dueDate && new Date(inv.dueDate) < now) {
+        overdueTotal += total;
+      }
+    } else if (inv.status === 'PAID') {
+      // Use updatedAt as a proxy for payment date for now
+      const updated = new Date(inv.updatedAt || inv.createdAt);
+      if (updated >= startOfMonth) {
+        thisMonthCollected += total;
+      }
+    }
+  });
+
+  const formatCurrency = (amt: number) => `${defaultCurrency}${amt.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+
   return (
     <div className="p-8 w-full font-sans flex flex-col">
       
@@ -42,23 +71,23 @@ export default function InvoicesPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 shrink-0">
         <div className="bg-white p-6 rounded-2xl border border-gray-200">
           <div className="text-sm font-medium text-gray-500 mb-1">Outstanding Total</div>
-          <div className="text-2xl font-bold text-gray-900">₦2,350,000</div>
+          <div className="text-2xl font-bold text-gray-900">{formatCurrency(outstandingTotal)}</div>
           <div className="text-xs text-gray-400 mt-2">Unpaid Sent Invoices</div>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-200">
           <div className="text-sm font-medium text-gray-500 mb-1">Overdue Total</div>
-          <div className="text-2xl font-bold text-red-600">₦450,000</div>
+          <div className="text-2xl font-bold text-red-600">{formatCurrency(overdueTotal)}</div>
           <div className="text-xs text-red-500 mt-2">Action Required</div>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-200">
           <div className="text-sm font-medium text-gray-500 mb-1">Avg. Days to Payment</div>
-          <div className="text-2xl font-bold text-gray-900">14 Days</div>
+          <div className="text-2xl font-bold text-gray-900">0 Days</div>
           <div className="text-xs text-gray-400 mt-2">Historical Average</div>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-200">
           <div className="text-sm font-medium text-gray-500 mb-1">This Month Collected</div>
-          <div className="text-2xl font-bold text-green-600">₦850,000</div>
-          <div className="text-xs text-green-600 mt-2">+12% vs last month</div>
+          <div className="text-2xl font-bold text-green-600">{formatCurrency(thisMonthCollected)}</div>
+          <div className="text-xs text-green-600 mt-2">In current month</div>
         </div>
       </div>
 
