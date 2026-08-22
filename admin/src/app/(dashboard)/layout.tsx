@@ -17,7 +17,8 @@ import {
   LogOut,
   Shield,
   Sun,
-  Bell
+  Bell,
+  Search
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
