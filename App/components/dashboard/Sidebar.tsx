@@ -20,6 +20,7 @@ import { CompanyApi } from '@/lib/api';
 const MAIN_MENU = [
   { name: 'Overview', icon: LayoutDashboard, path: '/' },
   { name: 'Projects', icon: Folder, path: '/projects' },
+  { name: 'Tasks', icon: ListTodo, path: '/tasks' },
   { name: 'Schedule', icon: Calendar, path: '/schedule' },
 ];
 
@@ -72,9 +73,9 @@ export default function Sidebar() {
                 <Link
                   key={item.name}
                   href={item.path}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm border-l-2 ${isActive
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm ${isActive
                     ? 'bg-gray-50 text-[#346E3A]'
-                    : 'text-gray-600 hover:bg-gray-50 border-transparent hover:text-gray-900'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                 >
                   <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
@@ -103,9 +104,9 @@ export default function Sidebar() {
                   <Link
                     key={item.name}
                     href={item.path}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm border-l-2 ${isActive
-                      ? 'bg-gray-50 text-[#346E3A] border-[#346E3A]'
-                      : 'text-gray-600 hover:bg-gray-50 border-transparent hover:text-gray-900'
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm ${isActive
+                      ? 'bg-gray-50 text-[#346E3A]'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                   >
                     <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
