@@ -26,6 +26,49 @@ export class TasksService {
   }
 
   async createTask(projectId: string, data: any) {
+    const { collaboratorEmails = [], clientContactIds = [] } = data;
+    const projectMemberIds: string[] = [];
+
+    // Process client contacts
+    for (const contactId of clientContactIds) {
+      let pm = await this.prisma.projectMember.findFirst({
+        where: { projectId, clientContactId: contactId }
+      });
+      if (!pm) {
+        pm = await this.prisma.projectMember.create({
+          data: { projectId, clientContactId: contactId, memberType: 'CLIENT_CONTACT', role: 'VIEWER' }
+        });
+      }
+      projectMemberIds.push(pm.id);
+    }
+
+    // Process collaborator emails
+    for (const email of collaboratorEmails) {
+      const cleanEmail = email.trim().toLowerCase();
+      if (!cleanEmail) continue;
+
+      let user = await this.prisma.user.findUnique({ where: { email: cleanEmail } });
+      if (!user) {
+        user = await this.prisma.user.create({
+          data: {
+            email: cleanEmail,
+            password: Math.random().toString(36).substring(7), // dummy password
+            firstName: cleanEmail.split('@')[0],
+          }
+        });
+      }
+
+      let pm = await this.prisma.projectMember.findFirst({
+        where: { projectId, userId: user.id }
+      });
+      if (!pm) {
+        pm = await this.prisma.projectMember.create({
+          data: { projectId, userId: user.id, memberType: 'TEAM_USER', role: 'CONTRACTOR' }
+        });
+      }
+      projectMemberIds.push(pm.id);
+    }
+
     const task = await this.prisma.task.create({
       data: {
         projectId,
@@ -34,6 +77,9 @@ export class TasksService {
         status: data.status || TaskStatus.TODO,
         labels: data.labels || [],
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        assignees: {
+          create: projectMemberIds.map(pmId => ({ projectMemberId: pmId }))
+        }
       },
       include: {
         assignees: {

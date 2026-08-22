@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, MessageSquare, Paperclip, MoreHorizontal, Calendar, ArrowUpRight } from 'lucide-react';
-import { TasksApi } from '@/lib/api';
+import { TasksApi, ProjectsApi } from '@/lib/api';
 import { io } from 'socket.io-client';
 
 interface KanbanBoardProps {
@@ -13,10 +13,22 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
 
   // New task state
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-  const [newTask, setNewTask] = useState({ title: '', description: '', status: 'TODO', dueDate: '' });
+  const [projects, setProjects] = useState<any[]>([]);
+  const [newTask, setNewTask] = useState({ 
+    title: '', 
+    description: '', 
+    status: 'TODO', 
+    dueDate: '',
+    projectId: projectId === 'all' ? '' : projectId,
+    collaboratorEmails: '',
+    clientContactIds: [] as string[]
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    // Fetch projects for the dropdown
+    ProjectsApi.getAll().then(setProjects).catch(console.error);
+
     if (!projectId || projectId === 'all') return;
 
     // Initial fetch
@@ -55,15 +67,33 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.title.trim()) return;
+    if (!newTask.projectId) {
+      alert("Please select a project");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const taskData = {
-        ...newTask,
-        projectId,
+        title: newTask.title,
+        description: newTask.description,
+        status: newTask.status,
+        dueDate: newTask.dueDate,
+        projectId: newTask.projectId,
+        collaboratorEmails: newTask.collaboratorEmails.split(',').map(e => e.trim()).filter(Boolean),
+        clientContactIds: newTask.clientContactIds,
       };
       await TasksApi.createTask(taskData);
       setShowAddTaskModal(false);
-      setNewTask({ title: '', description: '', status: 'TODO', dueDate: '' });
+      setNewTask({ 
+        title: '', 
+        description: '', 
+        status: 'TODO', 
+        dueDate: '',
+        projectId: projectId === 'all' ? '' : projectId,
+        collaboratorEmails: '',
+        clientContactIds: []
+      });
     } catch (error) {
       console.error('Failed to create task', error);
     } finally {
@@ -327,6 +357,24 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                 />
               </div>
               
+              {projectId === 'all' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Project</label>
+                  <select 
+                    value={newTask.projectId}
+                    onChange={(e) => {
+                      setNewTask({ ...newTask, projectId: e.target.value, clientContactIds: [] });
+                    }}
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]"
+                  >
+                    <option value="">-- Select Project --</option>
+                    {projects.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
                 <textarea 
@@ -336,6 +384,47 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                   className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400 min-h-[80px]"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Invite Collaborators (Emails)</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. contractor@example.com, alice@test.com"
+                  value={newTask.collaboratorEmails}
+                  onChange={(e) => setNewTask({ ...newTask, collaboratorEmails: e.target.value })}
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400"
+                />
+              </div>
+
+              {newTask.projectId && (() => {
+                const sp = projects.find(p => p.id === newTask.projectId);
+                const contacts = sp?.client?.contacts || [];
+                if (contacts.length === 0) return null;
+                return (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Client Contacts</label>
+                    <div className="flex flex-col gap-2 max-h-32 overflow-y-auto bg-gray-50 border border-gray-200 p-2 rounded-lg">
+                      {contacts.map((c: any) => (
+                        <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-100 p-1 rounded transition-colors">
+                          <input 
+                            type="checkbox" 
+                            checked={newTask.clientContactIds.includes(c.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setNewTask({ ...newTask, clientContactIds: [...newTask.clientContactIds, c.id] });
+                              } else {
+                                setNewTask({ ...newTask, clientContactIds: newTask.clientContactIds.filter(id => id !== c.id) });
+                              }
+                            }}
+                            className="w-4 h-4 text-[#A5D149] focus:ring-[#A5D149] rounded border-gray-300"
+                          />
+                          <span className="text-gray-800">{c.name} {c.email ? `(${c.email})` : ''}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
               
               <div className="flex gap-4">
                 <div className="flex-1">

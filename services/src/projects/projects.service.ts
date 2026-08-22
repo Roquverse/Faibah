@@ -51,7 +51,9 @@ export class ProjectsService {
   async getAllProjects() {
     return this.prisma.project.findMany({
       include: {
-        client: true,
+        client: {
+          include: { contacts: true }
+        },
       }
     });
   }
