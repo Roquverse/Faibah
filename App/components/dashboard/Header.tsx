@@ -60,7 +60,7 @@ export default function Header() {
   };
 
   return (
-    <header className="h-20 bg-transparent flex items-center justify-between px-8 font-sans w-full relative z-40">
+    <header className="h-20 bg-white flex items-center justify-between px-8 font-sans w-full relative z-40">
       <div className="flex-1">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{getPageTitle()}</h1>
       </div>
@@ -75,7 +75,7 @@ export default function Header() {
             placeholder="Search..." 
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-            className="w-full pl-10 pr-12 py-2.5 bg-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all border-none"
+            className="w-full pl-10 pr-12 py-2.5 bg-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all border border-gray-200"
           />
           {!isSearchFocused && (
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">

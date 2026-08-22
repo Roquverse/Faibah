@@ -25,6 +25,8 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+
   useEffect(() => {
     // Fetch projects for the dropdown
     ProjectsApi.getAll().then(setProjects).catch(console.error);
@@ -51,8 +53,6 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     });
 
     socket.on('new_message', (msg) => {
-      // Re-fetch tasks if we get a new message so counts are correct
-      // This is a naive approach, we could just update the specific task's msg count
       if (msg.taskId) {
         TasksApi.getTasks(projectId).then(setTasks).catch(console.error);
       }
@@ -114,8 +114,18 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
       {/* Board Header Toolbar */}
       <div className="h-16 flex items-center justify-between px-6 shrink-0 bg-white">
         <div className="flex bg-white border border-gray-200 rounded-lg p-0.5">
-          <button className="px-3 py-1.5 text-sm font-bold bg-gray-100 text-gray-900 rounded-md">Kanban</button>
-          <button className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">List</button>
+          <button 
+            onClick={() => setViewMode('kanban')}
+            className={`px-3 py-1.5 text-sm font-bold rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            Kanban
+          </button>
+          <button 
+            onClick={() => setViewMode('list')}
+            className={`px-3 py-1.5 text-sm font-bold rounded-md transition-colors ${viewMode === 'list' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            List
+          </button>
         </div>
 
         <div className="flex items-center gap-3">
@@ -136,28 +146,29 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
         </div>
       </div>
 
-      {/* Board Columns */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
-        <div className="flex gap-6 h-full items-start">
-          
-          {columns.map(col => (
-            <div key={col.id} className="w-80 shrink-0 flex flex-col max-h-full">
-              
-              {/* Column Header */}
-              <div className="flex items-center justify-between mb-4 bg-white px-4 py-3 rounded-xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-gray-400" />
-                  <h3 className="font-bold text-gray-900">{col.label}</h3>
+      {/* Main Content Area */}
+      {viewMode === 'kanban' ? (
+        <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
+          <div className="flex gap-6 h-full items-start">
+            
+            {columns.map(col => (
+              <div key={col.id} className="w-80 shrink-0 flex flex-col max-h-full">
+                
+                {/* Column Header */}
+                <div className="flex items-center justify-between mb-4 bg-white px-4 py-3 rounded-xl border border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-gray-400" />
+                    <h3 className="font-bold text-gray-900">{col.label}</h3>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                    {col.count}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                  {col.count}
-                </div>
-              </div>
 
-              {/* Cards List */}
-              <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-10">
-                {tasks.filter(t => t.status === col.id).map(task => (
+                {/* Cards List */}
+                <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-10">
+                  {tasks.filter(t => t.status === col.id).map(task => (
                   <div 
                     key={task.id} 
                     onClick={() => setSelectedTask(task)}
@@ -245,6 +256,58 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
 
         </div>
       </div>
+      ) : (
+        <div className="flex-1 overflow-auto p-6">
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-3 font-semibold text-gray-900">Task</th>
+                  <th className="px-6 py-3 font-semibold text-gray-900">Status</th>
+                  <th className="px-6 py-3 font-semibold text-gray-900">Due Date</th>
+                  <th className="px-6 py-3 font-semibold text-gray-900">Progress</th>
+                  <th className="px-6 py-3 font-semibold text-gray-900">Assignees</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {tasks.map(task => (
+                  <tr key={task.id} className="hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => setSelectedTask(task)}>
+                    <td className="px-6 py-4 font-medium text-gray-900">{task.title}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 font-semibold text-xs rounded-full">
+                        {columns.find(c => c.id === task.status)?.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-500 font-medium">
+                      {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-500 w-8">{task.progressPercent || 0}%</span>
+                        <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#A5D149] rounded-full" style={{ width: `${task.progressPercent || 0}%` }} />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex -space-x-2">
+                        {task.assignees?.slice(0, 3).map((assignee: any) => (
+                           <img key={assignee.id} src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'U'}&background=random`} className="w-6 h-6 rounded-full border-2 border-white relative z-20" />
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {tasks.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No tasks found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Task Detail Modal / Slide-over */}
       {selectedTask && (
