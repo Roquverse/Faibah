@@ -10,7 +10,6 @@ export class InvoicesService {
       include: {
         client: true,
         project: true,
-        quotation: true,
         items: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -20,13 +19,12 @@ export class InvoicesService {
   async createInvoice(data: {
     clientId: string;
     projectId?: string;
-    quotationId?: string;
     currency?: string;
     taxRate?: number;
     dueDate?: Date;
     items: { description: string; quantity: number; unitPrice: number; amount: number }[];
   }) {
-    const { clientId, projectId, quotationId, currency, taxRate, dueDate, items } = data;
+    const { clientId, projectId, currency, taxRate, dueDate, items } = data;
     
     // Generate a simple Invoice Ref
     const count = await this.prisma.invoice.count();
@@ -37,7 +35,6 @@ export class InvoicesService {
         invoiceRef,
         clientId,
         projectId: projectId || null,
-        quotationId: quotationId || null,
         currency: currency || 'NGN',
         taxRate,
         dueDate,

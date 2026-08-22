@@ -116,10 +116,10 @@ export const TasksApi = {
   updateStatus: (id: string, status: string) => fetchApi(`/tasks/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
 };
 
-export const QuotationsApi = {
-  getAll: () => fetchApi('/quotations'),
-  getById: (id: string) => fetchApi(`/quotations/${id}`),
-  create: (data: any) => fetchApi('/quotations', { method: 'POST', body: JSON.stringify(data) }),
+export const ReceiptsApi = {
+  getAll: () => fetchApi('/receipts'),
+  getById: (id: string) => fetchApi(`/receipts/${id}`),
+  create: (data: any) => fetchApi('/receipts', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const InvoicesApi = {

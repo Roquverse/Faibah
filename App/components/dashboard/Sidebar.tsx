@@ -26,8 +26,8 @@ const MAIN_MENU = [
 
 const CRM_MENU = [
   { name: 'Clients', icon: Building2, path: '/clients' },
-  { name: 'Quotations', icon: FileText, path: '/quotations' },
   { name: 'Invoices', icon: ListTodo, path: '/invoices' },
+  { name: 'Receipts', icon: FileText, path: '/receipts' },
   { name: 'Payments', icon: CreditCard, path: '/payments' },
 ];
 

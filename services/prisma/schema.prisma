@@ -97,7 +97,6 @@ model Client {
   company          Company      @relation(fields: [companyId], references: [id])
 
   projects         Project[]
-  quotations       Quotation[]
   invoices         Invoice[]
   contacts         ClientContact[]
   subscriptions    Subscription[]
@@ -136,7 +135,6 @@ model Project {
 
   tasks       Task[]
   proposals   Proposal[]
-  quotations  Quotation[]
   invoices    Invoice[]
   channels    ProjectChannel[]
   members     ProjectMember[]
@@ -187,41 +185,6 @@ model Proposal {
   project   Project  @relation(fields: [projectId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-enum QuotationStatus {
-  DRAFT
-  SENT
-  ACCEPTED
-  REJECTED
-  CANCELLED
-}
-
-model Quotation {
-  id        String   @id @default(uuid())
-  status    QuotationStatus @default(DRAFT)
-  projectId String?
-  project   Project?  @relation(fields: [projectId], references: [id])
-  clientId  String
-  client    Client   @relation(fields: [clientId], references: [id])
-  currency  String   @default("NGN")
-  taxRate   Float?
-  sentAt    DateTime?
-  createdAt DateTime @default(now())
-
-  items     QuotationItem[]
-  invoices  Invoice[]
-}
-
-model QuotationItem {
-  id          String    @id @default(uuid())
-  quotationId String
-  quotation   Quotation @relation(fields: [quotationId], references: [id])
-  description String
-  quantity    Int       @default(1)
-  unitPrice   Float
-  amount      Float
-  createdAt   DateTime  @default(now())
 }
 
 enum TaskStatus {
@@ -285,8 +248,6 @@ model Invoice {
   dueDate     DateTime?
   projectId   String?
   project     Project?  @relation(fields: [projectId], references: [id])
-  quotationId String?
-  quotation   Quotation? @relation(fields: [quotationId], references: [id])
   clientId    String
   client      Client   @relation(fields: [clientId], references: [id])
   currency    String   @default("NGN")
@@ -295,6 +256,7 @@ model Invoice {
   createdAt   DateTime @default(now())
 
   items       InvoiceItem[]
+  receipts    Receipt[]
   payments    PaymentRecord[]
 }
 
@@ -459,4 +421,15 @@ model Reminder {
   companyId   String
   company     Company  @relation(fields: [companyId], references: [id])
   createdAt   DateTime @default(now())
+}
+
+model Receipt {
+  id            String   @id @default(uuid())
+  receiptRef    String?
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id])
+  amountPaid    Float
+  paymentMethod String?
+  paymentDate   DateTime @default(now())
+  createdAt     DateTime @default(now())
 }

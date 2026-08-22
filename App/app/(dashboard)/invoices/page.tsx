@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreHorizontal, FileText, CheckCircle2, XCircle, Clock, Copy, Send, Download } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, FileText, CheckCircle2, XCircle, Clock, Copy, Send, Download, Receipt } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicesApi } from '@/lib/api';
 import NewInvoiceModal from '@/components/dashboard/NewInvoiceModal';
+import GenerateReceiptModal from '@/components/dashboard/GenerateReceiptModal';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
 
   const fetchInvoices = async () => {
     try {
@@ -76,7 +78,7 @@ export default function InvoicesPage() {
               className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64"
             />
           </div>
-          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent">
+          <button onClick={() => setIsNewInvoiceOpen(true)} className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent">
             <Plus className="w-4 h-4" />
             New Invoice
           </button>
@@ -107,11 +109,6 @@ export default function InvoicesPage() {
                   <td className="px-6 py-4">
                     <div className="font-semibold text-gray-900 mb-0.5 flex items-center gap-2">
                       {invoice.client?.name || 'Unknown Client'}
-                      {invoice.quotationId && (
-                        <Link href={`/quotations/${invoice.quotationId}`} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-bold text-gray-600 hover:bg-gray-200 transition-colors">
-                          &larr; from Quotation #{invoice.quotationId.slice(0, 8).toUpperCase()}
-                        </Link>
-                      )}
                     </div>
                     <div className="text-xs text-gray-500">{invoice.project?.name || 'No Project Linked'}</div>
                   </td>
@@ -127,15 +124,15 @@ export default function InvoicesPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {invoice.status === 'SENT' && (
-                        <>
-                          <button className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors" title="Send Reminder">
-                            Reminder
-                          </button>
-                          <button className="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors" title="Mark Paid Manually">
-                            Mark Paid
-                          </button>
-                        </>
+                      {invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedInvoice(invoice);
+                          }}
+                          className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1" title="Generate Receipt">
+                          <Receipt className="w-3.5 h-3.5" /> Receipt
+                        </button>
                       )}
                       <button className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                         <MoreHorizontal className="w-4 h-4" />
@@ -155,12 +152,23 @@ export default function InvoicesPage() {
       </div>
 
       <NewInvoiceModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        isOpen={isNewInvoiceOpen} 
+        onClose={() => setIsNewInvoiceOpen(false)} 
         onSuccess={() => {
-          setIsModalOpen(false);
+          setIsNewInvoiceOpen(false);
           fetchInvoices();
         }} 
+      />
+
+      <GenerateReceiptModal
+        isOpen={!!selectedInvoice}
+        invoice={selectedInvoice}
+        onClose={() => setSelectedInvoice(null)}
+        onSuccess={() => {
+          setSelectedInvoice(null);
+          // Ideally fetchInvoices should be called to see status updates if we handle them
+          // fetchInvoices();
+        }}
       />
 
     </div>
