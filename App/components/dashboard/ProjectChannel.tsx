@@ -32,6 +32,7 @@ interface ChannelMessage {
   messageType: 'TEXT' | 'FILE' | 'REVIEW_REQUEST';
   reviewStatus?: 'PENDING' | 'APPROVED' | 'CHANGES_REQUESTED';
   topic?: string;
+  taskId?: string;
   reactions?: { emoji: string; count: number; userReacted: boolean }[];
   createdAt: string;
 }
