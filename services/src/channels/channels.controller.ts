@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Query } from '@nestjs/common';
 import { ChannelsService } from './channels.service';
 
 @Controller('projects/:projectId/channel')
@@ -6,8 +6,8 @@ export class ChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
   @Get()
-  async getChannel(@Param('projectId') projectId: string) {
-    return this.channelsService.getChannelForProject(projectId);
+  async getChannel(@Param('projectId') projectId: string, @Query('channel') channelName?: string) {
+    return this.channelsService.getChannelForProject(projectId, channelName);
   }
 
   @Post('messages')

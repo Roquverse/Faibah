@@ -5,9 +5,9 @@ import { PrismaService } from '../prisma.service';
 export class ChannelsService {
   constructor(private prisma: PrismaService) {}
 
-  async getChannelForProject(projectId: string) {
-    let channel: any = await this.prisma.projectChannel.findUnique({
-      where: { projectId },
+  async getChannelForProject(projectId: string, channelName: string = 'general') {
+    let channel: any = await this.prisma.projectChannel.findFirst({
+      where: { projectId, name: channelName },
       include: {
         messages: {
           orderBy: { createdAt: 'asc' },
@@ -22,7 +22,7 @@ export class ChannelsService {
     if (!channel) {
       // Auto-create if it doesn't exist
       channel = await this.prisma.projectChannel.create({
-        data: { projectId },
+        data: { projectId, name: channelName },
         include: { messages: true },
       });
     }
@@ -31,7 +31,8 @@ export class ChannelsService {
   }
 
   async postMessage(projectId: string, data: any) {
-    const channel = await this.getChannelForProject(projectId);
+    const channelName = data.channelName || 'general';
+    const channel = await this.getChannelForProject(projectId, channelName);
 
     const message = await this.prisma.channelMessage.create({
       data: {
