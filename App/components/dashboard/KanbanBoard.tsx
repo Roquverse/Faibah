@@ -11,6 +11,11 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<any[]>([]);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
 
+  // New task state
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [newTask, setNewTask] = useState({ title: '', description: '', status: 'TODO', dueDate: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     if (!projectId || projectId === 'all') return;
 
@@ -47,6 +52,25 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     };
   }, [projectId]);
 
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTask.title.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const taskData = {
+        ...newTask,
+        projectId,
+      };
+      await TasksApi.createTask(taskData);
+      setShowAddTaskModal(false);
+      setNewTask({ title: '', description: '', status: 'TODO', dueDate: '' });
+    } catch (error) {
+      console.error('Failed to create task', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const columns = [
     { id: 'TODO', label: 'To-do', count: tasks.filter(t => t.status === 'TODO').length },
     { id: 'IN_PROGRESS', label: 'In progress', count: tasks.filter(t => t.status === 'IN_PROGRESS').length },
@@ -76,7 +100,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
             <Filter className="w-4 h-4" /> Filter
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#346E3A] text-white rounded-lg text-sm font-bold hover:bg-[#2b592f] shadow-sm shadow-[#346E3A]/20">
+          <button onClick={() => setShowAddTaskModal(true)} className="flex items-center gap-2 px-4 py-2 bg-[#346E3A] text-white rounded-lg text-sm font-bold hover:bg-[#2b592f] shadow-sm shadow-[#346E3A]/20">
             <Plus className="w-4 h-4" /> Add Tasks
           </button>
         </div>
@@ -175,7 +199,13 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                 ))}
 
                 {/* Add Task Button at bottom of column */}
-                <button className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold text-gray-400 hover:text-gray-900 hover:border-gray-300 hover:bg-white transition-all">
+                <button 
+                  onClick={() => {
+                    setNewTask(prev => ({ ...prev, status: col.id }));
+                    setShowAddTaskModal(true);
+                  }}
+                  className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold text-gray-400 hover:text-gray-900 hover:border-gray-300 hover:bg-white transition-all"
+                >
                   <Plus className="w-4 h-4" /> Add Task
                 </button>
               </div>
@@ -265,6 +295,83 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
             </button>
           </div>
 
+        </div>
+      )}
+
+      {/* Add Task Modal */}
+      {showAddTaskModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-in fade-in duration-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-1">Create New Task</h3>
+            <p className="text-sm text-gray-500 mb-6">Fill in the details for the new task.</p>
+            
+            <form onSubmit={handleCreateTask} className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Task title..."
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                <textarea 
+                  placeholder="Task description..."
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400 min-h-[80px]"
+                />
+              </div>
+              
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+                  <select 
+                    value={newTask.status}
+                    onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]"
+                  >
+                    <option value="TODO">To Do</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="IN_REVISION">In Revision</option>
+                    <option value="DONE">Done</option>
+                  </select>
+                </div>
+                
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Due Date</label>
+                  <input 
+                    type="date"
+                    value={newTask.dueDate}
+                    onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 justify-end pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddTaskModal(false)} 
+                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSubmitting || !newTask.title.trim()}
+                  className="px-4 py-2 text-sm font-semibold bg-[#346E3A] text-white rounded-lg hover:bg-[#2b592f] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Creating...' : 'Create Task'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
