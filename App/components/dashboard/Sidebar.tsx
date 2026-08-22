@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CompanyApi } from '@/lib/api';
+import { CompanyApi, UsersApi } from '@/lib/api';
 
 const MAIN_MENU = [
   { name: 'Overview', icon: LayoutDashboard, path: '/' },
@@ -34,21 +34,28 @@ const CRM_MENU = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [crmOpen, setCrmOpen] = useState(true);
-  const [companyName, setCompanyName] = useState('Faiba Agency');
+  const [companyName, setCompanyName] = useState('Faibah Agency');
+  const [user, setUser] = useState<any>(null);
 
-  const loadCompany = async () => {
+  const loadData = async () => {
     try {
-      const data = await CompanyApi.getProfile();
-      if (data && data.name) {
-        setCompanyName(data.name);
+      const [companyData, userData] = await Promise.all([
+        CompanyApi.getProfile().catch(() => null),
+        UsersApi.getProfile().catch(() => null)
+      ]);
+      if (companyData && companyData.name) {
+        setCompanyName(companyData.name);
+      }
+      if (userData) {
+        setUser(userData);
       }
     } catch (e) {}
   };
 
   React.useEffect(() => {
-    loadCompany();
-    window.addEventListener('company-updated', loadCompany);
-    return () => window.removeEventListener('company-updated', loadCompany);
+    loadData();
+    window.addEventListener('company-updated', loadData);
+    return () => window.removeEventListener('company-updated', loadData);
   }, []);
 
   return (
@@ -123,14 +130,14 @@ export default function Sidebar() {
       {/* User Profile */}
       <div className="p-4 border-t border-gray-200">
         <Link href="/settings" className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
-          <img
-            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-            alt="Profile"
-            className="w-9 h-9 rounded-full object-cover border border-gray-200"
-          />
+          <div className="w-9 h-9 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-sm shrink-0">
+            {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
+          </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold text-gray-900 truncate">{companyName}</div>
-            <div className="text-[11px] font-medium text-gray-500 truncate">Pro Plan</div>
+            <div className="text-sm font-semibold text-gray-900 truncate">
+              {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : companyName}
+            </div>
+            <div className="text-[11px] font-medium text-gray-500 truncate">{companyName}</div>
           </div>
           <Settings size={16} className="text-gray-400 shrink-0" />
         </Link>

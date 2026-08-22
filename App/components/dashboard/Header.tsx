@@ -5,7 +5,7 @@ import { Search, Settings, Bell, Moon, Sun, ArrowRight, FileText, CheckCircle2 }
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { CompanyApi } from '@/lib/api';
+import { CompanyApi, UsersApi } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
 
 export default function Header() {
@@ -17,23 +17,30 @@ export default function Header() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [companyName, setCompanyName] = useState('Faiba Agency');
+  const [companyName, setCompanyName] = useState('Faibah Agency');
+  const [user, setUser] = useState<any>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const loadCompany = async () => {
+  const loadData = async () => {
     try {
-      const data = await CompanyApi.getProfile();
-      if (data && data.name) {
-        setCompanyName(data.name);
+      const [companyData, userData] = await Promise.all([
+        CompanyApi.getProfile().catch(() => null),
+        UsersApi.getProfile().catch(() => null)
+      ]);
+      if (companyData && companyData.name) {
+        setCompanyName(companyData.name);
+      }
+      if (userData) {
+        setUser(userData);
       }
     } catch (e) {}
   };
 
   useEffect(() => {
-    loadCompany();
-    window.addEventListener('company-updated', loadCompany);
-    return () => window.removeEventListener('company-updated', loadCompany);
+    loadData();
+    window.addEventListener('company-updated', loadData);
+    return () => window.removeEventListener('company-updated', loadData);
   }, []);
 
   // Mount effect for next-themes
@@ -163,14 +170,14 @@ export default function Header() {
             className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
           >
             <div className="flex flex-col items-end">
-              <span className="text-gray-900 text-sm font-semibold leading-none mb-1">{companyName}</span>
-              <span className="text-[11px] font-medium text-gray-500 leading-none">personal manager</span>
+              <span className="text-gray-900 text-sm font-semibold leading-none mb-1">
+                {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : companyName}
+              </span>
+              <span className="text-[11px] font-medium text-gray-500 leading-none">{companyName}</span>
             </div>
-            <img 
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
-              alt="Profile" 
-              className="w-10 h-10 rounded-full object-cover"
-            />
+            <div className="w-10 h-10 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-sm shrink-0">
+              {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
+            </div>
           </button>
 
           {/* Profile Dropdown */}
@@ -178,7 +185,7 @@ export default function Header() {
             <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 pb-2 mb-2 border-b border-gray-100">
                 <div className="text-sm font-bold text-gray-900 tracking-tight">My Account</div>
-                <div className="text-xs text-gray-500">faiba@agency.com</div>
+                <div className="text-xs text-gray-500">{user?.email || 'admin@faibah.com'}</div>
               </div>
               <Link href="/settings" className="flex items-center px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors">
                 Settings
