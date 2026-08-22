@@ -25,12 +25,12 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     });
 
     socket.on('task_created', (newTask) => {
-      setTasks(prev => [newTask, ...prev]);
+      setTasks((prev: any[]) => [newTask, ...prev]);
     });
 
     socket.on('task_status_changed', (updatedTask) => {
-      setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
-      setSelectedTask(prev => prev?.id === updatedTask.id ? updatedTask : prev);
+      setTasks((prev: any[]) => prev.map((t: any) => t.id === updatedTask.id ? updatedTask : t));
+      setSelectedTask((prev: any | null) => prev?.id === updatedTask.id ? updatedTask : prev);
     });
 
     socket.on('new_message', (msg) => {
