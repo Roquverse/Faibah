@@ -22,7 +22,7 @@ export default function BusinessesPage() {
   if (loading) return <div className="p-8 text-muted">Loading businesses...</div>;
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto space-y-8 bg-[#F8F9FA] min-h-screen">
+    <div className="p-8 max-w-[1400px] mx-auto space-y-8 bg-background min-h-screen">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">

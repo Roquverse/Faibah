@@ -5,7 +5,7 @@ import { Save, Key, Globe, Shield, CreditCard } from 'lucide-react';
 
 export default function ConfigPage() {
   return (
-    <div className="p-8 max-w-[1000px] mx-auto space-y-8 bg-[#F8F9FA] min-h-screen">
+    <div className="p-8 max-w-[1000px] mx-auto space-y-8 bg-background min-h-screen">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
