@@ -52,7 +52,7 @@ export class AppointmentsService {
     }));
 
     const unified = [...appointments, ...invoiceItems, ...taskItems];
-    unified.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    unified.sort((a, b) => new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime());
 
     return unified;
   }
