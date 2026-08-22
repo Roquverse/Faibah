@@ -39,7 +39,6 @@ export class ProjectsService {
       include: {
         tasks: true,
         proposals: true,
-        quotations: true,
         invoices: true,
         client: true, // Need to include client for the frontend to show client name/avatar
       }
