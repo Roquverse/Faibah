@@ -109,10 +109,10 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   ];
 
   return (
-    <div className="h-full flex flex-col bg-[#F9F9FA] relative">
+    <div className="h-full flex flex-col bg-white relative">
       
       {/* Board Header Toolbar */}
-      <div className="h-16 flex items-center justify-between px-6 shrink-0 border-b border-gray-100">
+      <div className="h-16 flex items-center justify-between px-6 shrink-0 bg-white">
         <div className="flex bg-white border border-gray-200 rounded-lg p-0.5">
           <button className="px-3 py-1.5 text-sm font-bold bg-gray-100 text-gray-900 rounded-md">Kanban</button>
           <button className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">List</button>
