@@ -290,7 +290,16 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
             <button className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-xl hover:bg-gray-50 transition-colors">
               Edit Task
             </button>
-            <button className="flex-1 py-2.5 bg-[#346E3A] text-white font-bold text-sm rounded-xl hover:bg-[#2b592f] shadow-sm transition-colors">
+            <button 
+              onClick={async () => {
+                try {
+                  await TasksApi.updateStatus(selectedTask.id, 'DONE');
+                } catch (error) {
+                  console.error('Failed to mark task complete', error);
+                }
+              }}
+              className="flex-1 py-2.5 bg-[#346E3A] text-white font-bold text-sm rounded-xl hover:bg-[#2b592f] shadow-sm transition-colors"
+            >
               Mark Complete
             </button>
           </div>

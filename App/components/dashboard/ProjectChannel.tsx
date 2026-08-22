@@ -18,7 +18,7 @@ import {
   Hash,
   Image as ImageIcon
 } from 'lucide-react';
-import { UploadApi } from '@/lib/api';
+import { UploadApi, TasksApi } from '@/lib/api';
 
 interface ChannelMessage {
   id: string;
@@ -267,11 +267,36 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                     </span>
                   )}
                   {/* @ts-ignore - custom type for now */}
-                  {message.taskId && (
-                    <span className="text-[10px] font-bold text-[#346E3A] bg-[#A5D149]/20 border border-[#A5D149]/30 px-1.5 py-0.5 rounded ml-2">
-                      Task Link
-                    </span>
-                  )}
+                  {message.taskId && (() => {
+                    const linkedTask = tasks.find(t => t.id === message.taskId);
+                    if (!linkedTask) return (
+                      <span className="text-[10px] font-bold text-[#346E3A] bg-[#A5D149]/20 border border-[#A5D149]/30 px-1.5 py-0.5 rounded ml-2">
+                        Task Link
+                      </span>
+                    );
+                    
+                    return (
+                      <select 
+                        value={linkedTask.status}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          try {
+                            await TasksApi.updateStatus(linkedTask.id, newStatus);
+                            // Optimistic update
+                            setTasks(prev => prev.map(t => t.id === linkedTask.id ? { ...t, status: newStatus } : t));
+                          } catch (error) {
+                            console.error('Failed to update task status', error);
+                          }
+                        }}
+                        className="text-[10px] font-bold text-[#346E3A] bg-[#A5D149]/20 border border-[#A5D149]/30 px-1.5 py-0.5 rounded ml-2 focus:outline-none focus:ring-1 focus:ring-[#A5D149]"
+                      >
+                        <option value="TODO">To Do</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="IN_REVISION">In Revision</option>
+                        <option value="DONE">Done</option>
+                      </select>
+                    );
+                  })()}
                   {!isClientView && message.visibility === 'INTERNAL' && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full uppercase ml-1">
                       <AlertCircle className="w-3 h-3" /> Internal
