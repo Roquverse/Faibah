@@ -40,4 +40,20 @@ export class AdminApi {
   static getWebhookLogs() {
     return this.fetchWithAuth('/admin/health/webhooks');
   }
+
+  static getUsers() {
+    return this.fetchWithAuth('/admin/users');
+  }
+
+  static getSubscriptions() {
+    return this.fetchWithAuth('/admin/subscriptions');
+  }
+
+  static getAuditLogs() {
+    return this.fetchWithAuth('/admin/audit-logs');
+  }
+
+  static getTeam() {
+    return this.fetchWithAuth('/admin/team');
+  }
 }

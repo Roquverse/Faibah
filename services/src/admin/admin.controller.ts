@@ -27,4 +27,24 @@ export class AdminController {
   getWebhookLogs() {
     return this.adminService.getWebhookLogs();
   }
+
+  @Get('users')
+  getUsers() {
+    return this.adminService.getUsers();
+  }
+
+  @Get('subscriptions')
+  getSubscriptions() {
+    return this.adminService.getSubscriptions();
+  }
+
+  @Get('audit-logs')
+  getAuditLogs() {
+    return this.adminService.getAuditLogs();
+  }
+
+  @Get('team')
+  getTeam() {
+    return this.adminService.getTeam();
+  }
 }

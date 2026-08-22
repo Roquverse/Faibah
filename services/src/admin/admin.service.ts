@@ -124,10 +124,74 @@ export class AdminService {
   async getWebhookLogs() {
     // We don't have a WebhookLog model yet. We can just return mock data for now, 
     // since the user noted "Webhook delivery log - specifically Paystack and Termii".
-    // Or we could build a real model later if the user wants. For now, returning empty array or mock.
     return [
       { id: 'wh_1', provider: 'Paystack', event: 'charge.success', status: 'Failed', tenant: 'Nexora Solutions', time: '2 mins ago', retryCount: 2 },
       { id: 'wh_2', provider: 'Termii', event: 'whatsapp.delivered', status: 'Success', tenant: 'NovaTech', time: '5 mins ago', retryCount: 0 },
     ];
+  }
+
+  async getUsers() {
+    const users = await this.prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        company: { select: { name: true } }
+      }
+    });
+
+    return users.map(u => ({
+      id: u.id,
+      name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Unknown',
+      email: u.email,
+      type: u.userType || 'UNKNOWN',
+      company: u.company?.name || 'N/A',
+      date: u.createdAt.toISOString().split('T')[0]
+    }));
+  }
+
+  async getSubscriptions() {
+    const subs = await this.prisma.subscription.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        company: { select: { name: true } }
+      }
+    });
+
+    return subs.map(s => ({
+      id: s.id,
+      tenant: s.company?.name || 'Unknown',
+      plan: s.name,
+      amount: s.amount,
+      frequency: s.frequency,
+      status: s.status,
+      nextBilling: s.nextBillingDate.toISOString().split('T')[0]
+    }));
+  }
+
+  async getAuditLogs() {
+    const logs = await this.prisma.activityEvent.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
+
+    return logs.map(l => ({
+      id: l.id,
+      action: l.type,
+      message: l.message,
+      date: l.createdAt.toISOString()
+    }));
+  }
+
+  async getTeam() {
+    const admins = await this.prisma.user.findMany({
+      where: { isSuperAdmin: true },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return admins.map(a => ({
+      id: a.id,
+      name: `${a.firstName || ''} ${a.lastName || ''}`.trim() || 'Unknown',
+      email: a.email,
+      date: a.createdAt.toISOString().split('T')[0]
+    }));
   }
 }
