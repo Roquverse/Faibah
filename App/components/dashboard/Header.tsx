@@ -175,9 +175,13 @@ export default function Header() {
               </span>
               <span className="text-[11px] font-medium text-gray-500 leading-none">{companyName}</span>
             </div>
-            <div className="w-10 h-10 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-sm shrink-0">
-              {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
-            </div>
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="Profile" className="w-10 h-10 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-sm shrink-0">
+                {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
+              </div>
+            )}
           </button>
 
           {/* Profile Dropdown */}

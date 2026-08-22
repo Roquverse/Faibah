@@ -266,6 +266,7 @@ export default function SettingsPage() {
                               setIsSaving(true);
                               const result = await UploadApi.uploadImage(file);
                               if (result?.url) {
+                                await UsersApi.updateProfile({ avatarUrl: result.url });
                                 setUser({ ...user, avatarUrl: result.url });
                               }
                             } catch (error: any) {
@@ -424,6 +425,7 @@ export default function SettingsPage() {
                                 setIsSaving(true);
                                 const result = await UploadApi.uploadImage(file);
                                 if (result?.url) {
+                                  await CompanyApi.updateProfile({ logoUrl: result.url });
                                   setCompany({ ...company, logoUrl: result.url });
                                 }
                               } catch (error: any) {

@@ -130,9 +130,13 @@ export default function Sidebar() {
       {/* User Profile */}
       <div className="p-4 border-t border-gray-200">
         <Link href="/settings" className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
-          <div className="w-9 h-9 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-sm shrink-0">
-            {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
-          </div>
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt="Profile" className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0" />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-sm shrink-0">
+              {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold text-gray-900 truncate">
               {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : companyName}
