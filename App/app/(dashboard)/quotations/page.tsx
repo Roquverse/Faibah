@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, MoreHorizontal, FileText, CheckCircle2, XCircle, Clock, Copy, Check } from 'lucide-react';
 import Link from 'next/link';

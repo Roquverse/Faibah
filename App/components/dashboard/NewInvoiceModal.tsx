@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { ClientsApi, ProjectsApi, InvoicesApi } from '@/lib/api';
