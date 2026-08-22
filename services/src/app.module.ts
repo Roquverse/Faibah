@@ -18,6 +18,7 @@ import { UploadModule } from './upload/upload.module';
 import { EventsModule } from './events/events.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { ReceiptsModule } from './receipts/receipts.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ReceiptsModule } from './receipts/receipts.module';
     EventsModule,
     InvoicesModule,
     ReceiptsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [

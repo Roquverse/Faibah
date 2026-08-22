@@ -44,6 +44,7 @@ model User {
   phone     String?
   avatarUrl String?
   userType  UserType?
+  isSuperAdmin Boolean @default(false)
   companyId String?
   company   Company?  @relation(fields: [companyId], references: [id])
   createdAt DateTime @default(now())

@@ -1,18 +1,26 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Filter, MoreHorizontal, Users, Building2 } from 'lucide-react';
 import Link from 'next/link';
-
-const DUMMY_BUSINESSES = [
-  { id: 'b_1', name: 'Nexora Solutions', owner: 'Alex Chen', email: 'alex@nexora.io', plan: 'Pro', mrr: '$120', team: 4, clients: 12, status: 'Active', date: '2023-10-12' },
-  { id: 'b_2', name: 'NovaTech', owner: 'Sarah Jones', email: 'sarah@novatech.co', plan: 'Starter', mrr: '$49', team: 1, clients: 3, status: 'Active', date: '2023-11-05' },
-  { id: 'b_3', name: 'Studio Alpha', owner: 'Marcus Wright', email: 'm.wright@studioalpha.net', plan: 'Pro', mrr: '$120', team: 2, clients: 8, status: 'Trial', date: '2023-11-20' },
-  { id: 'b_4', name: 'Greenhouse Devs', owner: 'Elena Silva', email: 'elena@greenhouse.dev', plan: 'Enterprise', mrr: '$499', team: 12, clients: 45, status: 'Active', date: '2023-08-01' },
-  { id: 'b_5', name: 'Apex Design', owner: 'Tom Hardy', email: 'tom@apexdesign.com', plan: 'Starter', mrr: '$0', team: 1, clients: 0, status: 'Suspended', date: '2023-09-15' },
-];
+import { AdminApi } from '@/lib/api';
 
 export default function BusinessesPage() {
+  const [businesses, setBusinesses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    AdminApi.getBusinesses().then(res => {
+      setBusinesses(res);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <div className="p-8 text-muted">Loading businesses...</div>;
+
   return (
     <div className="p-8 max-w-[1400px] mx-auto space-y-8">
       
@@ -53,7 +61,7 @@ export default function BusinessesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-hairline">
-            {DUMMY_BUSINESSES.map((b) => (
+            {businesses.map((b) => (
               <tr key={b.id} className="hover:bg-background/80 transition-colors group">
                 <td className="px-4 py-3">
                   <Link href={`/businesses/${b.id}`} className="font-semibold text-foreground hover:text-accent">

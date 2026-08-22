@@ -1,17 +1,25 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Activity, Server, ShieldAlert, CheckCircle2 } from 'lucide-react';
-
-const WEBHOOK_LOGS = [
-  { id: 'wh_1', provider: 'Paystack', event: 'charge.success', status: 'Failed', tenant: 'Nexora Solutions', time: '2 mins ago', retryCount: 2 },
-  { id: 'wh_2', provider: 'Termii', event: 'whatsapp.delivered', status: 'Success', tenant: 'NovaTech', time: '5 mins ago', retryCount: 0 },
-  { id: 'wh_3', provider: 'Paystack', event: 'charge.success', status: 'Success', tenant: 'Studio Alpha', time: '12 mins ago', retryCount: 0 },
-  { id: 'wh_4', provider: 'Termii', event: 'whatsapp.failed', status: 'Failed', tenant: 'Greenhouse Devs', time: '18 mins ago', retryCount: 1 },
-  { id: 'wh_5', provider: 'Paystack', event: 'subscription.create', status: 'Success', tenant: 'Apex Design', time: '1 hour ago', retryCount: 0 },
-];
+import { AdminApi } from '@/lib/api';
 
 export default function SystemHealthPage() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    AdminApi.getWebhookLogs().then(res => {
+      setLogs(res);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <div className="p-8 text-muted">Loading system health...</div>;
+
   return (
     <div className="p-8 max-w-[1400px] mx-auto space-y-8">
       
@@ -85,7 +93,7 @@ export default function SystemHealthPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
-              {WEBHOOK_LOGS.map((log) => (
+              {logs.length > 0 ? logs.map((log: any) => (
                 <tr key={log.id} className="hover:bg-background/80 transition-colors">
                   <td className="px-4 py-3 mono-num text-xs text-muted">{log.time}</td>
                   <td className="px-4 py-3 text-foreground font-medium">{log.provider}</td>
@@ -109,7 +117,9 @@ export default function SystemHealthPage() {
                     )}
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr><td colSpan={7} className="p-4 text-muted text-sm text-center">No webhook logs found.</td></tr>
+              )}
             </tbody>
           </table>
         </div>

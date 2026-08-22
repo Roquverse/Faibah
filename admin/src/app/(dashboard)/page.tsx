@@ -1,9 +1,25 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, AlertTriangle } from 'lucide-react';
+import { AdminApi } from '@/lib/api';
 
 export default function OverviewPage() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    AdminApi.getOverview().then(res => {
+      setData(res);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <div className="p-8 text-muted">Loading overview...</div>;
+
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-10">
       
@@ -24,19 +40,15 @@ export default function OverviewPage() {
             <span className="text-muted">3 webhook delivery failures detected (Paystack)</span>
             <button className="text-accent hover:underline text-xs font-semibold">View Logs</button>
           </div>
-          <div className="text-sm flex items-center justify-between py-1">
-            <span className="text-muted">1 tenant (Acme Corp) approaching storage limit</span>
-            <button className="text-accent hover:underline text-xs font-semibold">Review Account</button>
-          </div>
         </div>
       </div>
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <MetricCard label="Total Businesses" value="142" trend="+12" trendUp={true} />
-        <MetricCard label="Monthly Recurring Revenue" value="$12,450" trend="+8.5%" trendUp={true} />
-        <MetricCard label="Active Users (30d)" value="892" trend="-2.1%" trendUp={false} />
-        <MetricCard label="Tx Volume Processed" value="$845,200" trend="+15%" trendUp={true} />
+        <MetricCard label="Total Businesses" value={data?.totalBusinesses?.toString() || '0'} trend="-" trendUp={true} />
+        <MetricCard label="Monthly Recurring Revenue" value={`$${data?.mrr?.toLocaleString() || '0'}`} trend="-" trendUp={true} />
+        <MetricCard label="Active Users (All Time)" value={data?.activeUsers?.toString() || '0'} trend="-" trendUp={true} />
+        <MetricCard label="Tx Volume Processed" value={`$${data?.transactionVolume?.toLocaleString() || '0'}`} trend="-" trendUp={true} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -55,11 +67,11 @@ export default function OverviewPage() {
             <h3 className="text-sm font-semibold text-foreground">Recent Signups</h3>
           </div>
           <div className="divide-y divide-hairline flex-1 overflow-y-auto">
-            <SignupRow name="Nexora Solutions" plan="Pro" date="2h ago" />
-            <SignupRow name="NovaTech" plan="Starter" date="5h ago" />
-            <SignupRow name="Studio Alpha" plan="Pro" date="1d ago" />
-            <SignupRow name="Greenhouse Devs" plan="Enterprise" date="2d ago" />
-            <SignupRow name="Apex Design" plan="Starter" date="3d ago" />
+            {data?.recentSignups?.length > 0 ? data.recentSignups.map((c: any) => (
+              <SignupRow key={c.id} name={c.name} plan={c.plan} date={new Date(c.date).toLocaleDateString()} />
+            )) : (
+              <div className="p-4 text-sm text-muted">No recent signups.</div>
+            )}
           </div>
         </div>
 
