@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreHorizontal, FileText, CheckCircle2, XCircle, Clock, Copy, Send, Download, Receipt } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, FileText, CheckCircle2, XCircle, Clock, Copy, Send, Download, Receipt, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicesApi } from '@/lib/api';
 import NewInvoiceModal from '@/components/dashboard/NewInvoiceModal';
@@ -124,6 +124,12 @@ export default function InvoicesPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Link 
+                        href={`/invoices/${invoice.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1" title="View Invoice">
+                        <Eye className="w-3.5 h-3.5" /> View
+                      </Link>
                       {invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
                         <button 
                           onClick={(e) => {
