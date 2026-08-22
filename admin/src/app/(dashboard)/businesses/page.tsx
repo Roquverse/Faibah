@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, Filter, MoreHorizontal } from 'lucide-react';
+import { Search, Filter, MoreHorizontal, Users, Building2 } from 'lucide-react';
 import Link from 'next/link';
 
 const DUMMY_BUSINESSES = [
