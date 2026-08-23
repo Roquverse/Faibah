@@ -27,6 +27,22 @@ model Company {
   taxRate             Float?
   commPreference      String?
   logoUrl             String?
+  
+  companyEmail        String?
+  companyPhone        String?
+  
+  address             String?
+  city                String?
+  state               String?
+  country             String?
+  zipCode             String?
+  
+  bankName            String?
+  accountName         String?
+  accountNumber       String?
+  swiftCode           String?
+  routingNumber       String?
+  
   createdAt           DateTime @default(now())
 
   users         User[]

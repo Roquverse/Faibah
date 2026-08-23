@@ -64,10 +64,10 @@ export default function VariantOne({ invoice }: { invoice: any }) {
             <span className="text-xs font-bold text-gray-400 mb-1 tracking-wider">BILL TO</span>
             <span className="font-bold text-gray-900 text-lg mb-2">{invoice.client?.name || 'Unknown Client'}</span>
             <div className="text-sm text-gray-600 space-y-1">
-              <p>45/A, Road 12, Victoria Island</p>
-              <p>Lagos, Nigeria</p>
-              <p className="mt-2 text-gray-800">client@example.com</p>
-              <p className="text-gray-800">+234 800 000 0000</p>
+              {invoice.client?.address && <p>{invoice.client.address}</p>}
+              {(invoice.client?.city || invoice.client?.country) && <p>{[invoice.client?.city, invoice.client?.country].filter(Boolean).join(', ')}</p>}
+              {invoice.client?.email && <p className="mt-2 text-gray-800">{invoice.client.email}</p>}
+              {invoice.client?.whatsappNumber && <p className="text-gray-800">{invoice.client.whatsappNumber}</p>}
             </div>
           </div>
         </div>
@@ -78,13 +78,13 @@ export default function VariantOne({ invoice }: { invoice: any }) {
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-bold text-gray-400 mb-1 tracking-wider">FROM</span>
-            <span className="font-bold text-gray-900 text-lg mb-2">Faibah Agency</span>
+            <span className="font-bold text-gray-900 text-lg mb-2">{invoice.client?.company?.name || 'Faibah Agency'}</span>
             <div className="text-sm text-gray-600 space-y-1">
-              <p>123 Tech Street, Ikoyi</p>
-              <p>Lagos, Nigeria</p>
-              <p className="mt-2 text-gray-800">hello@faibah.com</p>
-              <p className="text-gray-800">+234 123 456 7890</p>
-              <p className="text-xs text-gray-400 mt-1">VAT Reg No: 123456789</p>
+              {invoice.client?.company?.address && <p>{invoice.client.company.address}</p>}
+              {(invoice.client?.company?.city || invoice.client?.company?.country) && <p>{[invoice.client?.company?.city, invoice.client?.company?.country].filter(Boolean).join(', ')}</p>}
+              {invoice.client?.company?.companyEmail && <p className="mt-2 text-gray-800">{invoice.client.company.companyEmail}</p>}
+              {invoice.client?.company?.companyPhone && <p className="text-gray-800">{invoice.client.company.companyPhone}</p>}
+              {invoice.client?.company?.taxRegistered && <p className="text-xs text-gray-400 mt-1">VAT Reg No: {invoice.client.company.taxRate}%</p>}
             </div>
           </div>
         </div>
@@ -218,11 +218,11 @@ export default function VariantOne({ invoice }: { invoice: any }) {
         <div className="flex-1">
           <span className="font-bold text-gray-900 mb-3 block">BANK DETAILS</span>
           <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-gray-600">
-            <div><span className="font-semibold">Bank Name:</span> GTBank PLC</div>
-            <div><span className="font-semibold">Account Name:</span> Faibah Digital Solutions Ltd.</div>
-            <div><span className="font-semibold">Account Number:</span> 0123456789</div>
-            <div><span className="font-semibold">Branch:</span> Victoria Island Branch</div>
-            <div><span className="font-semibold">SWIFT Code:</span> GTBINGLA</div>
+            <div><span className="font-semibold">Bank Name:</span> {invoice.client?.company?.bankName || 'Not specified'}</div>
+            <div><span className="font-semibold">Account Name:</span> {invoice.client?.company?.accountName || 'Not specified'}</div>
+            <div><span className="font-semibold">Account Number:</span> {invoice.client?.company?.accountNumber || 'Not specified'}</div>
+            <div><span className="font-semibold">Routing:</span> {invoice.client?.company?.routingNumber || 'Not specified'}</div>
+            <div><span className="font-semibold">SWIFT Code:</span> {invoice.client?.company?.swiftCode || 'Not specified'}</div>
           </div>
         </div>
       </div>

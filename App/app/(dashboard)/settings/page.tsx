@@ -129,6 +129,18 @@ export default function SettingsPage() {
         const updated = await CompanyApi.updateProfile({
           name: company.name,
           workType: company.workType,
+          companyEmail: company.companyEmail,
+          companyPhone: company.companyPhone,
+          address: company.address,
+          city: company.city,
+          state: company.state,
+          country: company.country,
+          zipCode: company.zipCode,
+          bankName: company.bankName,
+          accountName: company.accountName,
+          accountNumber: company.accountNumber,
+          swiftCode: company.swiftCode,
+          routingNumber: company.routingNumber,
           defaultCurrency: company.defaultCurrency,
           taxRate: company.taxRate ? parseFloat(company.taxRate) : null,
           requireDeposit: company.requireDeposit,
@@ -477,28 +489,131 @@ export default function SettingsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Company Email</label>
-                      <input type="email" defaultValue="hello@faiba.pro" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" />
+                      <input 
+                        type="email" 
+                        value={company?.companyEmail || ''} 
+                        onChange={(e) => setCompany({...company, companyEmail: e.target.value})}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
                     </div>
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Phone Number</label>
-                      <input type="tel" defaultValue="+234 800 000 0000" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" />
+                      <input 
+                        type="tel" 
+                        value={company?.companyPhone || ''} 
+                        onChange={(e) => setCompany({...company, companyPhone: e.target.value})}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
                     </div>
                   </div>
 
-                  {/* Extended Info */}
                   <div>
-                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Website</label>
-                    <input type="url" defaultValue="https://faiba.pro" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" />
+                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Street Address</label>
+                    <textarea 
+                      rows={2} 
+                      value={company?.address || ''} 
+                      onChange={(e) => setCompany({...company, address: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white resize-none"
+                    ></textarea>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Business Address</label>
-                    <textarea rows={3} defaultValue="123 Innovation Drive, Lekki Phase 1, Lagos" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white resize-none"></textarea>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="col-span-2">
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">City</label>
+                      <input 
+                        type="text" 
+                        value={company?.city || ''} 
+                        onChange={(e) => setCompany({...company, city: e.target.value})}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">State / Province</label>
+                      <input 
+                        type="text" 
+                        value={company?.state || ''} 
+                        onChange={(e) => setCompany({...company, state: e.target.value})}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Zip Code</label>
+                      <input 
+                        type="text" 
+                        value={company?.zipCode || ''} 
+                        onChange={(e) => setCompany({...company, zipCode: e.target.value})}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
                   </div>
-
-                  <div className="w-1/2">
-                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Tax ID / Registration</label>
-                    <input type="text" defaultValue="RC-1234567" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Country</label>
+                      <input 
+                        type="text" 
+                        value={company?.country || ''} 
+                        onChange={(e) => setCompany({...company, country: e.target.value})}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border border-gray-200 rounded-xl bg-white p-6 md:p-8 space-y-6 mt-6">
+                  <h4 className="text-sm font-bold text-gray-900 mb-4">Bank Details <span className="text-gray-400 font-normal ml-2">(Appears on Invoices)</span></h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Bank Name</label>
+                      <input 
+                        type="text" 
+                        value={company?.bankName || ''}
+                        onChange={(e) => setCompany({...company, bankName: e.target.value})}
+                        placeholder="e.g. GTBank PLC"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Account Name</label>
+                      <input 
+                        type="text" 
+                        value={company?.accountName || ''}
+                        onChange={(e) => setCompany({...company, accountName: e.target.value})}
+                        placeholder="e.g. Faibah Digital Solutions Ltd"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Account Number</label>
+                      <input 
+                        type="text" 
+                        value={company?.accountNumber || ''}
+                        onChange={(e) => setCompany({...company, accountNumber: e.target.value})}
+                        placeholder="e.g. 0123456789"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Routing Number</label>
+                      <input 
+                        type="text" 
+                        value={company?.routingNumber || ''}
+                        onChange={(e) => setCompany({...company, routingNumber: e.target.value})}
+                        placeholder="e.g. 044150149"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
+                    <div className="col-span-1 md:col-span-2">
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">SWIFT Code</label>
+                      <input 
+                        type="text" 
+                        value={company?.swiftCode || ''}
+                        onChange={(e) => setCompany({...company, swiftCode: e.target.value})}
+                        placeholder="e.g. GTBINGLA"
+                        className="w-full md:w-1/2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white" 
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

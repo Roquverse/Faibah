@@ -8,7 +8,11 @@ export class InvoicesService {
   async getAllInvoices() {
     return this.prisma.invoice.findMany({
       include: {
-        client: true,
+        client: {
+          include: {
+            company: true
+          }
+        },
         project: true,
         items: true,
       },
@@ -49,7 +53,11 @@ export class InvoicesService {
       },
       include: {
         items: true,
-        client: true,
+        client: {
+          include: {
+            company: true
+          }
+        },
         project: true,
       }
     });
@@ -59,7 +67,11 @@ export class InvoicesService {
     const invoice = await this.prisma.invoice.findUnique({
       where: { id },
       include: {
-        client: true,
+        client: {
+          include: {
+            company: true
+          }
+        },
         project: true,
         items: true,
       },

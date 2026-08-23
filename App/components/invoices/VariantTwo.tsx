@@ -22,10 +22,16 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
         
         {/* Contact info on the right */}
         <div className="text-gray-300 text-xs space-y-2 z-10 font-medium">
-          <div className="flex items-center justify-end gap-3"><Phone size={14} className="text-gray-400"/> +234 123 456 7890</div>
-          <div className="flex items-center justify-end gap-3"><Mail size={14} className="text-gray-400"/> hello@faibah.com</div>
+          {invoice.client?.company?.companyPhone && <div className="flex items-center justify-end gap-3"><Phone size={14} className="text-gray-400"/> {invoice.client.company.companyPhone}</div>}
+          {invoice.client?.company?.companyEmail && <div className="flex items-center justify-end gap-3"><Mail size={14} className="text-gray-400"/> {invoice.client.company.companyEmail}</div>}
           <div className="flex items-center justify-end gap-3"><Globe size={14} className="text-gray-400"/> www.faibah.com</div>
-          <div className="flex items-start justify-end gap-3 pt-1"><MapPin size={14} className="text-gray-400 mt-0.5"/> 123 Tech Street, Ikoyi<br/>Lagos, Nigeria</div>
+          <div className="flex items-start justify-end gap-3 pt-1">
+            <MapPin size={14} className="text-gray-400 mt-0.5"/> 
+            <div className="text-right">
+              {invoice.client?.company?.address && <div>{invoice.client.company.address}</div>}
+              {(invoice.client?.company?.city || invoice.client?.company?.country) && <div>{[invoice.client?.company?.city, invoice.client?.company?.country].filter(Boolean).join(', ')}</div>}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -39,7 +45,7 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
                 <span className="text-[#FBDF4B] font-bold text-2xl tracking-tighter">F</span>
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-2xl text-gray-900 leading-none">Faibah</span>
+                <span className="font-bold text-2xl text-gray-900 leading-none">{invoice.client?.company?.name || 'Faibah Agency'}</span>
                 <span className="text-xs text-gray-500 font-medium tracking-widest uppercase">Digital Agency</span>
               </div>
             </div>
@@ -81,10 +87,10 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
               <span className="text-xs font-bold text-gray-400 mb-2 tracking-wider">BILL TO</span>
               <span className="font-bold text-gray-900 text-lg mb-1">{invoice.client?.name || 'Unknown Client'}</span>
               <div className="text-sm text-gray-600 space-y-1">
-                <p>45/A, Road 12, Victoria Island</p>
-                <p>Lagos, Nigeria</p>
-                <p className="mt-2 text-gray-800">client@example.com</p>
-                <p className="text-gray-800">+234 800 000 0000</p>
+                {invoice.client?.address && <p>{invoice.client.address}</p>}
+                {(invoice.client?.city || invoice.client?.country) && <p>{[invoice.client?.city, invoice.client?.country].filter(Boolean).join(', ')}</p>}
+                {invoice.client?.email && <p className="mt-2 text-gray-800">{invoice.client.email}</p>}
+                {invoice.client?.whatsappNumber && <p className="text-gray-800">{invoice.client.whatsappNumber}</p>}
               </div>
             </div>
           </div>
@@ -95,13 +101,13 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-gray-400 mb-2 tracking-wider">FROM</span>
-              <span className="font-bold text-gray-900 text-lg mb-1">Faibah Agency</span>
+              <span className="font-bold text-gray-900 text-lg mb-1">{invoice.client?.company?.name || 'Faibah Agency'}</span>
               <div className="text-sm text-gray-600 space-y-1">
-                <p>123 Tech Street, Ikoyi</p>
-                <p>Lagos, Nigeria</p>
-                <p className="mt-2 text-gray-800">hello@faibah.com</p>
-                <p className="text-gray-800">+234 123 456 7890</p>
-                <p className="text-xs text-gray-400 mt-1">VAT Reg No: 123456789</p>
+                {invoice.client?.company?.address && <p>{invoice.client.company.address}</p>}
+                {(invoice.client?.company?.city || invoice.client?.company?.country) && <p>{[invoice.client?.company?.city, invoice.client?.company?.country].filter(Boolean).join(', ')}</p>}
+                {invoice.client?.company?.companyEmail && <p className="mt-2 text-gray-800">{invoice.client.company.companyEmail}</p>}
+                {invoice.client?.company?.companyPhone && <p className="text-gray-800">{invoice.client.company.companyPhone}</p>}
+                {invoice.client?.company?.taxRegistered && <p className="text-xs text-gray-400 mt-1">VAT Reg No: {invoice.client.company.taxRate}%</p>}
               </div>
             </div>
           </div>
