@@ -8,7 +8,7 @@ export class ClientsController {
 
   @Get()
   getAllClients(@Req() req: Request) {
-    const userId = (req.user as any)?.userId;
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
     return this.clientsService.getAllClients(userId);
   }
   
@@ -19,7 +19,7 @@ export class ClientsController {
 
   @Post()
   createClient(@Req() req: Request, @Body() data: any) {
-    const userId = (req.user as any)?.userId;
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
     return this.clientsService.createClient(userId, data);
   }
   

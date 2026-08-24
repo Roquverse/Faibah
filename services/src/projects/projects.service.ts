@@ -5,24 +5,29 @@ import { PrismaService } from '../prisma.service';
 export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
-  private async resolveCompanyId(userId: string): Promise<string> {
+  private async resolveCompanyId(userId?: string): Promise<string | null> {
+    if (!userId) return null;
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { companyId: true },
     });
-    if (!user?.companyId) throw new NotFoundException('Company not found. Please complete onboarding first.');
-    return user.companyId;
+    return user?.companyId || null;
   }
 
-  async createProject(userId: string, clientId: string | undefined, name: string) {
-    const companyId = await this.resolveCompanyId(userId);
+  async createProject(userId: string | undefined, clientId: string | undefined, name: string) {
+    let companyId = await this.resolveCompanyId(userId);
 
     let client;
     if (clientId) {
-      client = await this.prisma.client.findFirst({ where: { id: clientId, companyId } });
+      client = await this.prisma.client.findUnique({ where: { id: clientId } });
     }
 
     if (!client) {
+      if (!companyId) {
+        const company = await this.prisma.company.findFirst();
+        if (!company) throw new NotFoundException('Company not found (go to Settings first)');
+        companyId = company.id;
+      }
       client = await this.prisma.client.findFirst({ where: { companyId } });
       if (!client) {
         client = await this.prisma.client.create({
@@ -33,7 +38,7 @@ export class ProjectsService {
 
     return this.prisma.project.create({
       data: {
-        name,
+        name: name || 'Untitled Project',
         clientId: client.id,
         currency: client.currency || 'NGN'
       }
@@ -54,18 +59,21 @@ export class ProjectsService {
     return projects;
   }
 
-  async getAllProjects(userId: string) {
+  async getAllProjects(userId?: string) {
     const companyId = await this.resolveCompanyId(userId);
+    let whereClause: any = {};
+    if (companyId) {
+      whereClause = { client: { companyId } };
+    }
 
     return this.prisma.project.findMany({
-      where: {
-        client: { companyId }
-      },
+      where: whereClause,
       include: {
         client: {
           include: { contacts: true }
         },
         tasks: true,
+        proposals: true,
         invoices: {
           include: { items: true }
         },

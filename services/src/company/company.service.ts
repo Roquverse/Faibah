@@ -1,29 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class CompanyService {
   constructor(private prisma: PrismaService) {}
 
-  async getProfile(userId: string) {
-    // Find company through the authenticated user's companyId
+  async getProfile(userId?: string) {
+    if (!userId) return null;
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { companyId: true },
     });
 
     if (!user?.companyId) {
-      return null; // User hasn't completed onboarding yet
+      return null;
     }
 
-    const company = await this.prisma.company.findUnique({
+    return this.prisma.company.findUnique({
       where: { id: user.companyId },
     });
-
-    return company;
   }
 
-  async updateProfile(userId: string, data: any) {
+  async updateProfile(userId: string | undefined, data: any) {
+    if (!userId) throw new Error('User not authenticated');
     const company = await this.getProfile(userId);
     if (!company) throw new Error('Company not found for this user');
     return this.prisma.company.update({
@@ -32,20 +32,23 @@ export class CompanyService {
     });
   }
 
-  async getOverview(userId: string) {
+  async getOverview(userId?: string) {
+    const emptyOverview = {
+      activeClients: 0,
+      activeProjects: 0,
+      totalClosed: 0,
+      totalRevenue: 0,
+      topClients: [],
+      performanceData: [],
+      subscriptions: [],
+      reminders: [],
+    };
+
+    if (!userId) return emptyOverview;
+
     const company = await this.getProfile(userId);
-    if (!company) {
-      return {
-        activeClients: 0,
-        activeProjects: 0,
-        totalClosed: 0,
-        totalRevenue: 0,
-        topClients: [],
-        performanceData: [],
-        subscriptions: [],
-        reminders: [],
-      };
-    }
+    if (!company) return emptyOverview;
+
     const companyId = company.id;
 
     const [activeClients, activeProjects, totalClosed] = await Promise.all([
@@ -75,7 +78,6 @@ export class CompanyService {
       img: c.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random`
     }));
 
-    // Generate performance data
     const currentYear = new Date().getFullYear();
     const payments = await this.prisma.paymentRecord.findMany({
       where: {
@@ -93,7 +95,6 @@ export class CompanyService {
       performanceData[monthIndex].revenue += p.amount;
     });
 
-    // Subscriptions
     const subscriptions = await this.prisma.subscription.findMany({
       where: { companyId, status: 'ACTIVE' },
       include: { client: { select: { name: true } } },
@@ -101,7 +102,6 @@ export class CompanyService {
       take: 3,
     });
 
-    // Reminders
     const reminders = await this.prisma.reminder.findMany({
       where: { companyId },
       orderBy: { createdAt: 'desc' },

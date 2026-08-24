@@ -5,17 +5,18 @@ import { PrismaService } from '../prisma.service';
 export class ClientsService {
   constructor(private prisma: PrismaService) {}
 
-  private async resolveCompanyId(userId: string): Promise<string> {
+  private async resolveCompanyId(userId?: string): Promise<string | null> {
+    if (!userId) return null;
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { companyId: true },
     });
-    if (!user?.companyId) throw new NotFoundException('Company not found. Please complete onboarding first.');
-    return user.companyId;
+    return user?.companyId || null;
   }
 
-  async getAllClients(userId: string) {
+  async getAllClients(userId?: string) {
     const companyId = await this.resolveCompanyId(userId);
+    if (!companyId) return [];
 
     const clients = await this.prisma.client.findMany({
       where: { companyId },
@@ -56,8 +57,13 @@ export class ClientsService {
     });
   }
 
-  async createClient(userId: string, data: any) {
-    const companyId = await this.resolveCompanyId(userId);
+  async createClient(userId: string | undefined, data: any) {
+    let companyId = await this.resolveCompanyId(userId);
+    if (!companyId) {
+      const company = await this.prisma.company.findFirst();
+      if (!company) throw new NotFoundException('Company not found. Please complete onboarding first.');
+      companyId = company.id;
+    }
 
     const contactName = data.name || (data.firstName ? `${data.firstName} ${data.lastName}`.trim() : 'Unknown Contact');
 

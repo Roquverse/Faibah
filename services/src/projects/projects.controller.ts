@@ -7,14 +7,14 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  async createProject(@Req() req: Request, @Body() body: { clientId: string, name: string }) {
-    const userId = (req.user as any)?.userId;
+  async createProject(@Req() req: Request, @Body() body: { clientId?: string, name: string }) {
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
     return this.projectsService.createProject(userId, body.clientId, body.name);
   }
 
   @Get()
   async getAllProjects(@Req() req: Request) {
-    const userId = (req.user as any)?.userId;
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
     return this.projectsService.getAllProjects(userId);
   }
 
