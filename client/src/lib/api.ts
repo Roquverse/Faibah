@@ -44,7 +44,8 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
       if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
         const supabase = createClient();
         supabase.auth.signOut().finally(() => {
-          window.location.href = 'http://localhost:3001/login';
+          const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'http://localhost:3001';
+          window.location.href = `${authUrl}/login`;
         });
       }
       throw new Error(`${errorMsg} (URL: ${url}, Status: ${response.status})`);

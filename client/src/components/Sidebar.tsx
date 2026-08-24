@@ -27,7 +27,8 @@ export default function Sidebar() {
     const supabase = createClient();
     await supabase.auth.signOut();
     // Redirect to centralized auth app login
-    window.location.href = 'http://localhost:3001/login';
+    const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'http://localhost:3001';
+    window.location.href = `${authUrl}/login`;
   };
 
   return (
