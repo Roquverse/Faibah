@@ -79,7 +79,7 @@ export default function ReceiptsPage() {
                     {new Date(receipt.paymentDate).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-2 transition-opacity">
                       <button className="p-1.5 text-gray-400 hover:text-[#346E3A] hover:bg-green-50 rounded-lg transition-colors">
                         <Download className="w-4 h-4" />
                       </button>

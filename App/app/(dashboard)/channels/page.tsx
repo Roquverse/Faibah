@@ -4,9 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   MessageSquare, Plus, Folder, Hash, Search, Bell, Settings, 
   MoreVertical, Smile, Paperclip, Mic, Send, Info, Pin, File, Link as LinkIcon,
-  ChevronRight, ChevronDown, User, Zap, Calendar
+  ChevronRight, ChevronDown, User, Zap, Calendar, AtSign, Play, Square, Circle
 } from 'lucide-react';
-import { ChannelsApi, ProjectsApi, UsersApi } from '@/lib/api';
+import { ChannelsApi, ProjectsApi, UsersApi, UploadApi } from '@/lib/api';
 import { io } from 'socket.io-client';
 
 export default function ChannelsPage() {
@@ -35,6 +35,21 @@ export default function ChannelsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newChannel, setNewChannel] = useState({ name: '', projectId: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // File upload state
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Advanced Input States
+  const [showMentions, setShowMentions] = useState(false);
+  const [pendingMentions, setPendingMentions] = useState<{id: string, type: 'TEAM' | 'CLIENT', name: string}[]>([]);
+  const [showEmojis, setShowEmojis] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -92,11 +107,17 @@ export default function ChannelsPage() {
 
     // Setup Socket
     const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005');
-    socket.emit('join_project', channel.projectId);
+    socket.emit('joinProject', channel.projectId);
     
     socket.on('new_message', (msg: any) => {
       if (msg.channelId === activeChannelId) {
-        setMessages(prev => [...prev, msg]);
+        setMessages(prev => {
+          // Avoid duplicate real messages
+          if (prev.some(m => m.id === msg.id)) return prev;
+          // Filter out matching optimistic messages
+          const filtered = prev.filter(m => !(m.id.toString().startsWith('temp-') && m.content === msg.content && m.senderId === msg.senderId));
+          return [...filtered, msg];
+        });
       }
     });
 
@@ -149,12 +170,131 @@ export default function ChannelsPage() {
       await ChannelsApi.postMessage(activeChannelData.projectId, {
         channelName: activeChannelData.name,
         content,
-        senderId: currentUser?.id || 'SYS'
+        senderId: currentUser?.id || 'SYS',
+        mentions: pendingMentions.length > 0 ? pendingMentions : undefined
       });
+      setPendingMentions([]);
       // The socket will broadcast the real message back
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeChannelData) return;
+    
+    try {
+      setIsUploading(true);
+      const isPdf = file.type === 'application/pdf';
+      const result = await (isPdf ? UploadApi.uploadPdf(file) : UploadApi.uploadImage(file));
+      
+      await ChannelsApi.postMessage(activeChannelData.projectId, {
+        channelName: activeChannelData.name,
+        content: `Attached a file: ${file.name}`,
+        senderId: currentUser?.id || 'SYS',
+        attachmentUrl: result.url
+      });
+      
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Failed to upload file');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleEmojiClick = (emoji: string) => {
+    setMessageInput(prev => prev + emoji);
+    setShowEmojis(false);
+  };
+
+  const handleMentionSelect = (member: any) => {
+    const name = member.user?.firstName ? `${member.user.firstName} ${member.user.lastName || ''}` : member.client?.name || 'Unknown';
+    const type = member.user ? 'TEAM' : 'CLIENT';
+    
+    // Replace the trailing @ or just append
+    if (messageInput.endsWith('@')) {
+      setMessageInput(prev => prev.slice(0, -1) + `@${name} `);
+    } else {
+      setMessageInput(prev => prev + `@${name} `);
+    }
+    
+    setPendingMentions(prev => {
+      if (!prev.find(m => m.id === member.id)) {
+        return [...prev, { id: member.id, type, name }];
+      }
+      return prev;
+    });
+    setShowMentions(false);
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      timerIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      alert("Could not access microphone.");
+    }
+  };
+
+  const stopRecording = async () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioFile = new File([audioBlob], `voice-message-${Date.now()}.webm`, { type: 'audio/webm' });
+        
+        try {
+          setIsUploading(true);
+          const result = await UploadApi.uploadImage(audioFile); // generic upload handles audio
+          
+          if (activeChannelData) {
+            await ChannelsApi.postMessage(activeChannelData.projectId, {
+              channelName: activeChannelData.name,
+              content: 'Voice Message',
+              senderId: currentUser?.id || 'SYS',
+              attachmentUrl: result.url
+            });
+          }
+        } catch (error) {
+          console.error("Failed to upload voice message:", error);
+        } finally {
+          setIsUploading(false);
+        }
+
+        // Stop all tracks
+        const tracks = mediaRecorderRef.current?.stream.getTracks();
+        tracks?.forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const toggleProjectExpand = (projectId: string) => {
@@ -334,6 +474,22 @@ export default function ChannelsPage() {
                         )}
                         <div className="text-gray-700 leading-relaxed text-[14px]">
                           {msg.content}
+                          {msg.attachmentUrl && (
+                            <div className="mt-2">
+                              {msg.attachmentUrl.match(/\.(webm|mp3|wav|ogg)$/i) || msg.content === 'Voice Message' ? (
+                                <audio controls src={msg.attachmentUrl} className="max-w-full h-10 outline-none" />
+                              ) : msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i) || msg.attachmentUrl.includes('/image/upload/') ? (
+                                <img src={msg.attachmentUrl} alt="Attachment" className="max-w-xs max-h-64 object-cover rounded-lg border border-gray-200" />
+                              ) : (
+                                <a href={msg.attachmentUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 w-fit hover:bg-gray-100 transition-colors">
+                                  <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-gray-500 shadow-sm shrink-0">
+                                    <File className="w-4 h-4" />
+                                  </div>
+                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">View Attachment</div>
+                                </a>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -359,12 +515,74 @@ export default function ChannelsPage() {
                   placeholder={`Message #${activeChannelData.name}...`}
                   className="w-full p-3 resize-none outline-none bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-gray-100"
                 />
-                <div className="flex items-center justify-between p-2 bg-gray-50/50 dark:bg-slate-700/50 rounded-b-xl border-t border-gray-100 dark:border-slate-700">
+                <div className="flex items-center justify-between p-2 bg-gray-50/50 dark:bg-slate-700/50 rounded-b-xl border-t border-gray-100 dark:border-slate-700 relative">
+                  
+                  {/* Mentions Popover */}
+                  {showMentions && (
+                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden z-10">
+                      <div className="p-2 bg-gray-50 dark:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700 text-xs font-bold text-gray-500 dark:text-gray-400">Mention someone</div>
+                      <div className="max-h-48 overflow-y-auto p-1">
+                        {activeProjectMembers.length === 0 ? (
+                          <div className="p-3 text-xs text-gray-400 text-center">No members found</div>
+                        ) : (
+                          activeProjectMembers.map(member => (
+                            <button
+                              key={member.id}
+                              onClick={() => handleMentionSelect(member)}
+                              className="w-full text-left flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            >
+                              <div className="w-6 h-6 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center text-[10px] font-bold shrink-0">
+                                {member.user?.firstName?.charAt(0) || member.client?.name?.charAt(0) || '?'}
+                              </div>
+                              <span className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                                {member.user?.firstName ? `${member.user.firstName} ${member.user.lastName || ''}` : member.client?.name}
+                              </span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Emojis Popover */}
+                  {showEmojis && (
+                    <div className="absolute bottom-full left-10 mb-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 p-2 z-10">
+                      <div className="grid grid-cols-6 gap-1">
+                        {['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯'].map(emoji => (
+                          <button key={emoji} onClick={() => handleEmojiClick(emoji)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-lg flex items-center justify-center">
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                    <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"><Zap className="w-4 h-4" /></button>
-                    <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"><Smile className="w-4 h-4" /></button>
-                    <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"><Paperclip className="w-4 h-4" /></button>
-                    <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"><Mic className="w-4 h-4" /></button>
+                    <button onClick={() => setShowMentions(!showMentions)} className={`p-1.5 rounded transition-colors ${showMentions ? 'bg-[#346E3A]/10 text-[#346E3A]' : 'hover:bg-gray-200 dark:hover:bg-slate-600'}`} title="Mention"><AtSign className="w-4 h-4" /></button>
+                    <button onClick={() => setShowEmojis(!showEmojis)} className={`p-1.5 rounded transition-colors ${showEmojis ? 'bg-[#346E3A]/10 text-[#346E3A]' : 'hover:bg-gray-200 dark:hover:bg-slate-600'}`} title="Emoji"><Smile className="w-4 h-4" /></button>
+                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept="image/*,application/pdf" />
+                    <button 
+                      onClick={() => fileInputRef.current?.click()} 
+                      disabled={isUploading || isRecording}
+                      className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors disabled:opacity-50"
+                      title="Attach File"
+                    >
+                      {isUploading ? <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> : <Paperclip className="w-4 h-4" />}
+                    </button>
+                    
+                    {isRecording ? (
+                      <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-2 py-1 rounded-lg ml-1">
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-xs font-medium font-mono">{formatTime(recordingTime)}</span>
+                        <button onClick={stopRecording} className="p-1 hover:bg-red-100 dark:hover:bg-red-900/40 rounded transition-colors ml-1" title="Stop & Send">
+                          <Square className="w-3.5 h-3.5 fill-current" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={startRecording} disabled={isUploading} className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors disabled:opacity-50" title="Voice Message">
+                        <Mic className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {messageInput.length > 0 && (

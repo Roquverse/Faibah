@@ -137,7 +137,7 @@ export const ChannelsApi = {
   getAll: () => fetchApi('/channels'),
   create: (data: { projectId: string, channelName: string }) => fetchApi('/channels', { method: 'POST', body: JSON.stringify(data) }),
   getForProject: (projectId: string, channelName?: string) => fetchApi(`/projects/${projectId}/channel${channelName ? `?channel=${channelName}` : ''}`),
-  postMessage: (projectId: string, data: { channelName: string, content: string, senderId?: string }) => fetchApi(`/projects/${projectId}/channel/messages`, { method: 'POST', body: JSON.stringify(data) }),
+  postMessage: (projectId: string, data: { channelName: string, content: string, senderId?: string, attachmentUrl?: string }) => fetchApi(`/projects/${projectId}/channel/messages`, { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const ReceiptsApi = {

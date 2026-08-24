@@ -171,7 +171,7 @@ export default function InvoicesPage() {
                     {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : '-'}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className={`flex justify-end gap-2 transition-opacity ${openDropdownId === invoice.id ? 'opacity-100' : 'lg:opacity-0 lg:group-hover:opacity-100'}`}>
+                      <div className="flex justify-end gap-2">
                       <Link 
                         href={`/invoices/${invoice.id}`}
                         onClick={(e) => e.stopPropagation()}
