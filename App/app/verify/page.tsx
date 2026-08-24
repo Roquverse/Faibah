@@ -34,8 +34,7 @@ function VerifyEmailForm() {
     }
 
     // Redirect to onboarding
-    const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
-    window.location.href = `${APP_URL}/onboarding`;
+    window.location.href = '/onboarding';
   };
 
   const handleChange = (index: number, value: string) => {
