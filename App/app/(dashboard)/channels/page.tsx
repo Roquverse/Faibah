@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   MessageSquare, Plus, Folder, Hash, Search, Bell, Settings, 
-  MoreVertical, Smile, Paperclip, Mic, Send, Info, Pin, File, Link as LinkIcon,
+  MoreVertical, Smile, Paperclip, Mic, Send, Info, Pin, File as FileIcon, Link as LinkIcon,
   ChevronRight, ChevronDown, User, Zap, Calendar, AtSign, Play, Square, Circle
 } from 'lucide-react';
 import { ChannelsApi, ProjectsApi, UsersApi, UploadApi } from '@/lib/api';
@@ -483,7 +483,7 @@ export default function ChannelsPage() {
                               ) : (
                                 <a href={msg.attachmentUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 w-fit hover:bg-gray-100 transition-colors">
                                   <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-gray-500 shadow-sm shrink-0">
-                                    <File className="w-4 h-4" />
+                                    <FileIcon className="w-4 h-4" />
                                   </div>
                                   <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">View Attachment</div>
                                 </a>
