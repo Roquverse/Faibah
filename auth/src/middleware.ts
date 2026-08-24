@@ -28,9 +28,14 @@ export async function middleware(request: NextRequest) {
   )
 
   // refreshing the auth token
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch (err) {
+    // If this throws, it usually means NEXT_PUBLIC_SUPABASE_URL is missing or a network error occurred
+    console.error('Error fetching user in middleware:', err);
+  }
 
   // Protect /portal and /(dashboard) routes
   // The /(dashboard) routes are mounted at the root except for /onboarding, /api, /login
