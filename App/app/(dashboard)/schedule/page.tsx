@@ -93,13 +93,13 @@ export default function SchedulePage() {
 
   const getTypeStyles = (type: string) => {
     switch (type) {
-      case 'MEETING': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-      case 'CALL': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'DEADLINE': return 'bg-rose-50 text-rose-700 border-rose-200';
-      case 'REMINDER': return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'INVOICE': return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'MILESTONE': return 'bg-blue-50 text-blue-700 border-blue-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+      case 'MEETING': return 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
+      case 'CALL': return 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+      case 'DEADLINE': return 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+      case 'REMINDER': return 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+      case 'INVOICE': return 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800';
+      case 'MILESTONE': return 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+      default: return 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700';
     }
   };
 
@@ -216,12 +216,11 @@ export default function SchedulePage() {
 
  {/* Right Column: Sidebar */}
  <div className="xl:col-span-4 2xl:col-span-3 space-y-6">
- 
- {/* 1. Today's Agenda (Expansion Detail) */}
- {viewAppointment ? (
- <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden flex flex-col h-[280px]">
- <div className={`p-5 border-b border-gray-100 flex items-center gap-3 ${getTypeStyles(viewAppointment.type).split(' ')[0]}`}>
- <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white text-gray-700 border border-gray-100`}>
+  {/* 1. Today's Agenda (Expansion Detail) */}
+  {viewAppointment ? (
+  <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col h-[280px]">
+  <div className={`p-5 border-b border-gray-100 dark:border-slate-800 flex items-center gap-3 ${getTypeStyles(viewAppointment.type)}`}>
+  <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-slate-700`}>
  {getTypeIcon(viewAppointment.type)}
  </div>
  <div className="flex-1">
@@ -232,24 +231,23 @@ export default function SchedulePage() {
  <X className="w-4 h-4" />
  </button>
  </div>
- 
- <div className="p-5 flex-1 overflow-y-auto custom-scrollbar space-y-4">
- <div>
- <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">When</div>
- <div className="text-xs font-semibold text-gray-900">
- {format(parseISO(viewAppointment.date), 'EEEE, MMM d')} • {viewAppointment.startTime} - {viewAppointment.endTime}
- </div>
- </div>
+  <div className="p-5 flex-1 overflow-y-auto custom-scrollbar space-y-4 bg-white dark:bg-slate-900">
+  <div>
+  <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">When</div>
+  <div className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+  {format(parseISO(viewAppointment.date), 'EEEE, MMM d')} • {viewAppointment.startTime} - {viewAppointment.endTime}
+  </div>
+  </div>
 
- {viewAppointment.description && (
- <div>
- <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Notes</div>
- <div className="text-xs font-medium text-gray-700">{viewAppointment.description}</div>
- </div>
- )}
- </div>
- 
- <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-2">
+  {viewAppointment.description && (
+  <div>
+  <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Notes</div>
+  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{viewAppointment.description}</div>
+  </div>
+  )}
+  </div>
+  
+  <div className="p-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 flex gap-2">
  {viewAppointment.link && (
  <a 
  href={viewAppointment.link.startsWith('http') ? viewAppointment.link : `https://${viewAppointment.link}`} 
@@ -261,23 +259,23 @@ export default function SchedulePage() {
  Join Call
  </a>
  )}
- <button 
- onClick={(e) => {
- deleteAppointment(viewAppointment.id, e);
- setViewAppointment(null);
- }}
- className="px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
- >
- Delete
- </button>
- </div>
- </div>
- ) : (
- <div className="bg-white rounded-3xl border border-gray-200 p-6 flex flex-col items-center justify-center text-center text-gray-400 h-[280px]">
- <CalendarIcon className="w-10 h-10 mb-4 text-gray-200" />
- <p className="text-xs font-medium max-w-[200px]">Select an event on the calendar to view its agenda and notes.</p>
- </div>
- )}
+  <button 
+  onClick={(e) => {
+  deleteAppointment(viewAppointment.id, e);
+  setViewAppointment(null);
+  }}
+  className="px-4 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-800"
+  >
+  Delete
+  </button>
+  </div>
+  </div>
+  ) : (
+  <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-6 flex flex-col items-center justify-center text-center text-gray-400 dark:text-gray-500 h-[280px]">
+  <CalendarIcon className="w-10 h-10 mb-4 text-gray-200 dark:text-gray-700" />
+  <p className="text-xs font-medium max-w-[200px]">Select an event on the calendar to view its agenda and notes.</p>
+  </div>
+  )}
 
  {/* 2. Mini Month Picker */}
  <div className="bg-white rounded-3xl border border-gray-200 p-5">

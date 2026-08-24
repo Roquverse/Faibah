@@ -61,9 +61,9 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-0 z-50 w-64 h-screen bg-white border-r border-gray-200 flex-col font-sans">
+    <aside className="hidden md:flex fixed left-0 top-0 z-50 w-64 h-screen bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex-col font-sans">
       {/* Logo Area */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-200">
+      <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-slate-800">
         <Link href="/" className="flex items-center gap-2">
           <img src="/favicon.png" alt="Logo" width={32} />
         </Link>
@@ -83,8 +83,8 @@ export default function Sidebar() {
                   key={item.name}
                   href={item.path}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm ${isActive
-                    ? 'bg-gray-50 text-black'
-                    : 'text-black hover:bg-gray-50 hover:text-black'
+                    ? 'bg-gray-50 dark:bg-slate-800 text-black dark:text-white'
+                    : 'text-black dark:text-slate-300 hover:bg-gray-50 hover:dark:bg-slate-800/50 hover:text-black dark:hover:text-white'
                     }`}
                 >
                   <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
@@ -114,8 +114,8 @@ export default function Sidebar() {
                     key={item.name}
                     href={item.path}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm ${isActive
-                      ? 'bg-gray-50 text-black'
-                      : 'text-black hover:bg-gray-50 hover:text-black'
+                      ? 'bg-gray-50 dark:bg-slate-800 text-black dark:text-white'
+                      : 'text-black dark:text-slate-300 hover:bg-gray-50 hover:dark:bg-slate-800/50 hover:text-black dark:hover:text-white'
                       }`}
                   >
                     <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
@@ -130,8 +130,8 @@ export default function Sidebar() {
       </div>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-gray-200">
-        <Link href="/settings" className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+      <div className="p-4 border-t border-gray-200 dark:border-slate-800">
+        <Link href="/settings" className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
           {user?.avatarUrl ? (
             <img src={user.avatarUrl} alt="Profile" className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0" />
           ) : (

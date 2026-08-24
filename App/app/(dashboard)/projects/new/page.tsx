@@ -158,31 +158,31 @@ export default function NewProjectProposal() {
  <div className="min-h-full font-sans pb-24 relative">
  
  {/* Floating Action Bar */}
- <div className="sticky top-0 z-40 bg-[#F8F9FA]/80 backdrop-blur-md border-b border-gray-200 px-8 py-4 flex items-center justify-between">
- <Link href="/projects" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors text-sm font-semibold w-1/4">
+ <div className="sticky top-0 z-40 bg-[#F8F9FA]/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-8 py-4 flex items-center justify-between">
+ <Link href="/projects" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors text-sm font-semibold w-1/4">
  <ArrowLeft className="w-4 h-4" />
  Back to Projects
  </Link>
  
  {/* Tab Navigation */}
- <div className="flex items-center bg-gray-100 p-1 rounded-xl w-1/2 justify-center">
+ <div className="flex items-center bg-gray-100 dark:bg-slate-800/60 p-1 rounded-xl w-1/2 justify-center">
  <button 
  onClick={() => setActiveTab('proposal')}
- className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'proposal' ? 'bg-white text-gray-900 ' : 'text-gray-500 hover:text-gray-700'}`}
+ className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'proposal' ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
  >
  <PenTool className="w-4 h-4" />
  Proposal
  </button>
  <button 
  onClick={() => setActiveTab('financials')}
- className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'financials' ? 'bg-white text-gray-900 ' : 'text-gray-500 hover:text-gray-700'}`}
+ className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'financials' ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
  >
  <Calculator className="w-4 h-4" />
  Financials
  </button>
  <button 
  onClick={() => setActiveTab('preview')}
- className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'preview' ? 'bg-white text-gray-900 ' : 'text-gray-500 hover:text-gray-700'}`}
+ className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'preview' ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
  >
  <Eye className="w-4 h-4" />
  Preview
@@ -313,10 +313,23 @@ export default function NewProjectProposal() {
  <style dangerouslySetInnerHTML={{__html: `
  .quill-custom .ql-toolbar {
  border: none !important;
- border-bottom: 1px solid #f3f4f6 !important;
+ border-bottom: 1px solid var(--surface-03, #f3f4f6) !important;
  padding: 12px 0 !important;
  margin-bottom: 32px !important;
  font-family: inherit !important;
+ }
+ .dark .quill-custom .ql-stroke {
+ stroke: var(--foreground) !important;
+ }
+ .dark .quill-custom .ql-fill {
+ fill: var(--foreground) !important;
+ }
+ .dark .quill-custom .ql-picker {
+ color: var(--foreground) !important;
+ }
+ .dark .quill-custom .ql-picker-options {
+ background-color: var(--surface-01) !important;
+ border-color: var(--surface-03) !important;
  }
  .quill-custom .ql-container {
  border: none !important;
@@ -325,12 +338,12 @@ export default function NewProjectProposal() {
  .quill-custom .ql-editor {
  padding: 0 !important;
  min-height: 500px;
- color: #1f2937;
+ color: var(--foreground, #1f2937);
  }
  .quill-custom .ql-editor.ql-blank::before {
  left: 0 !important;
  font-style: normal !important;
- color: #9ca3af !important;
+ color: var(--muted, #9ca3af) !important;
  }
  .quill-custom .ql-editor h1 {
  font-size: 2.25rem;
@@ -352,7 +365,7 @@ export default function NewProjectProposal() {
  font-size: 1.125rem;
  line-height: 1.8;
  margin-bottom: 1.5rem;
- color: #374151;
+ color: var(--foreground, #374151);
  }
  .quill-custom .ql-editor ul, .quill-custom .ql-editor ol {
  padding-left: 1.5rem;
@@ -362,7 +375,7 @@ export default function NewProjectProposal() {
  font-size: 1.125rem;
  line-height: 1.8;
  margin-bottom: 0.5rem;
- color: #374151;
+ color: var(--foreground, #374151);
  }
  .quill-custom .ql-editor table {
  width: 100%;
@@ -371,12 +384,12 @@ export default function NewProjectProposal() {
  table-layout: fixed;
  }
  .quill-custom .ql-editor td {
- border: 1px solid #e5e7eb;
+ border: 1px solid var(--surface-03, #e5e7eb);
  padding: 12px;
  text-align: left;
  }
  .quill-custom .ql-editor tr:first-child td {
- background-color: #f9fafb;
+ background-color: var(--surface-02, #f9fafb);
  }
  `}} />
  

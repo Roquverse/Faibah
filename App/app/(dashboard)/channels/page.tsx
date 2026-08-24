@@ -175,10 +175,10 @@ export default function ChannelsPage() {
   const linkMessages = messages.filter(m => m.content && m.content.match(linkRegex));
 
   return (
-    <div className="flex-1 flex h-full font-sans bg-white overflow-hidden text-sm">
+    <div className="flex-1 flex h-full font-sans bg-white dark:bg-slate-900 overflow-hidden text-sm">
       
       {/* Pane 1: Left Sidebar (Navigation) */}
-      <div className="w-64 border-r border-gray-100 flex flex-col bg-[#F9FAFB] shrink-0">
+      <div className="w-64 border-r border-gray-100 dark:border-slate-800 flex flex-col bg-[#F9FAFB] dark:bg-slate-800/50 shrink-0">
         <div className="px-4 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="font-bold text-gray-900 tracking-tight">Channels</h2>
           <button onClick={() => setShowCreateModal(true)} className="w-6 h-6 rounded flex items-center justify-center hover:bg-gray-200 text-gray-500 transition-colors">
@@ -220,7 +220,7 @@ export default function ChannelsPage() {
                 
                 {expandedProjects[project.id] && (
                   <div className="mt-1 ml-5 border-l border-gray-200 pl-2 space-y-0.5">
-                    {channelsByProject[project.id]?.map(channel => (
+                    {channelsByProject[project.id]?.map((channel: any) => (
                       <button
                         key={channel.id}
                         onClick={() => setActiveChannelId(channel.id)}
@@ -241,12 +241,12 @@ export default function ChannelsPage() {
         </div>
       </div>
 
-      {/* Pane 2: Center Chat Thread */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white relative">
+      {/* Pane 2: Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 min-w-0">
         {activeChannelData ? (
           <>
-            {/* Header */}
-            <div className="h-14 border-b border-gray-100 flex items-center justify-between px-6 shrink-0 bg-white/80 backdrop-blur-md z-10">
+            {/* Chat Header */}
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 shrink-0 backdrop-blur-md z-10">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 text-gray-900 font-bold text-base">
                   <Hash className="w-5 h-5 text-gray-400" />
@@ -344,8 +344,8 @@ export default function ChannelsPage() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white shrink-0">
-              <div className="border border-gray-200 rounded-xl bg-white shadow-sm focus-within:border-[#346E3A] focus-within:ring-1 focus-within:ring-[#346E3A] transition-all flex flex-col">
+            <div className="p-4 bg-white dark:bg-slate-900 shrink-0">
+              <div className="border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 shadow-sm focus-within:border-[#346E3A] focus-within:ring-1 focus-within:ring-[#346E3A] transition-all flex flex-col">
                 <textarea 
                   rows={2}
                   value={messageInput}
@@ -357,14 +357,14 @@ export default function ChannelsPage() {
                     }
                   }}
                   placeholder={`Message #${activeChannelData.name}...`}
-                  className="w-full p-3 resize-none outline-none bg-transparent placeholder:text-gray-400"
+                  className="w-full p-3 resize-none outline-none bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-gray-100"
                 />
-                <div className="flex items-center justify-between p-2 bg-gray-50/50 rounded-b-xl border-t border-gray-100">
-                  <div className="flex items-center gap-1 text-gray-500">
-                    <button className="p-1.5 hover:bg-gray-200 rounded transition-colors"><Zap className="w-4 h-4" /></button>
-                    <button className="p-1.5 hover:bg-gray-200 rounded transition-colors"><Smile className="w-4 h-4" /></button>
-                    <button className="p-1.5 hover:bg-gray-200 rounded transition-colors"><Paperclip className="w-4 h-4" /></button>
-                    <button className="p-1.5 hover:bg-gray-200 rounded transition-colors"><Mic className="w-4 h-4" /></button>
+                <div className="flex items-center justify-between p-2 bg-gray-50/50 dark:bg-slate-700/50 rounded-b-xl border-t border-gray-100 dark:border-slate-700">
+                  <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                    <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"><Zap className="w-4 h-4" /></button>
+                    <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"><Smile className="w-4 h-4" /></button>
+                    <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"><Paperclip className="w-4 h-4" /></button>
+                    <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"><Mic className="w-4 h-4" /></button>
                   </div>
                   <div className="flex items-center gap-2">
                     {messageInput.length > 0 && (
@@ -397,9 +397,9 @@ export default function ChannelsPage() {
         )}
       </div>
 
-      {/* Pane 3: Right Sidebar (Info) */}
+      {/* Pane 3: Right Sidebar (Info/Media/Links) */}
       {showRightPane && activeChannelData && (
-        <div className="w-80 border-l border-gray-100 bg-[#F9FAFB] flex flex-col shrink-0 animate-in slide-in-from-right-8 duration-200">
+        <div className="w-72 border-l border-gray-100 dark:border-slate-800 flex flex-col bg-[#F9FAFB] dark:bg-slate-800/50 shrink-0 overflow-y-auto animate-in slide-in-from-right-8 duration-200">
           {/* Tabs */}
           <div className="flex items-center px-2 py-3 border-b border-gray-100">
             <button onClick={() => setActiveTab('info')} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${activeTab === 'info' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}>Info</button>
@@ -518,7 +518,7 @@ export default function ChannelsPage() {
                 ) : (
                   linkMessages.map(msg => {
                     const urls = msg.content.match(linkRegex) || [];
-                    return urls.map((url, i) => (
+                    return urls.map((url: string, i: number) => (
                       <a key={`${msg.id}-${i}`} href={url} target="_blank" rel="noreferrer" className="flex items-start gap-3 p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
                         <div className="w-8 h-8 rounded bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                           <LinkIcon className="w-4 h-4" />

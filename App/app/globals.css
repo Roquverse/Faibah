@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
 
 :root {
   /* Brand - Faibah Colors */
@@ -42,6 +44,7 @@
 }
 
 .dark .bg-\[\#F8F9FA\],
+.dark .bg-\[\#F9FAFB\],
 .dark .bg-gray-50 {
   background-color: var(--surface-02) !important;
 }
@@ -71,10 +74,33 @@
 }
 
 /* Ensure inputs and dropdowns look good */
-.dark input {
+.dark input,
+.dark textarea,
+.dark select {
   background-color: var(--surface-01) !important;
   color: var(--foreground) !important;
   border-color: var(--surface-03) !important;
+}
+
+/* Fix autofill in dark mode so it doesn't turn white */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--surface-01) inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+}
+
+/* Gradient overrides */
+.dark .from-white {
+  --tw-gradient-from: var(--surface-01) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: transparent var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.dark .via-white {
+  --tw-gradient-via: var(--surface-01) var(--tw-gradient-via-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to) !important;
 }
 
 @theme inline {

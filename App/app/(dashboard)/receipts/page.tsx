@@ -59,23 +59,23 @@ export default function ReceiptsPage() {
             <tbody className="divide-y divide-gray-100">
               {receipts.map(receipt => (
                 <tr key={receipt.id} className="hover:bg-gray-50 transition-colors cursor-pointer group">
-                  <td className="px-6 py-4 font-medium text-gray-900">{receipt.receiptRef || receipt.id.slice(0, 8).toUpperCase()}</td>
+                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{receipt.receiptRef || receipt.id.slice(0, 8).toUpperCase()}</td>
                   <td className="px-6 py-4">
-                    <div className="font-semibold text-gray-900 mb-0.5 flex items-center gap-2">
+                    <div className="font-semibold text-gray-900 dark:text-white mb-0.5 flex items-center gap-2">
                       {receipt.invoice?.client?.name || 'Unknown Client'}
                     </div>
-                    <div className="text-xs text-gray-500">Invoice #{receipt.invoice?.invoiceRef || receipt.invoice?.id?.slice(0, 8).toUpperCase()}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Invoice #{receipt.invoice?.invoiceRef || receipt.invoice?.id?.slice(0, 8).toUpperCase()}</div>
                   </td>
-                  <td className="px-6 py-4 text-right font-bold text-gray-900">
+                  <td className="px-6 py-4 text-right font-bold text-gray-900 dark:text-white">
                     {receipt.invoice?.currency === 'NGN' ? '₦' : receipt.invoice?.currency === 'USD' ? '$' : receipt.invoice?.currency}
                     {receipt.amountPaid.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 text-right text-gray-500">
-                    <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-xs font-medium text-gray-700">
+                  <td className="px-6 py-4 text-right text-gray-500 dark:text-gray-400">
+                    <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 dark:bg-slate-700 text-xs font-medium text-gray-700 dark:text-gray-300">
                       {receipt.paymentMethod}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right text-gray-500">
+                  <td className="px-6 py-4 text-right text-gray-500 dark:text-gray-400">
                     {new Date(receipt.paymentDate).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
