@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class ReceiptsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async getAllReceipts() {
     return this.prisma.receipt.findMany({
@@ -24,7 +28,6 @@ export class ReceiptsService {
   }) {
     const { invoiceId, amountPaid, paymentMethod, paymentDate } = data;
     
-    // Generate a simple Receipt Ref
     const count = await this.prisma.receipt.count();
     const receiptRef = `RCP-${String(count + 1).padStart(4, '0')}`;
 
@@ -37,18 +40,25 @@ export class ReceiptsService {
         paymentDate: new Date(paymentDate),
       },
       include: {
-        invoice: true
+        invoice: {
+          include: { client: true }
+        }
       }
     });
 
-    // Optionally mark the invoice as PAID if it's fully paid here.
-    // For now, let's just mark it as PAID unconditionally for simplicity, 
-    // or compare amountPaid against total if needed.
-    // Let's just update the status to PAID to keep it simple as discussed.
     await this.prisma.invoice.update({
       where: { id: invoiceId },
       data: { status: 'PAID' }
     });
+
+    if (receipt.invoice?.client?.email) {
+      await this.mailService.queuePaymentReceipt({
+        clientEmail: receipt.invoice.client.email,
+        clientName: receipt.invoice.client.name,
+        invoiceRef: receipt.invoice.invoiceRef || undefined,
+        amountPaid: `₦${amountPaid.toLocaleString()}`,
+      });
+    }
 
     return receipt;
   }

@@ -23,6 +23,7 @@ import { RedisModule } from './redis/redis.module';
 import { RedisThrottlerStorage } from './redis/redis-throttler.storage';
 import { BullConfigModule } from './bull/bull-config.module';
 import { REDIS_CLIENT } from './redis/redis.constants';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -38,8 +39,9 @@ import { REDIS_CLIENT } from './redis/redis.constants';
       }),
     }),
 
-    // ─── Background Job Queues (BullMQ) ───────────────────────────────
+    // ─── Background Job Queues & Mail ─────────────────────────────────
     BullConfigModule,
+    MailModule,
 
     // ─── App Modules ──────────────────────────────────────────────────
     PrismaModule,

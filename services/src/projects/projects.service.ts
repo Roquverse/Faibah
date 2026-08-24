@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   private async resolveCompanyId(userId?: string): Promise<string | null> {
     if (!userId) return null;
@@ -19,7 +23,10 @@ export class ProjectsService {
 
     let client;
     if (clientId) {
-      client = await this.prisma.client.findUnique({ where: { id: clientId } });
+      client = await this.prisma.client.findUnique({
+        where: { id: clientId },
+        include: { company: true },
+      });
     }
 
     if (!client) {
@@ -28,21 +35,41 @@ export class ProjectsService {
         if (!company) throw new NotFoundException('Company not found (go to Settings first)');
         companyId = company.id;
       }
-      client = await this.prisma.client.findFirst({ where: { companyId } });
+      client = await this.prisma.client.findFirst({
+        where: { companyId },
+        include: { company: true },
+      });
       if (!client) {
         client = await this.prisma.client.create({
-          data: { name: 'Default Client', companyId }
+          data: { name: 'Default Client', companyId },
+          include: { company: true },
         });
       }
     }
 
-    return this.prisma.project.create({
+    const project = await this.prisma.project.create({
       data: {
         name: name || 'Untitled Project',
         clientId: client.id,
         currency: client.currency || 'NGN'
+      },
+      include: {
+        client: {
+          include: { company: true }
+        }
       }
     });
+
+    if (client?.email) {
+      await this.mailService.queueProjectApproval({
+        clientEmail: client.email,
+        clientName: client.name,
+        projectName: project.name,
+        companyName: client.company?.name || 'Faiba Platform',
+      });
+    }
+
+    return project;
   }
 
   async getProjectByClient(clientId: string) {
@@ -85,19 +112,56 @@ export class ProjectsService {
   }
 
   async updateProjectStatus(id: string, status: any) {
-    return this.prisma.project.update({
+    const project = await this.prisma.project.update({
       where: { id },
-      data: { status }
+      data: { status },
+      include: { client: { include: { company: true } } }
     });
+
+    if (project?.client?.email) {
+      await this.mailService.queueActivityNotice({
+        recipientEmail: project.client.email,
+        recipientName: project.client.name,
+        title: `Project "${project.name}" Status Updated`,
+        message: `Your project "${project.name}" status has been updated to ${status}.`,
+      });
+    }
+
+    return project;
   }
 
   async createProposal(projectId: string, content: string) {
-    return this.prisma.proposal.create({
+    const proposal = await this.prisma.proposal.create({
       data: {
         projectId,
         content
       }
     });
+
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { client: { include: { company: true } } }
+    });
+
+    if (project?.client?.email) {
+      let totalStr = '';
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed.financials?.total) {
+          totalStr = `₦${parsed.financials.total.toLocaleString()}`;
+        }
+      } catch (e) {}
+
+      await this.mailService.queueProjectApproval({
+        clientEmail: project.client.email,
+        clientName: project.client.name,
+        projectName: project.name,
+        companyName: project.client.company?.name || 'Faiba Platform',
+        totalAmount: totalStr,
+      });
+    }
+
+    return proposal;
   }
 
   async getProjectMembers(projectId: string) {

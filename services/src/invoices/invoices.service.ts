@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class InvoicesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async getAllInvoices(userId?: string) {
     let whereClause: any = {};
@@ -65,7 +69,7 @@ export class InvoicesService {
     const count = await this.prisma.invoice.count();
     const invoiceRef = `INV-${String(count + 1).padStart(4, '0')}`;
 
-    return this.prisma.invoice.create({
+    const invoice = await this.prisma.invoice.create({
       data: {
         invoiceRef,
         clientId: finalClientId,
@@ -93,6 +97,20 @@ export class InvoicesService {
         project: true,
       }
     });
+
+    if (invoice.client?.email) {
+      const totalAmt = invoice.items.reduce((s, i) => s + i.amount, 0);
+      const formattedTotal = `₦${totalAmt.toLocaleString()}`;
+      await this.mailService.queueInvoiceCreated({
+        clientEmail: invoice.client.email,
+        clientName: invoice.client.name,
+        invoiceRef: invoice.invoiceRef || undefined,
+        amount: formattedTotal,
+        dueDate: invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : undefined,
+      });
+    }
+
+    return invoice;
   }
 
   async getInvoiceById(id: string) {
