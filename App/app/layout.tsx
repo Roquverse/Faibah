@@ -13,8 +13,11 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Faibah - Invoicing & Kanban",
-  description: "All-in-one Invoicing & Kanban platform",
+  title: "Faibah - Agency Operating System",
+  description: "The complete operating system for agencies. Manage projects, clients, invoices, and communication in one unified platform.",
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 import { ThemeProvider } from "@/components/ThemeProvider";
