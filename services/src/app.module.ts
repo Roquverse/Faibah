@@ -19,13 +19,29 @@ import { EventsModule } from './events/events.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { ReceiptsModule } from './receipts/receipts.module';
 import { AdminModule } from './admin/admin.module';
+import { RedisModule } from './redis/redis.module';
+import { RedisThrottlerStorage } from './redis/redis-throttler.storage';
+import { BullConfigModule } from './bull/bull-config.module';
+import { REDIS_CLIENT } from './redis/redis.module';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 100,
-    }]),
+    // ─── Redis (global) ────────────────────────────────────────────────
+    RedisModule,
+
+    // ─── Rate Limiting — Redis-backed (shared across instances) ────────
+    ThrottlerModule.forRootAsync({
+      inject: [REDIS_CLIENT],
+      useFactory: (redis) => ({
+        throttlers: [{ ttl: 60000, limit: 100 }],
+        storage: new RedisThrottlerStorage(redis),
+      }),
+    }),
+
+    // ─── Background Job Queues (BullMQ) ───────────────────────────────
+    BullConfigModule,
+
+    // ─── App Modules ──────────────────────────────────────────────────
     PrismaModule,
     AuthModule,
     UsersModule,

@@ -35,6 +35,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: payload.email,
       role: payload.role,
       companyId: payload.companyId,
+      // Expose jti and exp so the auth guard can check the blacklist
+      jti: payload.jti,
+      exp: payload.exp,
     };
   }
 }
