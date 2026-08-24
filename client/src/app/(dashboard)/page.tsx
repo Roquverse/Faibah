@@ -1,15 +1,34 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreditCard, FileText, Folder, CheckCircle2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ClientOverviewPage() {
+  const [firstName, setFirstName] = useState<string>('');
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const meta = user.user_metadata as Record<string, string> | undefined;
+        const name =
+          meta?.first_name ||
+          (meta?.full_name ? meta.full_name.split(' ')[0] : '') ||
+          (user.email ? user.email.split('@')[0] : 'Client');
+        setFirstName(name);
+      }
+    };
+    fetchUser();
+  }, []);
+
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-4 md:p-6 lg:p-8 w-full">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-deep-green to-[#2a5a2e] rounded-2xl p-6 md:p-8 text-white flex flex-col md:flex-row items-center justify-between shadow-sm relative overflow-hidden">
         <div className="relative z-10 space-y-2 text-center md:text-left mb-6 md:mb-0">
-          <h2 className="text-2xl md:text-3xl font-bold">Welcome back, Client!</h2>
+          <h2 className="text-2xl md:text-3xl font-bold">Welcome back, {firstName || 'Client'}!</h2>
           <p className="text-green-100/90 text-sm md:text-base max-w-xl leading-relaxed">
             Here's an overview of your active projects and outstanding invoices.
           </p>

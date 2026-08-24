@@ -221,7 +221,7 @@ export default function SettingsPage() {
 
         {/* Sidebar Nav */}
         <div className="w-full md:w-[240px] shrink-0">
-          <div className="bg-white rounded-xl border border-gray-200 p-2 space-y-0.5">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-2 space-y-0.5">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -229,15 +229,15 @@ export default function SettingsPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                      ? 'bg-[#F4F1FA] text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-[#F4F1FA] dark:bg-gray-700 text-gray-900 dark:text-white'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white'
                     }`}
                 >
                   <div className="flex items-center gap-3">
-                    <tab.icon className={`w-4 h-4 ${isActive ? 'text-gray-900' : 'text-gray-500'}`} />
+                    <tab.icon className={`w-4 h-4 ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                     {tab.label}
                   </div>
-                  {isActive && <ChevronRight className="w-4 h-4 text-gray-400" />}
+                  {isActive && <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-300" />}
                 </button>
               );
             })}

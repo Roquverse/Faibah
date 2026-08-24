@@ -53,7 +53,7 @@ export default function Sidebar() {
                   key={item.name}
                   href={item.path}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm ${isActive
-                    ? 'bg-gray-50 dark:bg-slate-800 text-black dark:text-white'
+                    ? 'bg-gray-100 dark:bg-slate-700 text-black dark:text-white'
                     : 'text-black dark:text-slate-300 hover:bg-gray-50 hover:dark:bg-slate-800/50 hover:text-black dark:hover:text-white'
                     }`}
                 >
@@ -71,7 +71,7 @@ export default function Sidebar() {
         <Link
           href="/settings"
           className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm ${pathname === '/settings'
-              ? 'bg-gray-50 dark:bg-slate-800 text-black dark:text-white'
+              ? 'bg-gray-100 dark:bg-slate-700 text-black dark:text-white'
               : 'text-black dark:text-slate-300 hover:bg-gray-50 hover:dark:bg-slate-800/50 hover:text-black dark:hover:text-white'
             }`}
         >

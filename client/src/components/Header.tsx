@@ -1,19 +1,34 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Bell, Moon, Sun, Menu, X, User } from 'lucide-react';
+import { Bell, Moon, Sun, Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 export default function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [firstName, setFirstName] = useState<string>('');
 
   useEffect(() => {
     setMounted(true);
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const meta = user.user_metadata as Record<string, string> | undefined;
+        const name =
+          meta?.first_name ||
+          (meta?.full_name ? meta.full_name.split(' ')[0] : '') ||
+          (user.email ? user.email.split('@')[0] : 'Client');
+        setFirstName(name);
+      }
+    };
+    fetchUser();
   }, []);
 
   const getPageTitle = () => {
@@ -93,10 +108,10 @@ export default function Header({ toggleSidebar }: { toggleSidebar?: () => void }
         {/* Profile */}
         <Link href="/settings" className="flex items-center gap-3 p-1.5 pr-3 md:pr-4 rounded-full hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-slate-700">
           <div className="w-8 h-8 rounded-full bg-deep-green text-white flex items-center justify-center font-bold text-sm">
-            C
+            {firstName ? firstName.charAt(0).toUpperCase() : 'C'}
           </div>
           <div className="hidden md:flex flex-col items-start">
-            <span className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">Client</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">{firstName || 'Client'}</span>
           </div>
         </Link>
       </div>
