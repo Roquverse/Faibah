@@ -24,6 +24,9 @@ export async function middleware(request: NextRequest) {
           )
         },
       },
+      cookieOptions: {
+        domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
+      },
     }
   )
 
