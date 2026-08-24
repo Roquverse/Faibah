@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import Redis from 'ioredis';
-import { REDIS_CLIENT } from './redis.module';
+import { REDIS_CLIENT } from './redis.constants';
 
 // Mirror of @nestjs/throttler ThrottlerStorageRecord (not publicly exported)
 interface ThrottlerRecord {

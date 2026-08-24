@@ -22,7 +22,7 @@ import { AdminModule } from './admin/admin.module';
 import { RedisModule } from './redis/redis.module';
 import { RedisThrottlerStorage } from './redis/redis-throttler.storage';
 import { BullConfigModule } from './bull/bull-config.module';
-import { REDIS_CLIENT } from './redis/redis.module';
+import { REDIS_CLIENT } from './redis/redis.constants';
 
 @Module({
   imports: [
