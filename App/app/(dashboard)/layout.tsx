@@ -4,7 +4,7 @@ import Header from '@/components/dashboard/Header';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen print:h-auto w-full overflow-hidden print:overflow-visible bg-white print:block">
+    <div className="dashboard-layout flex h-screen print:h-auto w-full overflow-hidden print:overflow-visible bg-white print:block">
       <div className="print:hidden">
         <Sidebar />
       </div>
