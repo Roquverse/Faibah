@@ -5,36 +5,47 @@ import { PrismaService } from '../prisma.service';
 export class CompanyService {
   constructor(private prisma: PrismaService) {}
 
-  async getProfile() {
-    // For MVP, return the first company found since there's no auth context yet
-    const company = await this.prisma.company.findFirst();
-    if (!company) {
-      // Auto-create a default company if none exists
-      return this.prisma.company.create({
-        data: {
-          name: 'Faiba Pro',
-          workType: 'Design Agency',
-          defaultCurrency: 'NGN',
-          taxRate: 7.5,
-          requireDeposit: true,
-          depositPercent: 50,
-          teamSize: 'Just me (Solo)'
-        }
-      });
+  async getProfile(userId: string) {
+    // Find company through the authenticated user's companyId
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { companyId: true },
+    });
+
+    if (!user?.companyId) {
+      return null; // User hasn't completed onboarding yet
     }
+
+    const company = await this.prisma.company.findUnique({
+      where: { id: user.companyId },
+    });
+
     return company;
   }
 
-  async updateProfile(data: any) {
-    const company = await this.getProfile();
+  async updateProfile(userId: string, data: any) {
+    const company = await this.getProfile(userId);
+    if (!company) throw new Error('Company not found for this user');
     return this.prisma.company.update({
       where: { id: company.id },
       data,
     });
   }
 
-  async getOverview() {
-    const company = await this.getProfile();
+  async getOverview(userId: string) {
+    const company = await this.getProfile(userId);
+    if (!company) {
+      return {
+        activeClients: 0,
+        activeProjects: 0,
+        totalClosed: 0,
+        totalRevenue: 0,
+        topClients: [],
+        performanceData: [],
+        subscriptions: [],
+        reminders: [],
+      };
+    }
     const companyId = company.id;
 
     const [activeClients, activeProjects, totalClosed] = await Promise.all([
