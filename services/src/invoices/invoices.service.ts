@@ -5,8 +5,20 @@ import { PrismaService } from '../prisma.service';
 export class InvoicesService {
   constructor(private prisma: PrismaService) {}
 
-  async getAllInvoices() {
+  async getAllInvoices(userId?: string) {
+    let whereClause: any = {};
+    if (userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+      if (user?.companyId) {
+        whereClause = { client: { companyId: user.companyId } };
+      }
+    }
+
     return this.prisma.invoice.findMany({
+      where: whereClause,
       include: {
         client: {
           include: {
@@ -22,15 +34,33 @@ export class InvoicesService {
   }
 
   async createInvoice(data: {
-    clientId: string;
+    clientId?: string;
     projectId?: string;
     currency?: string;
     taxRate?: number;
-    dueDate?: Date;
+    dueDate?: Date | string;
     items: { description: string; quantity: number; unitPrice: number; amount: number }[];
   }) {
     const { clientId, projectId, currency, taxRate, dueDate, items } = data;
     
+    let finalClientId = clientId;
+    if ((!finalClientId || finalClientId === '') && projectId) {
+      const project = await this.prisma.project.findUnique({ where: { id: projectId } });
+      if (project) {
+        finalClientId = project.clientId;
+      }
+    }
+
+    if (!finalClientId) {
+      const company = await this.prisma.company.findFirst();
+      const firstClient = await this.prisma.client.findFirst({ where: { companyId: company?.id } });
+      if (firstClient) {
+        finalClientId = firstClient.id;
+      } else {
+        throw new NotFoundException('Client ID is required to create an invoice.');
+      }
+    }
+
     // Generate a simple Invoice Ref
     const count = await this.prisma.invoice.count();
     const invoiceRef = `INV-${String(count + 1).padStart(4, '0')}`;
@@ -38,13 +68,13 @@ export class InvoicesService {
     return this.prisma.invoice.create({
       data: {
         invoiceRef,
-        clientId,
+        clientId: finalClientId,
         projectId: projectId || null,
         currency: currency || 'NGN',
-        taxRate,
-        dueDate,
+        taxRate: taxRate || 0,
+        dueDate: dueDate ? new Date(dueDate) : null,
         items: {
-          create: items.map(item => ({
+          create: (items || []).map(item => ({
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
@@ -91,7 +121,6 @@ export class InvoicesService {
     const invoice = await this.prisma.invoice.findUnique({ where: { id } });
     if (!invoice) throw new NotFoundException(`Invoice with ID ${id} not found`);
 
-    // Delete items first due to foreign key constraints
     await this.prisma.invoiceItem.deleteMany({
       where: { invoiceId: id },
     });

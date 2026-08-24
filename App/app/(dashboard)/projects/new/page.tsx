@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Save, Send, Plus, Trash2, Calendar, FileText, CheckCircle2, Eye, PenTool, Calculator, Sparkles, Loader2, X, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ProjectsApi, CompanyApi, ClientsApi } from '@/lib/api';
+import { ProjectsApi, CompanyApi, ClientsApi, InvoicesApi } from '@/lib/api';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -131,28 +131,52 @@ export default function NewProjectProposal() {
  }
  };
 
- const handleSend = async () => {
- if (isSending) return;
- setIsSending(true);
- try {
- // 1. Create Project
- const project = await ProjectsApi.create({ clientId: '', name: proposalTitle });
- 
- // 2. Prepare JSON content
- const content = JSON.stringify({ proposalHTML, items, financials: { subtotal, taxRate, taxAmount, total, deposit, depositAmount } });
- 
- // 3. Create Proposal
- await ProjectsApi.createProposal(project.id, content);
- 
- // 4. Redirect to projects
- router.push('/projects');
- } catch (error) {
- console.error('Failed to send proposal:', error);
- alert('Failed to send proposal. Make sure the backend is running and you have visited Settings first.');
- } finally {
- setIsSending(false);
- }
- };
+  const handleSend = async () => {
+    if (isSending) return;
+    setIsSending(true);
+    try {
+      // 1. Create Project
+      const project = await ProjectsApi.create({ clientId: selectedClientId || '', name: proposalTitle || 'Untitled Project' });
+      
+      // 2. Prepare JSON content
+      const content = JSON.stringify({ proposalTitle: proposalTitle || 'Untitled Project', proposalHTML, items, financials: { subtotal, taxRate, taxAmount, total, deposit, depositAmount } });
+      
+      // 3. Create Proposal attached to project
+      if (project?.id) {
+        await ProjectsApi.createProposal(project.id, content);
+      }
+      
+      // 4. Create Invoice separated for Invoices & Client views
+      const invoiceItems = items.map(item => ({
+        description: item.description || 'Project Deliverable',
+        quantity: Number(item.quantity) || 1,
+        unitPrice: Number(item.rate) || 0,
+        amount: (Number(item.quantity) || 1) * (Number(item.rate) || 0),
+      }));
+
+      await InvoicesApi.create({
+        clientId: selectedClientId || project?.clientId,
+        projectId: project?.id,
+        currency: 'NGN',
+        taxRate,
+        dueDate: new Date(Date.now() + 14 * 86400 * 1000),
+        items: invoiceItems,
+      });
+
+      // 5. Update Project status to ONGOING
+      if (project?.id) {
+        await ProjectsApi.updateStatus(project.id, 'ONGOING');
+      }
+
+      // 6. Redirect to projects
+      router.push('/projects');
+    } catch (error) {
+      console.error('Failed to send/accept proposal:', error);
+      alert('Failed to process proposal. Make sure a client is selected and backend is running.');
+    } finally {
+      setIsSending(false);
+    }
+  };
 
  return (
  <div className="min-h-full font-sans pb-24 relative">
@@ -615,10 +639,14 @@ export default function NewProjectProposal() {
 
  {/* Sticky Accept Footer (Client View) */}
  <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-white via-white to-transparent pointer-events-none z-10" />
- <div className="absolute bottom-8 left-0 w-full flex justify-end px-12 z-20">
- <button className="flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-gray-900 bg-[#FBDF4B] hover:bg-[#F3D53C] transition-all hover:-translate-y-1 border border-transparent">
- <CheckCircle2 className="w-5 h-5 text-gray-900" />
- Accept Proposal
+ <div className="absolute bottom-8 left-0 w-full flex justify-end px-12 z-20 pointer-events-auto">
+ <button 
+   onClick={handleSend}
+   disabled={isSending}
+   className="flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-gray-900 bg-[#FBDF4B] hover:bg-[#F3D53C] transition-all hover:-translate-y-1 border border-transparent cursor-pointer disabled:opacity-50"
+ >
+   {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-gray-900" />}
+   {isSending ? 'Accepting Proposal...' : 'Accept Proposal'}
  </button>
  </div>
  

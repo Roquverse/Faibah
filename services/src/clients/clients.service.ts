@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma.service';
 export class ClientsService {
   constructor(private prisma: PrismaService) {}
 
-  /** Resolve the companyId for an authenticated user */
   private async resolveCompanyId(userId: string): Promise<string> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -21,11 +20,17 @@ export class ClientsService {
     const clients = await this.prisma.client.findMany({
       where: { companyId },
       include: {
-        projects: true,
+        projects: {
+          include: {
+            proposals: true,
+            invoices: true,
+          }
+        },
         invoices: {
           include: {
             items: true,
             payments: true,
+            project: true,
           }
         }
       }
@@ -79,7 +84,22 @@ export class ClientsService {
   async getClientById(id: string) {
     return this.prisma.client.findUnique({
       where: { id },
-      include: { contacts: true }
+      include: {
+        contacts: true,
+        projects: {
+          include: {
+            proposals: true,
+            invoices: true,
+          }
+        },
+        invoices: {
+          include: {
+            items: true,
+            payments: true,
+            project: true,
+          }
+        }
+      }
     });
   }
 

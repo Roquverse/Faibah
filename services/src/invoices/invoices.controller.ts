@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { InvoicesService } from './invoices.service';
 
 @Controller('invoices')
@@ -6,8 +7,9 @@ export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
-  async getAllInvoices() {
-    return this.invoicesService.getAllInvoices();
+  async getAllInvoices(@Req() req: Request) {
+    const userId = (req.user as any)?.userId;
+    return this.invoicesService.getAllInvoices(userId);
   }
 
   @Post()
