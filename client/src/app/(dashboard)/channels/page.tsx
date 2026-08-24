@@ -60,17 +60,28 @@ export default function ChannelsPage() {
         ProjectsApi.getAll(),
         UsersApi.getProfile().catch(() => null)
       ]);
-      setChannels(channelsData);
-      setProjects(projectsData);
+      let filteredProjects = projectsData;
+      let filteredChannels = channelsData;
+
+      if (userProfile) {
+        filteredProjects = projectsData.filter((p: any) => 
+          p.members?.some((m: any) => m.userId === userProfile.id || m.clientContactId === userProfile.id)
+        );
+        const validProjectIds = filteredProjects.map((p: any) => p.id);
+        filteredChannels = channelsData.filter((c: any) => validProjectIds.includes(c.projectId));
+      }
+
+      setChannels(filteredChannels);
+      setProjects(filteredProjects);
       if (userProfile) setCurrentUser(userProfile);
       
       // Auto-expand all projects in sidebar
       const expanded: Record<string, boolean> = {};
-      projectsData.forEach((p: any) => expanded[p.id] = true);
+      filteredProjects.forEach((p: any) => expanded[p.id] = true);
       setExpandedProjects(expanded);
 
-      if (channelsData.length > 0 && !activeChannelId) {
-        setActiveChannelId(channelsData[0].id);
+      if (filteredChannels.length > 0 && !activeChannelId) {
+        setActiveChannelId(filteredChannels[0].id);
       }
     } catch (error) {
       console.error('Failed to load channels', error);
@@ -321,9 +332,6 @@ export default function ChannelsPage() {
       <div className="w-64 border-r border-gray-100 dark:border-slate-800 flex flex-col bg-[#F9FAFB] dark:bg-slate-800/50 shrink-0">
         <div className="px-4 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="font-bold text-gray-900 tracking-tight">Channels</h2>
-          <button onClick={() => setShowCreateModal(true)} className="w-6 h-6 rounded flex items-center justify-center hover:bg-gray-200 text-gray-500 transition-colors">
-            <Plus className="w-4 h-4" />
-          </button>
         </div>
         
         <div className="flex-1 overflow-y-auto py-4 px-2 space-y-6">

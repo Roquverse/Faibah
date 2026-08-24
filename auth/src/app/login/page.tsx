@@ -26,17 +26,21 @@ export default function LoginPage() {
     setIsLoading(false);
 
     if (error) {
-      const currentKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'undefined';
-      alert(`${error.message} (Key used starts with: ${currentKey.substring(0, 10)}...)`);
+      alert(error.message);
       return;
     }
 
     const hasCompletedOnboarding = data.user?.user_metadata?.onboarding_completed;
+    const userType = data.user?.user_metadata?.userType;
 
     if (hasCompletedOnboarding) {
-      window.location.href = `/`;
+      if (userType === 'client') {
+        window.location.href = process.env.NEXT_PUBLIC_CLIENT_APP_URL || 'http://localhost:3002';
+      } else {
+        window.location.href = process.env.NEXT_PUBLIC_MAIN_APP_URL || 'http://localhost:3000';
+      }
     } else {
-      window.location.href = `/onboarding`;
+      window.location.href = '/onboarding';
     }
   };
 

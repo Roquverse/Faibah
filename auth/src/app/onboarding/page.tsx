@@ -128,14 +128,18 @@ export default function OnboardingPage() {
       }
 
       await supabase.auth.updateUser({
-        data: { onboarding_completed: true }
+        data: { onboarding_completed: true, userType }
       });
 
     } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
-      window.location.href = '/';
+      if (userType === 'client') {
+        window.location.href = process.env.NEXT_PUBLIC_CLIENT_APP_URL || 'http://localhost:3002';
+      } else {
+        window.location.href = process.env.NEXT_PUBLIC_MAIN_APP_URL || 'http://localhost:3000';
+      }
     }
   };
 

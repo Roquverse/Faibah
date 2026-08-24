@@ -257,7 +257,7 @@ export default function Header() {
                 onClick={async () => {
                   const supabase = createClient();
                   await supabase.auth.signOut();
-                  window.location.href = `http://localhost:3001/login`;
+                  window.location.href = `/login`;
                 }}
                 className="w-full text-left flex items-center px-4 py-2 hover:bg-red-50 text-sm font-medium text-red-600 transition-colors"
               >

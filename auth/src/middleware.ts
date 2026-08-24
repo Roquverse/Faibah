@@ -41,8 +41,9 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = !isPublicRoute && !request.nextUrl.pathname.match(/\.(.*)$/) // ignore static files
 
   if (isProtectedRoute && !user) {
-    // Redirect unauthenticated users to the centralized Auth app
-    return NextResponse.redirect('http://localhost:3001/login')
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
   }
   
   if (isAuthRoute && user) {
