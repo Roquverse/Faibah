@@ -11,7 +11,8 @@ import {
   ChevronDown,
   Building2,
   ListTodo,
-  Calendar
+  Calendar,
+  MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -22,6 +23,7 @@ const MAIN_MENU = [
   { name: 'Projects', icon: Folder, path: '/projects' },
   { name: 'Tasks', icon: ListTodo, path: '/tasks' },
   { name: 'Schedule', icon: Calendar, path: '/schedule' },
+  { name: 'Channels', icon: MessageSquare, path: '/channels' },
 ];
 
 const CRM_MENU = [
@@ -59,11 +61,11 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <aside className="fixed left-0 top-0 z-50 w-64 h-screen bg-white border-r border-gray-200 flex flex-col font-sans">
+    <aside className="hidden md:flex fixed left-0 top-0 z-50 w-64 h-screen bg-white border-r border-gray-200 flex-col font-sans">
       {/* Logo Area */}
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
         <Link href="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="" width={150} />
+          <img src="/favicon.png" alt="Logo" width={32} />
         </Link>
       </div>
 
@@ -81,8 +83,8 @@ export default function Sidebar() {
                   key={item.name}
                   href={item.path}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm ${isActive
-                    ? 'bg-gray-50 text-[#346E3A]'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-gray-50 text-black'
+                    : 'text-black hover:bg-gray-50 hover:text-black'
                     }`}
                 >
                   <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
@@ -112,8 +114,8 @@ export default function Sidebar() {
                     key={item.name}
                     href={item.path}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm ${isActive
-                      ? 'bg-gray-50 text-[#346E3A]'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-gray-50 text-black'
+                      : 'text-black hover:bg-gray-50 hover:text-black'
                       }`}
                   >
                     <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />

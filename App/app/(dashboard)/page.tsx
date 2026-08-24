@@ -35,7 +35,7 @@ export default function OverviewPage() {
      const data = await AppointmentsApi.getAll();
      setAppointments(data);
    } catch (e) {
-     console.error(e);
+     // console.error(e);
    }
  };
 
@@ -44,7 +44,7 @@ export default function OverviewPage() {
      const data = await CompanyApi.getOverview();
      setOverview(data);
    } catch (e) {
-     console.error(e);
+     // console.error(e);
    }
  };
 
@@ -53,7 +53,7 @@ export default function OverviewPage() {
      const data = await ProjectsApi.getAll();
      setActiveProjectsList(data.filter((p: any) => p.status === 'ONGOING' || p.status === 'AWAITING_PAYMENT'));
    } catch (e) {
-     console.error(e);
+     // console.error(e);
    }
  };
 
@@ -70,7 +70,7 @@ export default function OverviewPage() {
  };
 
  return (
- <div className="p-8 w-full space-y-8 font-sans">
+ <div className="p-4 md:p-8 w-full space-y-8 font-sans">
  
  {/* Row 1: Stat Cards */}
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -214,32 +214,47 @@ export default function OverviewPage() {
      <td colSpan={6} className="px-6 py-8 text-center text-gray-500 text-sm">No active projects</td>
    </tr>
  ) : (
-   activeProjectsList.map((project, idx) => (
-     <tr key={project.id || idx} className="hover:bg-gray-50/50">
-     <td className="px-6 py-4">
-     <div className="font-medium text-gray-900">{project.name}</div>
-     <div className="text-[11px] text-gray-500 mt-0.5">{project.client?.name || 'Unknown Client'}</div>
-     </td>
-     <td className="px-6 py-4 text-gray-600">Enterprise</td>
-     <td className="px-6 py-4 font-medium text-gray-900">N/A</td>
-     <td className="px-6 py-4">
-     <div className="flex -space-x-1.5">
-     <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(project.name)}&background=random`} className="w-6 h-6 rounded-full border border-white" />
-     </div>
-     </td>
-     <td className="px-6 py-4">
-     <div className="flex items-center gap-2">
-     <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-     <div className="w-[50%] h-full bg-gray-900 rounded-full"></div>
-     </div>
-     <span className="text-[11px] font-medium text-gray-500">50%</span>
-     </div>
-     </td>
-     <td className="px-6 py-4 text-right">
-     <span className="text-[11px] font-medium text-[#346E3A]">{project.status}</span>
-     </td>
-     </tr>
-   ))
+   activeProjectsList.map((project, idx) => {
+     const type = project.client?.clientType ? project.client.clientType.charAt(0) + project.client.clientType.slice(1).toLowerCase() : 'N/A';
+     const value = project.invoices?.reduce((sum: number, inv: any) => sum + (inv.items?.reduce((itemSum: number, item: any) => itemSum + item.amount, 0) || 0), 0) || 0;
+     const progress = project.tasks?.length ? Math.round(project.tasks.reduce((sum: number, t: any) => sum + (t.progressPercent || 0), 0) / project.tasks.length) : 0;
+     const members = project.members?.slice(0, 3) || [];
+     const extraMembers = Math.max(0, (project.members?.length || 0) - 3);
+
+     return (
+       <tr key={project.id || idx} className="hover:bg-gray-50/50">
+       <td className="px-6 py-4">
+       <div className="font-medium text-gray-900">{project.name}</div>
+       <div className="text-[11px] text-gray-500 mt-0.5">{project.client?.name || 'Unknown Client'}</div>
+       </td>
+       <td className="px-6 py-4 text-gray-600">{type}</td>
+       <td className="px-6 py-4 font-medium text-gray-900">{value > 0 ? `₦${value.toLocaleString()}` : 'N/A'}</td>
+       <td className="px-6 py-4">
+       <div className="flex -space-x-1.5">
+       {members.length > 0 ? members.map((m: any, i: number) => {
+         const name = m.user?.firstName || m.clientContact?.name || 'Unknown';
+         const avatar = m.user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+         return <img key={i} src={avatar} className="w-6 h-6 rounded-full border border-white" title={name} />
+       }) : (
+         <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(project.name)}&background=random`} className="w-6 h-6 rounded-full border border-white" />
+       )}
+       {extraMembers > 0 && <div className="w-6 h-6 rounded-full border border-white bg-gray-100 flex items-center justify-center text-[10px] font-medium text-gray-600">+{extraMembers}</div>}
+       </div>
+       </td>
+       <td className="px-6 py-4">
+       <div className="flex items-center gap-2">
+       <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+       <div className="h-full bg-gray-900 rounded-full" style={{ width: `${progress}%` }}></div>
+       </div>
+       <span className="text-[11px] font-medium text-gray-500">{progress}%</span>
+       </div>
+       </td>
+       <td className="px-6 py-4 text-right">
+       <span className="text-[11px] font-medium text-[#346E3A]">{project.status}</span>
+       </td>
+       </tr>
+     );
+   })
  )}
  </tbody>
  </table>

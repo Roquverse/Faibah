@@ -20,12 +20,22 @@ export default function GenerateReceiptModal({
   const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
 
+  const [totalInvoiceAmount, setTotalInvoiceAmount] = useState(0);
+  const [totalPaid, setTotalPaid] = useState(0);
+  const [balance, setBalance] = useState(0);
+
   // Set default amount when modal opens and invoice changes
   React.useEffect(() => {
     if (isOpen && invoice) {
-      const totalAmount = invoice.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
-      const formattedTotal = totalAmount + (totalAmount * ((invoice.taxRate || 0) / 100));
-      setAmountPaid(formattedTotal);
+      const totalAmt = invoice.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
+      const formattedTotal = totalAmt + (totalAmt * ((invoice.taxRate || 0) / 100));
+      const paid = invoice.receipts?.reduce((acc: number, curr: any) => acc + curr.amountPaid, 0) || 0;
+      const remaining = Math.max(0, formattedTotal - paid);
+
+      setTotalInvoiceAmount(formattedTotal);
+      setTotalPaid(paid);
+      setBalance(remaining);
+      setAmountPaid(remaining > 0 ? remaining : 0);
     }
   }, [isOpen, invoice]);
 
@@ -68,9 +78,28 @@ export default function GenerateReceiptModal({
 
         <div className="p-6">
           <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
-            <div className="text-sm text-gray-500 mb-1">Invoice Reference</div>
-            <div className="font-semibold text-gray-900">{invoice.invoiceRef || invoice.id.slice(0,8).toUpperCase()}</div>
-            <div className="text-xs text-gray-400 mt-2">Client: {invoice.client?.name}</div>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <div className="text-sm text-gray-500 mb-1">Invoice Reference</div>
+                <div className="font-semibold text-gray-900">{invoice.invoiceRef || invoice.id.slice(0,8).toUpperCase()}</div>
+                <div className="text-xs text-gray-400 mt-1">Client: {invoice.client?.name}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-gray-500 mb-0.5">Total Amount</div>
+                <div className="font-bold text-gray-900">{invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}{totalInvoiceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-500 mb-0.5">Amount Paid</span>
+                <span className="text-sm font-semibold text-green-600">{invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}{totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-xs text-gray-500 mb-0.5">Balance Remaining</span>
+                <span className="text-sm font-bold text-red-600">{invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            </div>
           </div>
 
           <form id="generate-receipt-form" onSubmit={handleSubmit} className="space-y-4">

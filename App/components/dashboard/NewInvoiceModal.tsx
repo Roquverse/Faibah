@@ -14,7 +14,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
   const [currency, setCurrency] = useState('NGN');
   const [taxRate, setTaxRate] = useState(0);
   const [dueDate, setDueDate] = useState('');
-  const [items, setItems] = useState([{ description: '', quantity: 1, unitPrice: 0, amount: 0 }]);
+  const [items, setItems] = useState([{ itemName: '', details: '', quantity: 1, unitPrice: 0, amount: 0 }]);
 
   useEffect(() => {
     if (isOpen) {
@@ -44,7 +44,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
   };
 
   const addItem = () => {
-    setItems([...items, { description: '', quantity: 1, unitPrice: 0, amount: 0 }]);
+    setItems([...items, { itemName: '', details: '', quantity: 1, unitPrice: 0, amount: 0 }]);
   };
 
   const removeItem = (index: number) => {
@@ -60,20 +60,27 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
       alert("Please select a client");
       return;
     }
-    if (items.length === 0 || items.some(i => !i.description.trim())) {
-      alert("Please add at least one valid item");
+    if (items.length === 0 || items.some(i => !i.itemName.trim())) {
+      alert("Please add at least one valid item name");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const formattedItems = items.map(item => ({
+        description: `${item.itemName}|||${item.details}`,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        amount: item.amount
+      }));
+
       await InvoicesApi.create({
         clientId,
         projectId: projectId || undefined,
         currency,
         taxRate,
         dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
-        items
+        items: formattedItems
       });
       onSuccess();
     } catch (error) {
@@ -171,46 +178,74 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
             <div>
               <h3 className="text-sm font-bold text-gray-900 mb-3">Line Items</h3>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {items.map((item, index) => (
-                  <div key={index} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200">
-                    <input 
-                      type="text" 
-                      placeholder="Item description"
-                      value={item.description}
-                      onChange={e => handleItemChange(index, 'description', e.target.value)}
-                      className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none"
-                      required
-                    />
-                    <input 
-                      type="number" 
-                      placeholder="Qty"
-                      min="1"
-                      value={item.quantity}
-                      onChange={e => handleItemChange(index, 'quantity', Number(e.target.value))}
-                      className="w-20 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none"
-                      required
-                    />
-                    <input 
-                      type="number" 
-                      placeholder="Price"
-                      min="0"
-                      value={item.unitPrice}
-                      onChange={e => handleItemChange(index, 'unitPrice', Number(e.target.value))}
-                      className="w-28 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none"
-                      required
-                    />
-                    <div className="w-24 text-right text-sm font-bold text-gray-900">
-                      {item.amount.toLocaleString()}
+                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-end gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 relative">
+                    
+                    <div className="w-full sm:flex-1 space-y-1.5 pr-8 sm:pr-0">
+                      <label className="text-xs font-semibold text-gray-700">Item Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Web Development"
+                        value={item.itemName}
+                        onChange={e => handleItemChange(index, 'itemName', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 mb-2"
+                        required
+                      />
+                      <label className="text-xs font-semibold text-gray-700">Description</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Professional service delivered as per project requirements."
+                        value={item.details}
+                        onChange={e => handleItemChange(index, 'details', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                      />
                     </div>
+                    
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                      <div className="flex-1 sm:w-20 space-y-1.5">
+                        <label className="text-xs font-semibold text-gray-700">Qty</label>
+                        <input 
+                          type="number" 
+                          placeholder="0"
+                          min="1"
+                          value={item.quantity}
+                          onChange={e => handleItemChange(index, 'quantity', Number(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="flex-1 sm:w-28 space-y-1.5">
+                        <label className="text-xs font-semibold text-gray-700">Price</label>
+                        <input 
+                          type="number" 
+                          placeholder="0.00"
+                          min="0"
+                          value={item.unitPrice}
+                          onChange={e => handleItemChange(index, 'unitPrice', Number(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="flex-1 sm:w-24 space-y-1.5">
+                        <label className="text-xs font-semibold text-gray-700">Amount</label>
+                        <div className="h-[38px] flex items-center justify-end px-3 text-sm font-bold text-gray-900 bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent">
+                          {item.amount.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                    
                     <button 
                       type="button" 
                       onClick={() => removeItem(index)}
-                      className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                      className="absolute top-4 right-4 sm:static sm:mb-1.5 p-2 sm:p-1.5 text-gray-400 hover:text-red-500 transition-colors bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent disabled:opacity-50"
                       disabled={items.length === 1}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
+                    
                   </div>
                 ))}
               </div>

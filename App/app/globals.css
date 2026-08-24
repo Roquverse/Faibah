@@ -22,6 +22,61 @@
   --foreground: #0F172A;
 }
 
+.dark {
+  --background: #0F172A;
+  --surface-01: #1E293B;
+  --surface-02: #0F172A;
+  --surface-03: #334155;
+  --foreground: #F8FAFC;
+}
+
+/* --- Global Dark Mode Overrides for Tailwind Utilities --- */
+/* This intercepts hardcoded light-theme classes and maps them to dark-theme colors */
+.dark body {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+.dark .bg-white {
+  background-color: var(--surface-01) !important;
+}
+
+.dark .bg-\[\#F8F9FA\],
+.dark .bg-gray-50 {
+  background-color: var(--surface-02) !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: var(--surface-03) !important;
+}
+
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-black {
+  color: var(--foreground) !important;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: #CBD5E1 !important; /* Slate 300 */
+}
+
+.dark .text-gray-500 {
+  color: #94A3B8 !important; /* Slate 400 */
+}
+
+.dark .border-gray-200,
+.dark .border-gray-100 {
+  border-color: var(--surface-03) !important;
+}
+
+/* Ensure inputs and dropdowns look good */
+.dark input {
+  background-color: var(--surface-01) !important;
+  color: var(--foreground) !important;
+  border-color: var(--surface-03) !important;
+}
+
 @theme inline {
   /* Typography */
   --font-sans: var(--font-manrope);
@@ -50,4 +105,25 @@ body {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Fix for Webkit autofill styling (removes default gray/yellow background) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Force background colors to print exactly as designed */
+@media print {
+  @page {
+    margin: 0;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }

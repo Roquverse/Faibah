@@ -27,7 +27,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    console.log('[JwtStrategy] validate() called, sub:', payload?.sub?.substring(0, 8));
     if (!payload.sub) {
       throw new UnauthorizedException();
     }

@@ -15,6 +15,7 @@ export class InvoicesService {
         },
         project: true,
         items: true,
+        receipts: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -53,6 +54,7 @@ export class InvoicesService {
       },
       include: {
         items: true,
+        receipts: true,
         client: {
           include: {
             company: true
@@ -74,6 +76,7 @@ export class InvoicesService {
         },
         project: true,
         items: true,
+        receipts: true,
       },
     });
 
@@ -82,5 +85,19 @@ export class InvoicesService {
     }
 
     return invoice;
+  }
+
+  async deleteInvoice(id: string) {
+    const invoice = await this.prisma.invoice.findUnique({ where: { id } });
+    if (!invoice) throw new NotFoundException(`Invoice with ID ${id} not found`);
+
+    // Delete items first due to foreign key constraints
+    await this.prisma.invoiceItem.deleteMany({
+      where: { invoiceId: id },
+    });
+
+    return this.prisma.invoice.delete({
+      where: { id },
+    });
   }
 }

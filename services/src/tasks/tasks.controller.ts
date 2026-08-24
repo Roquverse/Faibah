@@ -20,4 +20,9 @@ export class TasksController {
   async updateStatus(@Param('id') id: string, @Body('status') status: TaskStatus) {
     return this.tasksService.updateTaskStatus(id, status);
   }
+
+  @Post(':id/assign')
+  async assignUser(@Param('id') id: string, @Body('projectMemberId') projectMemberId: string) {
+    return this.tasksService.assignUserToTask(id, projectMemberId);
+  }
 }

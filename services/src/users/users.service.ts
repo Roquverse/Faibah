@@ -135,9 +135,18 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, data: any) {
-    return this.prisma.user.update({
-      where: { id: userId },
-      data,
-    });
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        throw new BadRequestException('User does not exist in the database. Please complete onboarding first.');
+      }
+      return await this.prisma.user.update({
+        where: { id: userId },
+        data,
+      });
+    } catch (error: any) {
+      console.error('[UsersService] Error updating profile:', error);
+      throw new BadRequestException(error.message || 'Failed to update profile');
+    }
   }
 }

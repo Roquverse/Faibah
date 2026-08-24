@@ -31,3 +31,18 @@ export class ChannelsController {
     return this.channelsService.toggleReaction(messageId, data);
   }
 }
+
+@Controller('channels')
+export class GlobalChannelsController {
+  constructor(private readonly channelsService: ChannelsService) {}
+
+  @Get()
+  async getAllChannels() {
+    return this.channelsService.getAllChannels();
+  }
+
+  @Post()
+  async createChannel(@Body() data: { projectId: string, channelName: string }) {
+    return this.channelsService.createChannel(data.projectId, data.channelName);
+  }
+}

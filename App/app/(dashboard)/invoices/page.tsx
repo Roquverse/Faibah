@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreHorizontal, FileText, CheckCircle2, XCircle, Clock, Copy, Send, Download, Receipt, Eye } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, FileText, CheckCircle2, XCircle, Clock, Copy, Send, Download, Receipt, Eye, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicesApi } from '@/lib/api';
 import NewInvoiceModal from '@/components/dashboard/NewInvoiceModal';
@@ -11,6 +11,24 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenDropdownId(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const handleDeleteInvoice = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this invoice?")) return;
+    try {
+      await InvoicesApi.delete(id);
+      fetchInvoices();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete invoice.");
+    }
+  };
 
   const fetchInvoices = async () => {
     try {
@@ -65,7 +83,7 @@ export default function InvoicesPage() {
   const formatCurrency = (amt: number) => `${defaultCurrency}${amt.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
   return (
-    <div className="p-8 w-full font-sans flex flex-col">
+    <div className="p-4 md:p-8 w-full font-sans flex flex-col">
       
       {/* KPI Strip */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 shrink-0">
@@ -92,22 +110,22 @@ export default function InvoicesPage() {
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 shrink-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
           <p className="text-sm text-gray-500 mt-1">Global view of all your receivables and payments.</p>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+          <div className="relative w-full sm:w-auto">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
               placeholder="Search invoices..." 
-              className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64"
+              className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full sm:w-64"
             />
           </div>
-          <button onClick={() => setIsNewInvoiceOpen(true)} className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent">
+          <button onClick={() => setIsNewInvoiceOpen(true)} className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
             <Plus className="w-4 h-4" />
             New Invoice
           </button>
@@ -115,8 +133,9 @@ export default function InvoicesPage() {
       </div>
 
       {/* Invoices Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex-1 min-h-0">
-        <table className="w-full text-left text-sm">
+      <div className="bg-white rounded-2xl border border-gray-200 flex-1 min-h-0 overflow-hidden flex flex-col">
+        <div className="overflow-x-auto flex-1">
+          <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
             <tr>
               <th className="px-6 py-4">Invoice ID</th>
@@ -152,7 +171,7 @@ export default function InvoicesPage() {
                     {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : '-'}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className={`flex justify-end gap-2 transition-opacity ${openDropdownId === invoice.id ? 'opacity-100' : 'lg:opacity-0 lg:group-hover:opacity-100'}`}>
                       <Link 
                         href={`/invoices/${invoice.id}`}
                         onClick={(e) => e.stopPropagation()}
@@ -169,9 +188,29 @@ export default function InvoicesPage() {
                           <Receipt className="w-3.5 h-3.5" /> Receipt
                         </button>
                       )}
-                      <button className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+                      
+                      <div className="relative">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenDropdownId(openDropdownId === invoice.id ? null : invoice.id);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                        
+                        {openDropdownId === invoice.id && (
+                          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-10 py-1 overflow-hidden" onClick={e => e.stopPropagation()}>
+                            <button 
+                              onClick={() => handleDeleteInvoice(invoice.id)}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium flex items-center gap-2 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" /> Delete Invoice
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -184,6 +223,7 @@ export default function InvoicesPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       <NewInvoiceModal 

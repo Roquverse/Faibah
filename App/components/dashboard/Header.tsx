@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Settings, Bell, Moon, Sun, ArrowRight, FileText, CheckCircle2 } from 'lucide-react';
+import { Search, Settings, Bell, Moon, Sun, ArrowRight, FileText, CheckCircle2, Menu, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
@@ -17,22 +17,28 @@ export default function Header() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [companyName, setCompanyName] = useState('Faibah Agency');
   const [user, setUser] = useState<any>(null);
+  const [reminders, setReminders] = useState<any[]>([]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = async () => {
     try {
-      const [companyData, userData] = await Promise.all([
+      const [companyData, userData, overviewData] = await Promise.all([
         CompanyApi.getProfile().catch(() => null),
-        UsersApi.getProfile().catch(() => null)
+        UsersApi.getProfile().catch(() => null),
+        CompanyApi.getOverview().catch(() => null)
       ]);
       if (companyData && companyData.name) {
         setCompanyName(companyData.name);
       }
       if (userData) {
         setUser(userData);
+      }
+      if (overviewData && overviewData.reminders) {
+        setReminders(overviewData.reminders);
       }
     } catch (e) {}
   };
@@ -67,10 +73,47 @@ export default function Header() {
   };
 
   return (
-    <header className="h-20 bg-white flex items-center justify-between px-8 font-sans w-full relative z-40">
-      <div className="flex-1">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{getPageTitle()}</h1>
+    <header className="h-20 bg-white flex items-center justify-between px-4 md:px-8 font-sans w-full relative z-40">
+      <div className="flex items-center gap-3 flex-1">
+        <button 
+          className="md:hidden text-gray-500 hover:text-gray-900"
+          onClick={() => setIsMobileMenuOpen(true)}
+        >
+          <Menu size={24} />
+        </button>
+        <h1 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight">{getPageTitle()}</h1>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-white flex flex-col p-4 md:hidden">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-2">
+              <img src="/favicon.png" alt="Logo" width={32} />
+              <span className="font-bold text-xl">Faibah</span>
+            </div>
+            <button 
+              className="text-gray-500 hover:text-gray-900 p-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <nav className="flex flex-col gap-4 text-lg font-medium">
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Overview</Link>
+            <Link href="/projects" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Projects</Link>
+            <Link href="/tasks" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Tasks</Link>
+            <Link href="/schedule" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Schedule</Link>
+            <Link href="/channels" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Channels</Link>
+            <div className="h-px bg-gray-100 my-2"></div>
+            <Link href="/clients" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Clients</Link>
+            <Link href="/invoices" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Invoices</Link>
+            <Link href="/receipts" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Receipts</Link>
+            <Link href="/payments" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Payments</Link>
+            <Link href="/settings" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Settings</Link>
+          </nav>
+        </div>
+      )}
 
       {/* Search - Centered */}
       <div className="flex-1 flex justify-center relative">
@@ -131,22 +174,32 @@ export default function Header() {
 
             {/* Notifications Dropdown */}
             {isNotificationsOpen && (
-              <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="fixed sm:absolute top-16 right-4 sm:top-full sm:right-0 mt-2 w-[calc(100vw-32px)] sm:w-80 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                   <span className="text-sm font-bold text-gray-900 tracking-tight">Notifications</span>
                   <button className="text-xs font-medium text-[#346E3A] hover:underline">Mark all read</button>
                 </div>
-                <div className="divide-y divide-gray-100">
-                  <div className="p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-                      <CheckCircle2 size={16} className="text-[#346E3A]" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900 leading-tight mb-1">Invoice #092 Paid</div>
-                      <div className="text-xs text-gray-500">Acme Corp paid ₦120,000 for Cloud Hosting.</div>
-                      <div className="text-[10px] text-gray-400 font-medium mt-1">2 hours ago</div>
-                    </div>
-                  </div>
+                <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+                  {reminders.length > 0 ? (
+                    reminders.map((reminder) => (
+                      <div key={reminder.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3">
+                        <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                          <CheckCircle2 size={16} className="text-[#346E3A]" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 leading-tight mb-1">{reminder.title}</div>
+                          {reminder.description && (
+                            <div className="text-xs text-gray-500">{reminder.description}</div>
+                          )}
+                          <div className="text-[10px] text-gray-400 font-medium mt-1">
+                            {new Date(reminder.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-6 text-center text-sm text-gray-500">No new notifications</div>
+                  )}
                 </div>
               </div>
             )}
@@ -169,7 +222,7 @@ export default function Header() {
             }}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
           >
-            <div className="flex flex-col items-end">
+            <div className="hidden sm:flex flex-col items-end">
               <span className="text-gray-900 text-sm font-semibold leading-none mb-1">
                 {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : companyName}
               </span>
@@ -188,8 +241,10 @@ export default function Header() {
           {isProfileOpen && (
             <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 pb-2 mb-2 border-b border-gray-100">
-                <div className="text-sm font-bold text-gray-900 tracking-tight">My Account</div>
-                <div className="text-xs text-gray-500">{user?.email || 'admin@faibah.com'}</div>
+                <div className="text-sm font-bold text-gray-900 tracking-tight truncate">
+                  {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : companyName}
+                </div>
+                <div className="text-xs text-gray-500 truncate">{companyName}</div>
               </div>
               <Link href="/settings" className="flex items-center px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors">
                 Settings

@@ -31,7 +31,7 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`[fetchApi] Error ${response.status} from ${url}:`, errorText);
+    
     let errorMsg = 'An error occurred during the API request.';
     try {
       const parsed = JSON.parse(errorText);
@@ -39,6 +39,21 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     } catch (e) {
       errorMsg = errorText || errorMsg;
     }
+
+    if (response.status === 401) {
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        const supabase = createClient();
+        supabase.auth.signOut().finally(() => {
+          window.location.href = '/login';
+        });
+      }
+      throw new Error(`${errorMsg} (URL: ${url}, Status: ${response.status})`);
+    }
+
+    if (response.status !== 429) {
+      console.error(`[fetchApi] Error ${response.status} from ${url}:`, errorText);
+    }
+    
     throw new Error(`${errorMsg} (URL: ${url}, Status: ${response.status})`);
   }
 
@@ -80,6 +95,7 @@ export const ProjectsApi = {
   create: (data: { clientId: string, name: string }) => fetchApi('/projects', { method: 'POST', body: JSON.stringify(data) }),
   updateStatus: (id: string, status: string) => fetchApi(`/projects/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   createProposal: (projectId: string, content: string) => fetchApi(`/projects/${projectId}/proposals`, { method: 'POST', body: JSON.stringify({ content }) }),
+  getMembers: (projectId: string) => fetchApi(`/projects/${projectId}/members`),
 };
 
 export const AppointmentsApi = {
@@ -114,6 +130,14 @@ export const TasksApi = {
   getTasks: (projectId: string) => fetchApi(`/tasks/project/${projectId}`),
   createTask: (data: any) => fetchApi('/tasks', { method: 'POST', body: JSON.stringify(data) }),
   updateStatus: (id: string, status: string) => fetchApi(`/tasks/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  assignUser: (taskId: string, projectMemberId: string) => fetchApi(`/tasks/${taskId}/assign`, { method: 'POST', body: JSON.stringify({ projectMemberId }) }),
+};
+
+export const ChannelsApi = {
+  getAll: () => fetchApi('/channels'),
+  create: (data: { projectId: string, channelName: string }) => fetchApi('/channels', { method: 'POST', body: JSON.stringify(data) }),
+  getForProject: (projectId: string, channelName?: string) => fetchApi(`/projects/${projectId}/channel${channelName ? `?channel=${channelName}` : ''}`),
+  postMessage: (projectId: string, data: { channelName: string, content: string, senderId?: string }) => fetchApi(`/projects/${projectId}/channel/messages`, { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const ReceiptsApi = {
@@ -126,5 +150,6 @@ export const InvoicesApi = {
   getAll: () => fetchApi('/invoices'),
   getById: (id: string) => fetchApi(`/invoices/${id}`),
   create: (data: any) => fetchApi('/invoices', { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: string) => fetchApi(`/invoices/${id}`, { method: 'DELETE' }),
 };
 

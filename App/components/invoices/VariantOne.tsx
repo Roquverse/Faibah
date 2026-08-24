@@ -14,7 +14,7 @@ export default function VariantOne({ invoice }: { invoice: any }) {
   const progressPercent = isPaid ? 100 : invoice.status === 'SENT' ? 25 : 0;
 
   return (
-    <div className="w-full max-w-[900px] mx-auto bg-white min-h-[1100px] shadow-sm rounded-lg overflow-hidden border border-gray-100 flex flex-col font-sans p-10 print:shadow-none print:border-none print:p-0">
+    <div className="w-full max-w-[900px] print:!max-w-none mx-auto print:!mx-0 bg-white min-h-[1100px] print:!min-h-0 shadow-sm print:!shadow-none rounded-lg print:!rounded-none overflow-hidden print:!overflow-visible border border-gray-100 print:!border-none flex flex-col print:!block font-sans p-10 print:!p-6 print:!pb-12">
       
       {/* Header Section */}
       <div className="flex justify-between items-start mb-12">
@@ -103,25 +103,31 @@ export default function VariantOne({ invoice }: { invoice: any }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {invoice.items?.map((item: any, idx: number) => (
-              <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
-                <td className="px-6 py-5 font-semibold text-gray-400">{String(idx + 1).padStart(2, '0')}</td>
-                <td className="px-6 py-5">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                      <FileText size={18} />
+            {invoice.items?.map((item: any, idx: number) => {
+              const parts = item.description ? item.description.split('|||') : ['Unknown Item'];
+              const itemName = parts[0];
+              const itemDetails = parts.length > 1 ? parts.slice(1).join('|||') : 'Professional service delivered as per project requirements.';
+
+              return (
+                <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
+                  <td className="px-6 py-5 font-semibold text-gray-400">{String(idx + 1).padStart(2, '0')}</td>
+                  <td className="px-6 py-5">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                        <FileText size={18} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900 mb-1">{itemName}</div>
+                        {itemDetails && <div className="text-xs text-gray-500 line-clamp-2">{itemDetails}</div>}
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-bold text-gray-900 mb-1">{item.description}</div>
-                      <div className="text-xs text-gray-500 line-clamp-2">Professional service delivered as per project requirements.</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-5 text-center font-medium text-gray-700">{item.quantity}</td>
-                <td className="px-6 py-5 text-right font-medium text-gray-700">{formatCurrency(item.unitPrice)}</td>
-                <td className="px-6 py-5 text-right font-bold text-[#346E3A]">{formatCurrency(item.amount)}</td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="px-6 py-5 text-center font-medium text-gray-700">{item.quantity}</td>
+                  <td className="px-6 py-5 text-right font-medium text-gray-700">{formatCurrency(item.unitPrice)}</td>
+                  <td className="px-6 py-5 text-right font-bold text-[#346E3A]">{formatCurrency(item.amount)}</td>
+                </tr>
+              );
+            })}
             {(!invoice.items || invoice.items.length === 0) && (
               <tr>
                 <td colSpan={5} className="px-6 py-8 text-center text-gray-400">No items found for this invoice.</td>
@@ -132,7 +138,7 @@ export default function VariantOne({ invoice }: { invoice: any }) {
       </div>
 
       {/* Footer Section */}
-      <div className="flex gap-8 mt-auto pt-6">
+      <div className="flex gap-8 mt-auto print:!mt-12 pt-6">
         
         {/* Payment Overview & QR */}
         <div className="flex gap-4 flex-1">
@@ -166,17 +172,6 @@ export default function VariantOne({ invoice }: { invoice: any }) {
               </div>
             </div>
           </div>
-          
-          <div className="bg-gray-50/80 rounded-2xl p-5 w-40 border border-gray-100 flex flex-col items-center text-center relative">
-             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider absolute top-4">Scan to Pay</span>
-             <div className="mt-8 bg-white p-2 rounded-lg border border-gray-200">
-                {/* SVG QR Code Placeholder */}
-                <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 10H40V40H10V10ZM20 20V30H30V20H20ZM60 10H90V40H60V10ZM70 20V30H80V20H70ZM10 60H40V90H10V60ZM20 70V80H30V70H20ZM50 10H60V20H50V10ZM50 30H60V40H50V30ZM10 50H20V60H10V50ZM30 50H40V60H30V50ZM40 60H50V70H40V60ZM40 80H50V90H40V80ZM50 50H60V60H50V50ZM50 70H60V80H50V70ZM60 50H70V60H60V50ZM60 90H70V100H60V90ZM70 60H80V70H70V60ZM70 80H80V90H70V80ZM80 50H90V60H80V50ZM80 70H90V80H80V70ZM90 60H100V70H90V60ZM90 80H100V90H90V80Z" fill="#111827"/>
-                </svg>
-             </div>
-             <p className="text-[9px] font-medium text-gray-500 mt-3 leading-tight">Thank you for your business!</p>
-          </div>
         </div>
 
         {/* Totals */}
@@ -205,15 +200,8 @@ export default function VariantOne({ invoice }: { invoice: any }) {
       </div>
       
       {/* Footer Details */}
-      <div className="mt-8 pt-8 border-t border-gray-100 flex items-start gap-12 text-xs">
-        <div>
-          <span className="font-bold text-gray-900 mb-3 block">PAYMENT METHODS</span>
-          <div className="flex gap-4">
-            <div className="px-3 py-1 bg-gray-100 rounded text-gray-600 font-bold">VISA</div>
-            <div className="px-3 py-1 bg-gray-100 rounded text-gray-600 font-bold">MasterCard</div>
-            <div className="px-3 py-1 bg-gray-100 rounded text-gray-600 font-bold flex items-center gap-1"><Building2 size={12}/> Bank</div>
-          </div>
-        </div>
+      <div className="mt-8 pt-8 border-t border-gray-100 flex items-start gap-12 text-xs break-inside-avoid">
+
         
         <div className="flex-1">
           <span className="font-bold text-gray-900 mb-3 block">BANK DETAILS</span>

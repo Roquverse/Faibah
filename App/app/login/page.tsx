@@ -43,22 +43,22 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white">
       {/* Left section: Form (50%) */}
-      <div className="w-full lg:w-1/2 flex flex-col p-8 sm:p-12 xl:p-20 bg-white min-h-screen relative">
-        <div className="absolute top-8 left-8 sm:top-12 sm:left-12 flex items-center gap-2">
-          <img src="/logo.png" alt="" width={200} />
+      <div className="w-full lg:w-1/2 flex flex-col p-6 sm:p-8 lg:p-12 xl:p-20 bg-white min-h-screen relative">
+        <div className="mb-6 lg:mb-0 lg:absolute lg:top-12 lg:left-12 flex items-center justify-center lg:justify-start">
+          <img src="/logo.png" alt="Faibah" className="w-[140px] lg:w-[180px]" />
         </div>
 
         <div className="flex-1 flex flex-col justify-center max-w-[420px] w-full mx-auto">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">
+          <div className="text-center mb-6 lg:mb-10">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 mb-1 lg:mb-2">
               Sign in to Faibah
             </h1>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-xs lg:text-sm">
               One solution for all your Project & Invoicing solution
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4 lg:space-y-5">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700" htmlFor="email">
                 Email
@@ -72,7 +72,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-deep-green focus:border-transparent transition-all"
+                  className="block w-full pl-11 pr-4 py-2.5 lg:py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-deep-green focus:border-transparent transition-all text-sm lg:text-base"
                   placeholder="name@company.com"
                   required
                 />
@@ -92,7 +92,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-11 pr-11 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-deep-green focus:border-transparent transition-all"
+                  className="block w-full pl-11 pr-11 py-2.5 lg:py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-deep-green focus:border-transparent transition-all text-sm lg:text-base"
                   placeholder="••••••••"
                   required
                 />
@@ -105,7 +105,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 pb-2">
+            <div className="flex items-center justify-between pt-1 pb-1 lg:pt-2 lg:pb-2">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <div className={`w-4 h-4 rounded-[4px] border flex items-center justify-center transition-colors ${rememberMe ? 'bg-deep-green border-deep-green' : 'border-gray-300 group-hover:border-deep-green'}`}>
                   {rememberMe && <Check className="w-3 h-3 text-white" />}
@@ -126,7 +126,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-deep-green hover:bg-[#2a5a2e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-deep-green transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-2.5 lg:py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-deep-green hover:bg-[#2a5a2e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-deep-green transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -135,7 +135,7 @@ export default function LoginPage() {
               )}
             </button>
 
-            <div className="relative my-8">
+            <div className="relative my-6 lg:my-8">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-100" />
               </div>
@@ -144,10 +144,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-2.5 lg:gap-3">
               <button
                 type="button"
-                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2.5 border border-gray-200 rounded-lg bg-white text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition-all shadow-sm"
+                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2 lg:py-2.5 border border-gray-200 rounded-lg bg-white text-[13px] lg:text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition-all shadow-sm"
               >
                 <svg viewBox="0 0 24 24" className="w-4 h-4">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -160,7 +160,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2.5 border border-gray-200 rounded-lg bg-white text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition-all shadow-sm"
+                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2 lg:py-2.5 border border-gray-200 rounded-lg bg-white text-[13px] lg:text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition-all shadow-sm"
               >
                 <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-black">
                   <path d="M16.365 14.736c-.035-3.23 2.656-4.793 2.778-4.873-1.493-2.193-3.805-2.493-4.636-2.528-1.97-.2-3.847 1.163-4.85 1.163-1.002 0-2.55-1.127-4.168-1.096-2.09.03-4.015 1.218-5.088 3.08-2.18 3.784-.555 9.387 1.558 12.44 1.042 1.5 2.277 3.178 3.905 3.12 1.562-.06 2.155-.99 4.043-.99 1.886 0 2.42.99 4.045.96 1.683-.03 2.748-1.503 3.78-3.007 1.194-1.745 1.685-3.435 1.71-3.522-.04-.015-3.18-1.22-3.21-4.783h.133z" />
@@ -170,7 +170,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <p className="text-sm text-center text-gray-600 mt-8 pt-4">
+            <p className="text-sm text-center text-gray-600 mt-6 lg:mt-8 pt-2 lg:pt-4">
               Don't have an account?{' '}
               <Link href="/signup" className="font-bold text-gray-900 hover:text-deep-green transition-colors">
                 Sign Up

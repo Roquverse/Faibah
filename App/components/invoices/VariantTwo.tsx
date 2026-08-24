@@ -11,12 +11,13 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
   };
 
   const isPaid = invoice.status === 'PAID';
+  const progressPercent = isPaid ? 100 : invoice.status === 'SENT' ? 25 : 0;
 
   return (
-    <div className="w-full max-w-[900px] mx-auto bg-white min-h-[1100px] shadow-sm rounded-lg overflow-hidden border border-gray-100 flex flex-col font-sans print:shadow-none print:border-none">
+    <div className="w-full max-w-[900px] print:!max-w-none mx-auto print:!mx-0 bg-white min-h-[1100px] print:!min-h-0 shadow-sm print:!shadow-none rounded-lg print:!rounded-none overflow-hidden print:!overflow-visible border border-gray-100 print:!border-none flex flex-col print:!block font-sans">
       
       {/* Top Banner (Novatech style: Dark slate with green accent) */}
-      <div className="h-32 bg-[#111827] relative flex justify-end items-center px-10 overflow-hidden">
+      <div className="h-32 print:!h-12 bg-[#111827] relative flex justify-end items-center px-10 overflow-hidden">
         {/* Decorative Green slash */}
         <div className="absolute -left-10 top-0 bottom-0 w-[400px] bg-[#346E3A] -skew-x-[30deg]"></div>
         
@@ -35,10 +36,10 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
         </div>
       </div>
 
-      <div className="px-10 py-12 flex-1 flex flex-col">
+      <div className="px-10 py-12 flex-1 flex flex-col print:!block print:!py-2">
         
         {/* Header Section */}
-        <div className="flex justify-between items-start mb-14">
+        <div className="flex justify-between items-start mb-14 print:!mb-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-[#346E3A] rounded-xl flex items-center justify-center">
@@ -54,7 +55,7 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
             <p className="text-gray-500 font-medium text-lg tracking-wide uppercase">{invoice.invoiceRef || invoice.id.slice(0,8).toUpperCase()}</p>
           </div>
 
-          <div className="flex items-center gap-6 mt-16 bg-gray-50 px-6 py-4 rounded-xl border border-gray-100">
+          <div className="flex items-center gap-6 mt-16 print:!mt-4 bg-gray-50 px-6 py-4 rounded-xl border border-gray-100">
             <div className="flex items-center gap-4 text-sm border-r border-gray-200 pr-6">
               <FileText size={24} className="text-[#346E3A]" />
               <div className="flex flex-col gap-1">
@@ -78,7 +79,7 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
         </div>
 
         {/* Addresses Section */}
-        <div className="flex justify-between mb-12">
+        <div className="flex justify-between mb-12 print:!mb-4">
           <div className="flex gap-4 max-w-[300px]">
             <div className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center text-[#346E3A] shrink-0">
               <User size={18} />
@@ -114,7 +115,7 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
         </div>
 
         {/* Table Section */}
-        <div className="mb-10 overflow-hidden border border-gray-200 rounded-lg">
+        <div className="mb-10 print:!mb-4 overflow-hidden border border-gray-200 rounded-lg">
           <table className="w-full text-left text-sm">
             <thead className="bg-[#111827] text-white">
               <tr>
@@ -128,22 +129,27 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {invoice.items?.map((item: any, idx: number) => (
+              {invoice.items?.map((item: any, idx: number) => {
+                const parts = item.description ? item.description.split('|||') : ['Unknown Item'];
+                const itemName = parts[0];
+                const itemDetails = parts.length > 1 ? parts.slice(1).join('|||') : 'Professional service delivered as per project requirements.';
+
+                return (
                 <tr key={idx} className="bg-white hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-6 text-center">
+                  <td className="px-6 py-6 print:!py-2 text-center">
                     <div className="w-8 h-8 mx-auto bg-gray-50 border border-gray-100 text-[#346E3A] rounded flex items-center justify-center">
                       <FileText size={16} />
                     </div>
                   </td>
-                  <td className="px-6 py-6">
-                    <div className="font-bold text-gray-900 mb-1">{item.description}</div>
-                    <div className="text-xs text-gray-500">Professional service delivered as per project requirements.</div>
+                  <td className="px-6 py-6 print:!py-2">
+                    <div className="font-bold text-gray-900 mb-1">{itemName}</div>
+                    {itemDetails && <div className="text-xs text-gray-500">{itemDetails}</div>}
                   </td>
-                  <td className="px-6 py-6 text-center font-medium text-gray-700">{item.quantity}</td>
-                  <td className="px-6 py-6 text-right font-medium text-gray-700">{formatCurrency(item.unitPrice)}</td>
-                  <td className="px-6 py-6 text-right font-bold text-gray-900">{formatCurrency(item.amount)}</td>
+                  <td className="px-6 py-6 print:!py-2 text-center font-medium text-gray-700">{item.quantity}</td>
+                  <td className="px-6 py-6 print:!py-2 text-right font-medium text-gray-700">{formatCurrency(item.unitPrice)}</td>
+                  <td className="px-6 py-6 print:!py-2 text-right font-bold text-gray-900">{formatCurrency(item.amount)}</td>
                 </tr>
-              ))}
+              )})}
               {(!invoice.items || invoice.items.length === 0) && (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-gray-400">No items found for this invoice.</td>
@@ -154,30 +160,39 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
         </div>
 
         {/* Footer Section */}
-        <div className="flex justify-between items-end mt-auto pb-8">
+        <div className="flex justify-between items-end mt-auto print:!mt-4 pb-8 print:!pb-2 border-b border-gray-100">
           
-          <div className="max-w-[300px]">
-            <div className="flex items-center gap-2 mb-3 text-[#346E3A]">
-              <FileText size={16} />
-              <span className="font-bold text-sm">Payment Method</span>
-            </div>
-            <div className="flex gap-4 mb-6">
-              <div className="font-bold text-[#111827] italic text-xl">VISA</div>
-              <div className="font-bold text-[#111827] italic text-xl">mastercard</div>
-              <div className="font-bold text-gray-500 text-sm flex items-center gap-1 border border-gray-200 px-2 rounded"><Building2 size={14}/> BANK</div>
-            </div>
-            
-            <div className="border border-gray-200 rounded-lg p-4 flex gap-4 bg-gray-50/50">
-               <div className="bg-white p-2 border border-gray-200 rounded shrink-0">
-                  {/* SVG QR Code Placeholder */}
-                  <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 10H40V40H10V10ZM20 20V30H30V20H20ZM60 10H90V40H60V10ZM70 20V30H80V20H70ZM10 60H40V90H10V60ZM20 70V80H30V70H20ZM50 10H60V20H50V10ZM50 30H60V40H50V30ZM10 50H20V60H10V50ZM30 50H40V60H30V50ZM40 60H50V70H40V60ZM40 80H50V90H40V80ZM50 50H60V60H50V50ZM50 70H60V80H50V70ZM60 50H70V60H60V50ZM60 90H70V100H60V90ZM70 60H80V70H70V60ZM70 80H80V90H70V80ZM80 50H90V60H80V50ZM80 70H90V80H80V70ZM90 60H100V70H90V60ZM90 80H100V90H90V80Z" fill="#111827"/>
-                  </svg>
-               </div>
-               <div>
-                  <div className="font-bold text-gray-900 text-sm mb-1">Scan to pay</div>
-                  <p className="text-xs text-gray-500 leading-snug">Thank you for your business! We truly appreciate your trust in Faibah.</p>
-               </div>
+          {/* Payment Overview */}
+          <div className="flex gap-4 flex-1 mr-8">
+            <div className="bg-gray-50/80 rounded-2xl p-5 flex-1 border border-gray-100 flex flex-col items-center justify-center relative overflow-hidden">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider absolute top-4 left-4">Payment Overview</span>
+              <div className="mt-4 flex items-center justify-center gap-6 w-full">
+                {/* Fake Chart */}
+                <div 
+                  className="w-20 h-20 rounded-full flex items-center justify-center shadow-inner relative"
+                  style={{
+                    background: `conic-gradient(#111827 ${progressPercent}%, #e5e7eb ${progressPercent}%)`
+                  }}
+                >
+                  <div className="w-14 h-14 bg-gray-50 rounded-full flex flex-col items-center justify-center">
+                    <span className="font-bold text-[#111827] text-lg leading-none">{progressPercent}%</span>
+                    <span className="text-[9px] font-semibold text-gray-500">{isPaid ? 'Paid' : 'Pending'}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#111827]"></div>
+                    <span className="text-gray-600 font-medium w-12">Paid</span>
+                    <span className="font-bold text-gray-900">{isPaid ? '100%' : '0%'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
+                    <span className="text-gray-600 font-medium w-12">Pending</span>
+                    <span className="font-bold text-gray-900">{isPaid ? '0%' : '100%'}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -203,8 +218,22 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
         </div>
       </div>
 
+      {/* Bank Details */}
+      <div className="px-10 pb-8 print:!pb-0 flex items-start text-xs break-inside-avoid">
+        <div className="flex-1 bg-gray-50/50 p-6 print:!p-3 rounded-2xl border border-gray-100">
+          <span className="font-bold text-[#111827] mb-3 block text-sm tracking-wider">BANK DETAILS</span>
+          <div className="grid grid-cols-2 gap-y-3 gap-x-8 text-gray-600">
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Bank Name</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.bankName || 'Not specified'}</span></div>
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Account Name</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.accountName || 'Not specified'}</span></div>
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Account Number</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.accountNumber || 'Not specified'}</span></div>
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Routing / Sort Code</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.routingNumber || 'Not specified'}</span></div>
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">SWIFT Code</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.swiftCode || 'Not specified'}</span></div>
+          </div>
+        </div>
+      </div>
+
       {/* Bottom Thanks Banner */}
-      <div className="bg-[#111827] text-center py-6 text-[#346E3A] italic font-serif text-2xl mt-auto">
+      <div className="bg-[#111827] text-center py-6 print:!py-2 text-[#346E3A] italic font-serif text-2xl mt-auto">
         Thank you for your <span className="font-bold underline decoration-[#FBDF4B] underline-offset-4 decoration-2">business!</span>
       </div>
 

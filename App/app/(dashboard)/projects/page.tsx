@@ -126,38 +126,38 @@ export default function ProjectsPage() {
     <div className="p-8 w-full h-[calc(100vh-80px)] flex flex-col font-sans">
       
       {/* Header Actions */}
-      <div className="flex items-center justify-between mb-8 shrink-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Projects</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your ongoing work and client deliverables.</p>
+          <h1 className="text-xl font-bold text-gray-900 tracking-tight">Projects</h1>
+          <p className="text-xs text-gray-500 mt-1">Manage your ongoing work and client deliverables.</p>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="relative hidden md:block">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+          <div className="relative w-full sm:w-auto">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
               placeholder="Search projects..." 
-              className="pl-9 pr-4 py-2.5 bg-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all border-none w-64"
+              className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 w-full sm:w-64"
             />
           </div>
 
-          <div className="flex items-center bg-gray-50 border border-gray-200 p-1 rounded-xl">
+          <div className="flex items-center bg-gray-50 border border-gray-200 p-1 rounded-lg">
             <button 
               onClick={() => setView('board')}
-              className={`p-1.5 rounded-lg transition-colors ${view === 'board' ? 'bg-white text-gray-900 border border-gray-200' : 'text-gray-400 hover:text-gray-900'}`}
+              className={`p-1.5 rounded-md transition-colors ${view === 'board' ? 'bg-white text-gray-900 border border-gray-200 shadow-sm' : 'text-gray-400 hover:text-gray-900'}`}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button 
               onClick={() => setView('list')}
-              className={`p-1.5 rounded-lg transition-colors ${view === 'list' ? 'bg-white text-gray-900 border border-gray-200' : 'text-gray-400 hover:text-gray-900'}`}
+              className={`p-1.5 rounded-md transition-colors ${view === 'list' ? 'bg-white text-gray-900 border border-gray-200 shadow-sm' : 'text-gray-400 hover:text-gray-900'}`}
             >
               <ListIcon className="w-4 h-4" />
             </button>
           </div>
 
-          <Link href="/projects/new" className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#F3D740] transition-colors shrink-0">
+          <Link href="/projects/new" className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
             <Plus className="w-4 h-4" />
             New Project
           </Link>

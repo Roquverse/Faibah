@@ -29,4 +29,9 @@ export class ProjectsController {
   async createProposal(@Param('id') id: string, @Body('content') content: string) {
     return this.projectsService.createProposal(id, content);
   }
+
+  @Get(':id/members')
+  async getProjectMembers(@Param('id') id: string) {
+    return this.projectsService.getProjectMembers(id);
+  }
 }

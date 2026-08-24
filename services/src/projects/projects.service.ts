@@ -53,6 +53,13 @@ export class ProjectsService {
         client: {
           include: { contacts: true }
         },
+        tasks: true,
+        invoices: {
+          include: { items: true }
+        },
+        members: {
+          include: { user: true, clientContact: true }
+        }
       }
     });
   }
@@ -69,6 +76,16 @@ export class ProjectsService {
       data: {
         projectId,
         content
+      }
+    });
+  }
+
+  async getProjectMembers(projectId: string) {
+    return this.prisma.projectMember.findMany({
+      where: { projectId },
+      include: {
+        user: true,
+        clientContact: true,
       }
     });
   }

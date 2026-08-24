@@ -11,8 +11,10 @@ export class TasksService {
   ) {}
 
   async getTasksForProject(projectId: string) {
+    const where = projectId === 'all' ? {} : { projectId };
+
     return this.prisma.task.findMany({
-      where: { projectId },
+      where,
       include: {
         assignees: {
           include: { projectMember: { include: { user: true, clientContact: true } } }
@@ -115,6 +117,40 @@ export class TasksService {
     });
 
     this.eventsGateway.broadcastToProject(updatedTask.projectId, 'task_status_changed', updatedTask);
+    return updatedTask;
+  }
+
+  async assignUserToTask(taskId: string, projectMemberId: string) {
+    const task = await this.prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+    
+    const existing = await this.prisma.taskAssignee.findFirst({
+      where: { taskId, projectMemberId }
+    });
+    if (existing) return task;
+
+    await this.prisma.taskAssignee.create({
+      data: { taskId, projectMemberId }
+    });
+
+    const updatedTask = await this.prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        assignees: {
+          include: { projectMember: { include: { user: true, clientContact: true } } }
+        },
+        _count: {
+          select: { messages: true }
+        }
+      }
+    });
+    
+    // Broadcast the update so UI updates immediately
+    if (updatedTask) {
+      this.eventsGateway.broadcastToProject(updatedTask.projectId, 'task_status_changed', updatedTask);
+    }
     return updatedTask;
   }
 }

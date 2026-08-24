@@ -24,27 +24,27 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white">
       {/* Left section: Form (50%) */}
-      <div className="w-full lg:w-1/2 flex flex-col p-8 sm:p-12 xl:p-20 bg-white min-h-screen relative">
-        <div className="absolute top-8 left-8 sm:top-12 sm:left-12 flex items-center gap-2">
-          <img src="/logo.png" alt="" width={200} />
+      <div className="w-full lg:w-1/2 flex flex-col p-6 sm:p-8 lg:p-12 xl:p-20 bg-white min-h-screen relative">
+        <div className="mb-6 lg:mb-0 lg:absolute lg:top-12 lg:left-12 flex items-center justify-center lg:justify-start">
+          <img src="/logo.png" alt="Faibah" className="w-[140px] lg:w-[180px]" />
         </div>
 
         <div className="flex-1 flex flex-col justify-center max-w-[420px] w-full mx-auto">
           {!isSent ? (
             <>
-              <div className="text-center mb-10">
-                <div className="w-16 h-16 bg-deep-green/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Mail className="w-8 h-8 text-deep-green" />
+              <div className="text-center mb-6 lg:mb-10">
+                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-deep-green/10 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6">
+                  <Mail className="w-6 h-6 lg:w-8 lg:h-8 text-deep-green" />
                 </div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-4">
+                <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 mb-2 lg:mb-4">
                   Need help with your account?
                 </h1>
-                <p className="text-gray-500 text-sm leading-relaxed px-4">
+                <p className="text-gray-500 text-xs lg:text-sm leading-relaxed px-2 lg:px-4">
                   Enter the email address associated with your account and we will send you a link to reset your password.
                 </p>
               </div>
 
-              <form onSubmit={handleReset} className="space-y-6">
+              <form onSubmit={handleReset} className="space-y-4 lg:space-y-6">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-gray-700" htmlFor="email">
                     Email
@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-deep-green focus:border-transparent transition-all"
+                      className="block w-full pl-11 pr-4 py-2.5 lg:py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-deep-green focus:border-transparent transition-all text-sm lg:text-base"
                       placeholder="name@company.com"
                       required
                     />
@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-deep-green hover:bg-[#2a5a2e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-deep-green transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-4"
+                  className="w-full flex justify-center py-2.5 lg:py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-deep-green hover:bg-[#2a5a2e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-deep-green transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-2 lg:mt-4"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -102,7 +102,7 @@ export default function ForgotPasswordPage() {
             </div>
           )}
 
-          <div className="mt-12 text-center">
+          <div className="mt-8 lg:mt-12 text-center">
             <Link href="/login" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">
               <ArrowLeft className="w-4 h-4" />
               Back to log in

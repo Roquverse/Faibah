@@ -152,18 +152,18 @@ export default function ClientsPage() {
     <div className="p-8 w-full">
       
       {/* Top Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 shrink-0">
         <div>
           <h1 className="text-xl font-bold text-gray-900 tracking-tight">Clients</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+          <button className="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors w-full sm:w-auto">
             <DownloadCloud className="w-4 h-4" />
             Export
           </button>
           <button 
             onClick={() => setIsNewClientModalOpen(true)}
-            className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent"
+            className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             New Client

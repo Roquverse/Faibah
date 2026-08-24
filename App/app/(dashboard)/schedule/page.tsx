@@ -116,14 +116,14 @@ export default function SchedulePage() {
   };
 
  return (
- <div className="p-8 w-full font-sans">
+ <div className="p-4 md:p-8 w-full font-sans">
  {/* Header */}
- <div className="flex justify-between items-center mb-8">
+ <div className="flex flex-col md:flex-row justify-between md:items-center gap-6 mb-8">
  <div>
- <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">Schedule</h1>
- <p className="text-gray-500">Manage your agency appointments, calls, and deadlines.</p>
+ <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-2">Schedule</h1>
+ <p className="text-gray-500 text-sm md:text-base">Manage your agency appointments, calls, and deadlines.</p>
  </div>
- <div className="flex items-center gap-4">
+ <div className="flex flex-wrap items-center gap-3">
  <button 
  onClick={goToToday}
  className="px-4 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
@@ -134,23 +134,23 @@ export default function SchedulePage() {
  <button onClick={prevMonth} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors border-r border-gray-200">
  <ChevronLeft className="w-5 h-5" />
  </button>
- <div className="px-6 py-2 text-sm font-bold text-gray-900 min-w-[140px] text-center">
+ <div className="px-2 md:px-6 py-2 text-sm font-bold text-gray-900 min-w-[120px] md:min-w-[140px] text-center">
  {format(currentDate, 'MMMM yyyy')}
  </div>
  <button onClick={nextMonth} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors border-l border-gray-200">
  <ChevronRight className="w-5 h-5" />
  </button>
  </div>
- <button 
- onClick={() => {
- setSelectedDay(new Date());
- setIsModalOpen(true);
- }}
- className="flex items-center gap-2 px-5 py-2.5 bg-[#FBDF4B] text-gray-900 text-sm font-bold rounded-xl hover:bg-[#F3D53C] transition-colors border border-transparent"
- >
- <Plus className="w-4 h-4" />
- Add Event
- </button>
+  <button 
+  onClick={() => {
+  setSelectedDay(new Date());
+  setIsModalOpen(true);
+  }}
+  className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto"
+  >
+  <Plus className="w-4 h-4" />
+  Add Event
+  </button>
  </div>
  </div>
 
@@ -168,7 +168,7 @@ export default function SchedulePage() {
  </div>
 
  {/* Days Grid */}
- <div className="grid grid-cols-7 auto-rows-[140px] divide-x divide-y divide-gray-100">
+ <div className="grid grid-cols-7 auto-rows-[80px] sm:auto-rows-[100px] md:auto-rows-[140px] divide-x divide-y divide-gray-100">
  {days.map((day) => {
  const dayApps = getDayAppointments(day);
  return (
@@ -187,7 +187,7 @@ export default function SchedulePage() {
  <Plus className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
  </div>
 
- <div className="space-y-1.5 overflow-y-auto max-h-[90px] pr-1 custom-scrollbar">
+ <div className="space-y-1.5 overflow-y-auto max-h-[35px] sm:max-h-[55px] md:max-h-[90px] pr-1 custom-scrollbar">
  {dayApps.map(app => (
  <div 
  key={app.id} 
@@ -201,7 +201,7 @@ export default function SchedulePage() {
  {getTypeIcon(app.type)}
  <span className="truncate">{app.title}</span>
  </div>
- <div className="ml-2 opacity-60 text-[10px] shrink-0 whitespace-nowrap">
+ <div className="ml-2 opacity-60 text-[10px] shrink-0 whitespace-nowrap hidden md:block">
  {app.startTime}
  </div>
  </div>

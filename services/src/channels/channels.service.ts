@@ -9,6 +9,30 @@ export class ChannelsService {
     private eventsGateway: EventsGateway
   ) {}
 
+  async getAllChannels() {
+    return this.prisma.projectChannel.findMany({
+      include: {
+        project: true,
+        _count: {
+          select: { messages: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async createChannel(projectId: string, channelName: string) {
+    return this.prisma.projectChannel.create({
+      data: { projectId, name: channelName },
+      include: { 
+        project: true,
+        _count: {
+          select: { messages: true }
+        }
+      }
+    });
+  }
+
   async getChannelForProject(projectId: string, channelName: string = 'general') {
     let channel: any = await this.prisma.projectChannel.findFirst({
       where: { projectId, name: channelName },

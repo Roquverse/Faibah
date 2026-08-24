@@ -26,6 +26,16 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [projectMembers, setProjectMembers] = useState<any[]>([]);
+  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
+
+  useEffect(() => {
+    if (selectedTask?.projectId) {
+      ProjectsApi.getMembers(selectedTask.projectId)
+        .then(setProjectMembers)
+        .catch(console.error);
+    }
+  }, [selectedTask?.projectId]);
 
   useEffect(() => {
     // Fetch projects for the dropdown
@@ -84,6 +94,13 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
         clientContactIds: newTask.clientContactIds,
       };
       await TasksApi.createTask(taskData);
+      
+      // If we are currently on the 'all' projects view, the task is created in a specific project's room
+      // so the 'all' room won't receive the task_created socket event. We must manually refetch.
+      if (projectId === 'all') {
+        TasksApi.getTasks('all').then(setTasks).catch(console.error);
+      }
+
       setShowAddTaskModal(false);
       setNewTask({ 
         title: '', 
@@ -108,12 +125,24 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     { id: 'DONE', label: 'Done', count: tasks.filter(t => t.status === 'DONE').length },
   ];
 
+  const handleAssignUser = async (memberId: string) => {
+    if (!selectedTask) return;
+    try {
+      const updatedTask = await TasksApi.assignUser(selectedTask.id, memberId);
+      setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+      setSelectedTask(updatedTask);
+      setShowAssigneeDropdown(false);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col bg-white relative">
       
       {/* Board Header Toolbar */}
-      <div className="h-16 flex items-center justify-between px-6 shrink-0 bg-white">
-        <div className="flex bg-white border border-gray-200 rounded-lg p-0.5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-4 md:py-0 md:h-16 shrink-0 bg-white gap-4">
+        <div className="flex bg-white border border-gray-200 rounded-lg p-0.5 self-start shrink-0">
           <button 
             onClick={() => setViewMode('kanban')}
             className={`px-3 py-1.5 text-sm font-bold rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
@@ -128,21 +157,23 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
           </button>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:flex-initial">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
               placeholder="Search Tasks" 
-              className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none w-64"
+              className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none w-full md:w-64"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-            <Filter className="w-4 h-4" /> Filter
-          </button>
-          <button onClick={() => setShowAddTaskModal(true)} className="flex items-center gap-2 px-4 py-2 bg-[#346E3A] text-white rounded-lg text-sm font-bold hover:bg-[#2b592f] shadow-sm shadow-[#346E3A]/20">
-            <Plus className="w-4 h-4" /> Add Tasks
-          </button>
+          <div className="flex items-center gap-2">
+            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <Filter className="w-4 h-4" /> Filter
+            </button>
+            <button onClick={() => setShowAddTaskModal(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
+              <Plus className="w-4 h-4" /> Add Tasks
+            </button>
+          </div>
         </div>
       </div>
 
@@ -215,15 +246,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     </div>
 
                     {/* Footer (Comments, Attachements, Avatars) */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                      <div className="flex items-center gap-3 text-[11px] font-bold text-gray-400">
-                        <div className="flex items-center gap-1 hover:text-gray-900 transition-colors">
-                          <MessageSquare className="w-3.5 h-3.5" /> {task._count?.messages || 0}
-                        </div>
-                        <div className="flex items-center gap-1 hover:text-gray-900 transition-colors">
-                          <Paperclip className="w-3.5 h-3.5" /> 0
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-end pt-3 border-t border-gray-50">
                       <div className="flex -space-x-2">
                         {task.assignees?.slice(0, 3).map((assignee: any) => (
                            <img key={assignee.id} src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'U'}&background=random`} className="w-6 h-6 rounded-full border-2 border-white relative z-20" />
@@ -362,7 +385,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
               </div>
             </div>
 
-            <div>
+            <div className="relative">
               <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Assignees</h4>
               <div className="flex items-center gap-3">
                 {selectedTask.assignees?.map((assignee: any) => (
@@ -371,9 +394,41 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     <span className="text-sm font-semibold text-gray-700">{assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'Unknown'}</span>
                   </div>
                 ))}
-                <button className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:border-gray-400 transition-colors">
-                  <Plus className="w-4 h-4" />
-                </button>
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
+                    className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:border-gray-400 transition-colors relative z-10 bg-white"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                  {showAssigneeDropdown && (
+                    <div className="absolute top-full mt-2 left-0 w-48 bg-white border border-gray-100 shadow-lg rounded-xl z-50 overflow-hidden animate-in fade-in zoom-in-95">
+                      <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        Add Assignee
+                      </div>
+                      <div className="max-h-48 overflow-y-auto">
+                        {projectMembers.filter(pm => !selectedTask.assignees?.find((a: any) => a.projectMemberId === pm.id)).length === 0 ? (
+                          <div className="p-3 text-xs text-gray-500 text-center">No more members to assign</div>
+                        ) : (
+                          projectMembers
+                            .filter(pm => !selectedTask.assignees?.find((a: any) => a.projectMemberId === pm.id))
+                            .map(pm => (
+                            <button 
+                              key={pm.id}
+                              onClick={() => handleAssignUser(pm.id)}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                            >
+                              <div className="w-6 h-6 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-xs shrink-0">
+                                {(pm.user?.firstName || pm.clientContact?.name || 'U').charAt(0).toUpperCase()}
+                              </div>
+                              <span className="truncate">{pm.user?.firstName || pm.clientContact?.name || 'Unknown'}</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
