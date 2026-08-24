@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { ClientsService } from './clients.service';
 
 @Controller('clients')
@@ -6,8 +7,9 @@ export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Get()
-  getAllClients() {
-    return this.clientsService.getAllClients();
+  getAllClients(@Req() req: Request) {
+    const userId = (req.user as any)?.userId;
+    return this.clientsService.getAllClients(userId);
   }
   
   @Get(':id')
@@ -16,8 +18,9 @@ export class ClientsController {
   }
 
   @Post()
-  createClient(@Body() data: any) {
-    return this.clientsService.createClient(data);
+  createClient(@Req() req: Request, @Body() data: any) {
+    const userId = (req.user as any)?.userId;
+    return this.clientsService.createClient(userId, data);
   }
   
   @Patch(':id')

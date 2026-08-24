@@ -130,6 +130,9 @@ export class UsersService {
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      include: {
+        company: true
+      }
     });
     return user || {};
   }

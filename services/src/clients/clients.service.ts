@@ -1,23 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class ClientsService {
   constructor(private prisma: PrismaService) {}
 
-  async getAllClients() {
-    // Make sure we have a default company to attach the client to for MVP
-    let company = await this.prisma.company.findFirst();
-    if (!company) {
-      company = await this.prisma.company.create({
-        data: {
-          name: 'Faiba Pro',
-          workType: 'Design Agency',
-        },
-      });
-    }
+  /** Resolve the companyId for an authenticated user */
+  private async resolveCompanyId(userId: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { companyId: true },
+    });
+    if (!user?.companyId) throw new NotFoundException('Company not found. Please complete onboarding first.');
+    return user.companyId;
+  }
+
+  async getAllClients(userId: string) {
+    const companyId = await this.resolveCompanyId(userId);
 
     const clients = await this.prisma.client.findMany({
+      where: { companyId },
       include: {
         projects: true,
         invoices: {
@@ -28,49 +30,30 @@ export class ClientsService {
         }
       }
     });
-    
 
-    
-    // Compute dynamic fields
     return clients.map(client => {
       const activeProjects = client.projects.filter(p => p.status === 'ONGOING' || p.status === 'AWAITING_PAYMENT').length;
-      
+
       let totalBilled = 0;
       let outstanding = 0;
 
       client.invoices.forEach(inv => {
         const invoiceTotal = inv.items.reduce((sum, item) => sum + (item.amount || 0), 0);
         totalBilled += invoiceTotal;
-        
+
         if (inv.status !== 'PAID' && inv.status !== 'CANCELLED') {
           const paidAmount = inv.payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
           outstanding += (invoiceTotal - paidAmount);
         }
       });
 
-      return {
-        ...client,
-        activeProjects,
-        totalBilled,
-        outstanding
-      };
+      return { ...client, activeProjects, totalBilled, outstanding };
     });
   }
 
-  async createClient(data: any) {
-    // Get default company for MVP
-    let company = await this.prisma.company.findFirst();
-    
-    if (!company) {
-      company = await this.prisma.company.create({
-        data: {
-          name: 'Faiba Pro',
-          workType: 'Design Agency',
-        },
-      });
-    }
+  async createClient(userId: string, data: any) {
+    const companyId = await this.resolveCompanyId(userId);
 
-    // Prepare default name if not provided
     const contactName = data.name || (data.firstName ? `${data.firstName} ${data.lastName}`.trim() : 'Unknown Contact');
 
     return this.prisma.client.create({
@@ -88,7 +71,7 @@ export class ClientsService {
         city: data.city,
         preferredChannel: data.preferredChannel || null,
         referralSource: data.referralSource,
-        companyId: company.id,
+        companyId,
       },
     });
   }
@@ -96,9 +79,7 @@ export class ClientsService {
   async getClientById(id: string) {
     return this.prisma.client.findUnique({
       where: { id },
-      include: {
-        contacts: true,
-      }
+      include: { contacts: true }
     });
   }
 
@@ -124,20 +105,16 @@ export class ClientsService {
   }
 
   async deleteClient(id: string) {
-    return this.prisma.client.delete({
-      where: { id },
-    });
+    return this.prisma.client.delete({ where: { id } });
   }
 
   async addContact(clientId: string, data: any) {
-    // If setting as primary, unset other primary contacts first
     if (data.isPrimary) {
       await this.prisma.clientContact.updateMany({
         where: { clientId },
         data: { isPrimary: false }
       });
     }
-    
     return this.prisma.clientContact.create({
       data: {
         clientId,
@@ -151,14 +128,12 @@ export class ClientsService {
   }
 
   async updateContact(clientId: string, contactId: string, data: any) {
-    // If setting as primary, unset other primary contacts first
     if (data.isPrimary) {
       await this.prisma.clientContact.updateMany({
         where: { clientId, id: { not: contactId } },
         data: { isPrimary: false }
       });
     }
-
     return this.prisma.clientContact.update({
       where: { id: contactId, clientId },
       data: {
@@ -172,8 +147,6 @@ export class ClientsService {
   }
 
   async deleteContact(clientId: string, contactId: string) {
-    return this.prisma.clientContact.delete({
-      where: { id: contactId, clientId }
-    });
+    return this.prisma.clientContact.delete({ where: { id: contactId, clientId } });
   }
 }

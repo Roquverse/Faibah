@@ -1,25 +1,32 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
-  async createProject(clientId: string | undefined, name: string) {
+  private async resolveCompanyId(userId: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { companyId: true },
+    });
+    if (!user?.companyId) throw new NotFoundException('Company not found. Please complete onboarding first.');
+    return user.companyId;
+  }
+
+  async createProject(userId: string, clientId: string | undefined, name: string) {
+    const companyId = await this.resolveCompanyId(userId);
+
     let client;
     if (clientId) {
-      client = await this.prisma.client.findUnique({ where: { id: clientId } });
+      client = await this.prisma.client.findFirst({ where: { id: clientId, companyId } });
     }
 
     if (!client) {
-      // Auto-create a default client for MVP
-      const company = await this.prisma.company.findFirst();
-      if (!company) throw new NotFoundException('Company not found (go to Settings first)');
-
-      client = await this.prisma.client.findFirst();
+      client = await this.prisma.client.findFirst({ where: { companyId } });
       if (!client) {
         client = await this.prisma.client.create({
-          data: { name: 'Acme Corporation', companyId: company.id }
+          data: { name: 'Default Client', companyId }
         });
       }
     }
@@ -28,7 +35,7 @@ export class ProjectsService {
       data: {
         name,
         clientId: client.id,
-        currency: client.currency
+        currency: client.currency || 'NGN'
       }
     });
   }
@@ -40,15 +47,20 @@ export class ProjectsService {
         tasks: true,
         proposals: true,
         invoices: true,
-        client: true, // Need to include client for the frontend to show client name/avatar
+        client: true,
       }
     });
     
     return projects;
   }
 
-  async getAllProjects() {
+  async getAllProjects(userId: string) {
+    const companyId = await this.resolveCompanyId(userId);
+
     return this.prisma.project.findMany({
+      where: {
+        client: { companyId }
+      },
       include: {
         client: {
           include: { contacts: true }

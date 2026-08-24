@@ -1,4 +1,5 @@
-import { Controller, Post, Get, Patch, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Param, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { ProjectsService } from './projects.service';
 
 @Controller('projects')
@@ -6,13 +7,15 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  async createProject(@Body() body: { clientId: string, name: string }) {
-    return this.projectsService.createProject(body.clientId, body.name);
+  async createProject(@Req() req: Request, @Body() body: { clientId: string, name: string }) {
+    const userId = (req.user as any)?.userId;
+    return this.projectsService.createProject(userId, body.clientId, body.name);
   }
 
   @Get()
-  async getAllProjects() {
-    return this.projectsService.getAllProjects();
+  async getAllProjects(@Req() req: Request) {
+    const userId = (req.user as any)?.userId;
+    return this.projectsService.getAllProjects(userId);
   }
 
   @Get('client/:clientId')
