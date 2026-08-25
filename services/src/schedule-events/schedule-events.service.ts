@@ -15,7 +15,7 @@ export class ScheduleEventsService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: currentUserId },
-      select: { id: true, email: true, companyId: true },
+      select: { id: true, email: true, companyId: true, userType: true },
     });
 
     const clientContact = await this.prisma.clientContact.findFirst({
@@ -24,7 +24,7 @@ export class ScheduleEventsService {
     });
 
     const projectConditions: any[] = [];
-    if (user?.companyId) {
+    if (user?.userType !== 'CLIENT' && user?.companyId) {
       projectConditions.push({ client: { companyId: user.companyId } });
       projectConditions.push({ members: { some: { userId: user.id } } });
     }
@@ -35,9 +35,12 @@ export class ScheduleEventsService {
       projectConditions.push({ members: { some: { user: { email: clientContact.email } } } });
     }
     if (user?.email) {
-      projectConditions.push({ client: { email: user.email } });
-      projectConditions.push({ client: { contacts: { some: { email: user.email } } } });
+      if (user.userType === 'CLIENT' || !user.companyId) {
+        projectConditions.push({ client: { email: user.email } });
+        projectConditions.push({ client: { contacts: { some: { email: user.email } } } });
+      }
       projectConditions.push({ members: { some: { user: { email: user.email } } } });
+      projectConditions.push({ members: { some: { clientContact: { email: user.email } } } });
     }
 
     if (projectConditions.length === 0) return [];

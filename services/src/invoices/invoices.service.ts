@@ -11,12 +11,37 @@ export class InvoicesService {
 
   async getAllInvoices(userId?: string) {
     let whereClause: any = {};
+
     if (userId) {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { id: true, email: true, companyId: true, userType: true },
       });
-      if (user?.companyId) {
+
+      const clientContact = await this.prisma.clientContact.findFirst({
+        where: { OR: [{ id: userId }, { email: user?.email || userId }] },
+        select: { id: true, clientId: true, email: true },
+      });
+
+      if (user?.userType === 'CLIENT' || !user?.companyId || clientContact) {
+        const clientConditions: any[] = [];
+
+        if (clientContact) {
+          clientConditions.push({ clientId: clientContact.clientId });
+          clientConditions.push({ client: { email: clientContact.email } });
+        }
+        if (user?.email) {
+          clientConditions.push({ client: { email: user.email } });
+          clientConditions.push({ client: { contacts: { some: { email: user.email } } } });
+          clientConditions.push({ project: { members: { some: { clientContact: { email: user.email } } } } });
+          clientConditions.push({ project: { members: { some: { user: { email: user.email } } } } });
+        }
+        if (user?.id) {
+          clientConditions.push({ project: { members: { some: { userId: user.id } } } });
+        }
+
+        whereClause = clientConditions.length > 0 ? { OR: clientConditions } : { id: 'impossible-id' };
+      } else if (user?.companyId) {
         whereClause = { client: { companyId: user.companyId } };
       }
     }

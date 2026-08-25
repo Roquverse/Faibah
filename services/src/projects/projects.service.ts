@@ -92,7 +92,7 @@ export class ProjectsService {
     if (userId) {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, email: true, companyId: true },
+        select: { id: true, email: true, companyId: true, userType: true },
       });
 
       const clientContact = await this.prisma.clientContact.findFirst({
@@ -102,7 +102,8 @@ export class ProjectsService {
 
       const conditions: any[] = [];
 
-      if (user?.companyId) {
+      // Agency team members (userType !== 'CLIENT') get company-wide project access
+      if (user?.userType !== 'CLIENT' && user?.companyId) {
         conditions.push({ client: { companyId: user.companyId } });
         conditions.push({ members: { some: { userId: user.id } } });
       }
@@ -115,14 +116,18 @@ export class ProjectsService {
       }
 
       if (user?.email) {
-        conditions.push({ client: { email: user.email } });
-        conditions.push({ client: { contacts: { some: { email: user.email } } } });
+        if (user.userType === 'CLIENT' || !user.companyId) {
+          conditions.push({ client: { email: user.email } });
+          conditions.push({ client: { contacts: { some: { email: user.email } } } });
+        }
         conditions.push({ members: { some: { user: { email: user.email } } } });
         conditions.push({ members: { some: { clientContact: { email: user.email } } } });
       }
 
       if (conditions.length > 0) {
         whereClause = { OR: conditions };
+      } else {
+        whereClause = { id: 'impossible-id' };
       }
     }
 
