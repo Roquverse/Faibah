@@ -1,11 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Lock, Sparkles, User, Check } from 'lucide-react';
+import { Mail, Lock, Sparkles, User, Check, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const isInactiveLogout = searchParams.get('reason') === 'inactivity';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -88,6 +92,15 @@ export default function LoginPage() {
               One solution for all your Project & Invoicing solution
             </p>
           </div>
+
+          {isInactiveLogout && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-amber-900 animate-in fade-in slide-in-from-top-2 duration-300">
+              <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-xs font-semibold leading-relaxed">
+                You were automatically signed out after 1 hour of inactivity. Please sign in to continue.
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4 lg:space-y-5">
             <div className="space-y-1.5">
