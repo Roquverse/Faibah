@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, MessageSquare, Paperclip, MoreHorizontal, Calendar, ArrowUpRight } from 'lucide-react';
-import { TasksApi, ProjectsApi } from '@/lib/api';
+import { Plus, Search, Filter, MessageSquare, Paperclip, MoreHorizontal, Calendar, ArrowUpRight, FolderGit2, UserCheck, AlertCircle, ShieldAlert, AlertTriangle, ArrowDown } from 'lucide-react';
+import { TasksApi, ProjectsApi, UsersApi } from '@/lib/api';
 import { io } from 'socket.io-client';
 
 interface KanbanBoardProps {
   projectId: string;
 }
 
-export default function KanbanBoard({ projectId }: KanbanBoardProps) {
+export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoardProps) {
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(initialProjectId);
+  const [myTasksOnly, setMyTasksOnly] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+
   const [tasks, setTasks] = useState<any[]>([]);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // New task state
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
@@ -18,8 +23,9 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     title: '', 
     description: '', 
     status: 'TODO', 
+    priority: 'MEDIUM',
     dueDate: '',
-    projectId: projectId === 'all' ? '' : projectId,
+    projectId: initialProjectId === 'all' ? '' : initialProjectId,
     collaboratorEmails: '',
     clientContactIds: [] as string[]
   });
@@ -29,6 +35,17 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   const [projectMembers, setProjectMembers] = useState<any[]>([]);
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
 
+  // Load current user profile for "My Tasks" filter
+  useEffect(() => {
+    UsersApi.getProfile()
+      .then(setCurrentUser)
+      .catch(console.error);
+
+    ProjectsApi.getAll()
+      .then(setProjects)
+      .catch(console.error);
+  }, []);
+
   useEffect(() => {
     if (selectedTask?.projectId) {
       ProjectsApi.getMembers(selectedTask.projectId)
@@ -37,24 +54,33 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     }
   }, [selectedTask?.projectId]);
 
+  // Fetch tasks and listen to sockets
   useEffect(() => {
-    // Fetch projects for the dropdown
-    ProjectsApi.getAll().then(setProjects).catch(console.error);
+    const fetchTasks = async () => {
+      try {
+        const assignedTo = myTasksOnly && currentUser?.id ? currentUser.id : undefined;
+        const fetchedTasks = await TasksApi.getTasks(selectedProjectId, assignedTo);
+        setTasks(fetchedTasks || []);
+      } catch (err) {
+        console.error('Error fetching tasks:', err);
+      }
+    };
 
-    if (!projectId || projectId === 'all') return;
-
-    // Initial fetch
-    TasksApi.getTasks(projectId).then(setTasks).catch(console.error);
+    fetchTasks();
 
     // Socket setup
     const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005');
     
     socket.on('connect', () => {
-      socket.emit('joinProject', projectId);
+      if (selectedProjectId === 'all') {
+        projects.forEach(p => socket.emit('joinProject', p.id));
+      } else {
+        socket.emit('joinProject', selectedProjectId);
+      }
     });
 
-    socket.on('task_created', (newTask) => {
-      setTasks((prev: any[]) => [newTask, ...prev]);
+    socket.on('task_created', (createdTask) => {
+      setTasks((prev: any[]) => [createdTask, ...prev]);
     });
 
     socket.on('task_status_changed', (updatedTask) => {
@@ -64,15 +90,19 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
 
     socket.on('new_message', (msg) => {
       if (msg.taskId) {
-        TasksApi.getTasks(projectId).then(setTasks).catch(console.error);
+        fetchTasks();
       }
     });
 
     return () => {
-      socket.emit('leaveProject', projectId);
+      if (selectedProjectId === 'all') {
+        projects.forEach(p => socket.emit('leaveProject', p.id));
+      } else {
+        socket.emit('leaveProject', selectedProjectId);
+      }
       socket.disconnect();
     };
-  }, [projectId]);
+  }, [selectedProjectId, myTasksOnly, currentUser?.id, projects]);
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +118,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
         title: newTask.title,
         description: newTask.description,
         status: newTask.status,
+        priority: newTask.priority,
         dueDate: newTask.dueDate,
         projectId: newTask.projectId,
         collaboratorEmails: newTask.collaboratorEmails.split(',').map(e => e.trim()).filter(Boolean),
@@ -95,19 +126,18 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
       };
       await TasksApi.createTask(taskData);
       
-      // If we are currently on the 'all' projects view, the task is created in a specific project's room
-      // so the 'all' room won't receive the task_created socket event. We must manually refetch.
-      if (projectId === 'all') {
-        TasksApi.getTasks('all').then(setTasks).catch(console.error);
-      }
+      const assignedTo = myTasksOnly && currentUser?.id ? currentUser.id : undefined;
+      const refetched = await TasksApi.getTasks(selectedProjectId, assignedTo);
+      setTasks(refetched || []);
 
       setShowAddTaskModal(false);
       setNewTask({ 
         title: '', 
         description: '', 
         status: 'TODO', 
+        priority: 'MEDIUM',
         dueDate: '',
-        projectId: projectId === 'all' ? '' : projectId,
+        projectId: selectedProjectId === 'all' ? '' : selectedProjectId,
         collaboratorEmails: '',
         clientContactIds: []
       });
@@ -117,13 +147,6 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
       setIsSubmitting(false);
     }
   };
-
-  const columns = [
-    { id: 'TODO', label: 'To-do', count: tasks.filter(t => t.status === 'TODO').length },
-    { id: 'IN_PROGRESS', label: 'In progress', count: tasks.filter(t => t.status === 'IN_PROGRESS').length },
-    { id: 'IN_REVISION', label: 'In Revision', count: tasks.filter(t => t.status === 'IN_REVISION').length },
-    { id: 'DONE', label: 'Done', count: tasks.filter(t => t.status === 'DONE').length },
-  ];
 
   const handleAssignUser = async (memberId: string) => {
     if (!selectedTask) return;
@@ -137,193 +160,305 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     }
   };
 
+  const columns = [
+    { id: 'TODO', label: 'To-do' },
+    { id: 'IN_PROGRESS', label: 'In Progress' },
+    { id: 'IN_REVISION', label: 'In Revision' },
+    { id: 'DONE', label: 'Done' },
+  ];
+
+  const filteredTasks = tasks.filter(t => {
+    if (searchQuery.trim() === '') return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      t.title?.toLowerCase().includes(q) ||
+      t.description?.toLowerCase().includes(q) ||
+      t.project?.name?.toLowerCase().includes(q)
+    );
+  });
+
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'URGENT':
+        return (
+          <span className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-extrabold rounded flex items-center gap-1 uppercase tracking-wider">
+            <ShieldAlert className="w-3 h-3 text-rose-600" /> Urgent
+          </span>
+        );
+      case 'HIGH':
+        return (
+          <span className="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold rounded flex items-center gap-1 uppercase tracking-wider">
+            <AlertTriangle className="w-3 h-3 text-amber-600" /> High
+          </span>
+        );
+      case 'MEDIUM':
+        return (
+          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-semibold rounded uppercase tracking-wider">
+            Medium
+          </span>
+        );
+      case 'LOW':
+      default:
+        return (
+          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 border border-gray-200 text-[10px] font-semibold rounded uppercase tracking-wider">
+            Low
+          </span>
+        );
+    }
+  };
+
   return (
     <div className="h-full flex flex-col bg-white relative">
       
       {/* Board Header Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-4 md:py-0 md:h-16 shrink-0 bg-white gap-4">
-        <div className="flex bg-white border border-gray-200 rounded-lg p-0.5 self-start shrink-0">
-          <button 
-            onClick={() => setViewMode('kanban')}
-            className={`px-3 py-1.5 text-sm font-bold rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+      <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-4 border-b border-gray-100 bg-white gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* View Mode Toggle */}
+          <div className="flex bg-gray-50 border border-gray-200 rounded-lg p-0.5 shrink-0">
+            <button 
+              onClick={() => setViewMode('kanban')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              Kanban
+            </button>
+            <button 
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              List
+            </button>
+          </div>
+
+          {/* Project Filter Dropdown (Jira style roll-up filter) */}
+          <div className="flex items-center gap-2">
+            <FolderGit2 className="w-4 h-4 text-gray-400" />
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#346E3A]"
+            >
+              <option value="all">All Projects (Roll-up View)</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* "My Tasks" Toggle */}
+          <button
+            onClick={() => setMyTasksOnly(!myTasksOnly)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+              myTasksOnly
+                ? 'bg-[#346E3A]/10 text-[#346E3A] border-[#346E3A]/30'
+                : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+            }`}
           >
-            Kanban
-          </button>
-          <button 
-            onClick={() => setViewMode('list')}
-            className={`px-3 py-1.5 text-sm font-bold rounded-md transition-colors ${viewMode === 'list' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
-          >
-            List
+            <UserCheck className="w-3.5 h-3.5" />
+            My Tasks Only
           </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:flex-initial">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search Tasks" 
-              className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none w-full md:w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search tasks..." 
+              className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none w-full md:w-56"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-              <Filter className="w-4 h-4" /> Filter
-            </button>
-            <button onClick={() => setShowAddTaskModal(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
-              <Plus className="w-4 h-4" /> Add Tasks
-            </button>
-          </div>
+
+          <button 
+            onClick={() => {
+              setNewTask(prev => ({ 
+                ...prev, 
+                projectId: selectedProjectId === 'all' ? (projects[0]?.id || '') : selectedProjectId 
+              }));
+              setShowAddTaskModal(true);
+            }} 
+            className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#F3D53C] transition-colors border border-transparent shrink-0"
+          >
+            <Plus className="w-4 h-4" /> Add Task
+          </button>
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Board View */}
       {viewMode === 'kanban' ? (
-        <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
+        <div className="flex-1 overflow-x-auto overflow-y-hidden p-6 bg-gray-50/50">
           <div className="flex gap-6 h-full items-start">
             
-            {columns.map(col => (
-              <div key={col.id} className="w-80 shrink-0 flex flex-col max-h-full">
-                
-                {/* Column Header */}
-                <div className="flex items-center justify-between mb-4 bg-white px-4 py-3 rounded-xl border border-gray-100">
-                  <div className="flex items-center gap-2">
-                    <Plus className="w-4 h-4 text-gray-400" />
-                    <h3 className="font-bold text-gray-900">{col.label}</h3>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                    {col.count}
-                  </div>
-                </div>
-
-                {/* Cards List */}
-                <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-10">
-                  {tasks.filter(t => t.status === col.id).map(task => (
-                  <div 
-                    key={task.id} 
-                    onClick={() => setSelectedTask(task)}
-                    className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group cursor-pointer active:cursor-grabbing"
-                  >
-                    
-                    {/* Tags */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex gap-2">
-                        {(task.labels || []).map((tag: string, idx: number) => (
-                          <span key={idx} className="px-2 py-1 bg-gray-50 text-gray-600 text-[10px] font-bold rounded uppercase tracking-wider">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <button className="text-gray-400 hover:text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+            {columns.map(col => {
+              const colTasks = filteredTasks.filter(t => t.status === col.id);
+              return (
+                <div key={col.id} className="w-80 shrink-0 flex flex-col max-h-full">
+                  
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between mb-4 bg-white px-4 py-3 rounded-xl border border-gray-200/80 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2.5 h-2.5 rounded-full ${
+                        col.id === 'TODO' ? 'bg-slate-400' :
+                        col.id === 'IN_PROGRESS' ? 'bg-blue-500' :
+                        col.id === 'IN_REVISION' ? 'bg-amber-500' : 'bg-emerald-500'
+                      }`} />
+                      <h3 className="font-bold text-gray-900 text-sm">{col.label}</h3>
                     </div>
+                    <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {colTasks.length}
+                    </span>
+                  </div>
 
-                    {/* Title */}
-                    <h4 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-[#346E3A] transition-colors">{task.title}</h4>
-                    
-                    {/* Date */}
-                    {task.dueDate && (
-                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 mb-4">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(task.dueDate).toLocaleDateString()}
-                      </div>
-                    )}
-
-                    {/* Progress */}
-                    <div className="mb-4">
-                      <div className="flex justify-between text-[10px] font-bold text-gray-400 mb-1.5">
-                        <span>Progress</span>
-                        <span>{task.progressPercent || 0}%</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[#A5D149] rounded-full" 
-                          style={{ width: `${task.progressPercent || 0}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Footer (Comments, Attachements, Avatars) */}
-                    <div className="flex items-center justify-end pt-3 border-t border-gray-50">
-                      <div className="flex -space-x-2">
-                        {task.assignees?.slice(0, 3).map((assignee: any) => (
-                           <img key={assignee.id} src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'U'}&background=random`} className="w-6 h-6 rounded-full border-2 border-white relative z-20" />
-                        ))}
-                        {(task.assignees?.length || 0) > 3 && (
-                          <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 text-[10px] font-bold text-gray-600 flex items-center justify-center relative z-0">
-                            +{(task.assignees?.length || 0) - 3}
+                  {/* Cards List */}
+                  <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-10">
+                    {colTasks.map(task => (
+                      <div 
+                        key={task.id} 
+                        onClick={() => setSelectedTask(task)}
+                        className="bg-white p-5 rounded-2xl border border-gray-200/70 shadow-xs hover:shadow-md hover:border-[#346E3A]/40 transition-all group cursor-pointer"
+                      >
+                        
+                        {/* Project Tag Badge (Global roll-up view indicator) */}
+                        {selectedProjectId === 'all' && (task.project?.name || projects.find(p => p.id === task.projectId)?.name) && (
+                          <div className="mb-2">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#346E3A]/10 text-[#346E3A] text-[10px] font-bold rounded-full">
+                              <FolderGit2 className="w-3 h-3" />
+                              {task.project?.name || projects.find(p => p.id === task.projectId)?.name}
+                            </span>
                           </div>
                         )}
+
+                        {/* Tags & Priority */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <div className="flex gap-1.5 flex-wrap">
+                            {getPriorityBadge(task.priority)}
+                            {(task.labels || []).map((tag: string, idx: number) => (
+                              <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase tracking-wider">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Title */}
+                        <h4 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-[#346E3A] transition-colors line-clamp-2">
+                          {task.title}
+                        </h4>
+                        
+                        {/* Due Date */}
+                        {task.dueDate && (
+                          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 mb-3">
+                            <Calendar className="w-3 h-3 text-gray-400" />
+                            {new Date(task.dueDate).toLocaleDateString()}
+                          </div>
+                        )}
+
+                        {/* Progress */}
+                        <div className="mb-3">
+                          <div className="flex justify-between text-[10px] font-bold text-gray-400 mb-1">
+                            <span>Progress</span>
+                            <span>{task.progressPercent || 0}%</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-[#A5D149] rounded-full" 
+                              style={{ width: `${task.progressPercent || 0}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Assignee Avatars */}
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                          <span className="text-[10px] text-gray-400 font-semibold uppercase">Assignees</span>
+                          <div className="flex -space-x-2">
+                            {task.assignees?.slice(0, 3).map((assignee: any) => (
+                              <img 
+                                key={assignee.id} 
+                                src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'U'}&background=random`} 
+                                title={assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name}
+                                className="w-6 h-6 rounded-full border-2 border-white relative z-10" 
+                              />
+                            ))}
+                            {(task.assignees?.length || 0) > 3 && (
+                              <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 text-[10px] font-bold text-gray-600 flex items-center justify-center relative z-0">
+                                +{(task.assignees?.length || 0) - 3}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
                       </div>
-                    </div>
-                    
+                    ))}
+
+                    <button 
+                      onClick={() => {
+                        setNewTask(prev => ({ 
+                          ...prev, 
+                          status: col.id,
+                          projectId: selectedProjectId === 'all' ? (projects[0]?.id || '') : selectedProjectId
+                        }));
+                        setShowAddTaskModal(true);
+                      }}
+                      className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-gray-400 hover:text-gray-900 hover:border-gray-300 hover:bg-white transition-all"
+                    >
+                      <Plus className="w-4 h-4" /> Add Task
+                    </button>
                   </div>
-                ))}
 
-                {/* Add Task Button at bottom of column */}
-                <button 
-                  onClick={() => {
-                    setNewTask(prev => ({ ...prev, status: col.id }));
-                    setShowAddTaskModal(true);
-                  }}
-                  className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold text-gray-400 hover:text-gray-900 hover:border-gray-300 hover:bg-white transition-all"
-                >
-                  <Plus className="w-4 h-4" /> Add Task
-                </button>
-              </div>
+                </div>
+              );
+            })}
 
-            </div>
-          ))}
-
+          </div>
         </div>
-      </div>
       ) : (
-        <div className="flex-1 overflow-auto p-6">
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
+        /* List View */
+        <div className="flex-1 overflow-auto p-6 bg-gray-50/30">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 font-semibold text-gray-900">Task</th>
-                  <th className="px-6 py-3 font-semibold text-gray-900">Status</th>
-                  <th className="px-6 py-3 font-semibold text-gray-900">Due Date</th>
-                  <th className="px-6 py-3 font-semibold text-gray-900">Progress</th>
-                  <th className="px-6 py-3 font-semibold text-gray-900">Assignees</th>
+                  <th className="px-6 py-3 font-bold text-gray-700">Task</th>
+                  {selectedProjectId === 'all' && <th className="px-6 py-3 font-bold text-gray-700">Project</th>}
+                  <th className="px-6 py-3 font-bold text-gray-700">Priority</th>
+                  <th className="px-6 py-3 font-bold text-gray-700">Status</th>
+                  <th className="px-6 py-3 font-bold text-gray-700">Due Date</th>
+                  <th className="px-6 py-3 font-bold text-gray-700">Assignees</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {tasks.map(task => (
-                  <tr key={task.id} className="hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => setSelectedTask(task)}>
-                    <td className="px-6 py-4 font-medium text-gray-900">{task.title}</td>
+                {filteredTasks.map(task => (
+                  <tr key={task.id} className="hover:bg-gray-50/80 cursor-pointer transition-colors" onClick={() => setSelectedTask(task)}>
+                    <td className="px-6 py-4 font-bold text-gray-900">{task.title}</td>
+                    {selectedProjectId === 'all' && (
+                      <td className="px-6 py-4 font-semibold text-[#346E3A]">
+                        {task.project?.name || projects.find(p => p.id === task.projectId)?.name || '-'}
+                      </td>
+                    )}
+                    <td className="px-6 py-4">{getPriorityBadge(task.priority)}</td>
                     <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 font-semibold text-xs rounded-full">
+                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 font-bold text-[10px] uppercase rounded-full">
                         {columns.find(c => c.id === task.status)?.label}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-500 font-medium">
+                    <td className="px-6 py-4 text-gray-500 font-semibold">
                       {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-500 w-8">{task.progressPercent || 0}%</span>
-                        <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-[#A5D149] rounded-full" style={{ width: `${task.progressPercent || 0}%` }} />
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
                       <div className="flex -space-x-2">
-                        {task.assignees?.slice(0, 3).map((assignee: any) => (
-                           <img key={assignee.id} src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'U'}&background=random`} className="w-6 h-6 rounded-full border-2 border-white relative z-20" />
+                        {task.assignees?.map((assignee: any) => (
+                          <img key={assignee.id} src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'U'}&background=random`} className="w-6 h-6 rounded-full border-2 border-white" />
                         ))}
                       </div>
                     </td>
                   </tr>
                 ))}
-                {tasks.length === 0 && (
+                {filteredTasks.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No tasks found.</td>
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500 font-medium">No tasks found.</td>
                   </tr>
                 )}
               </tbody>
@@ -332,256 +467,221 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
         </div>
       )}
 
-      {/* Task Detail Modal / Slide-over */}
+      {/* Task Detail Modal */}
       {selectedTask && (
-        <div className="absolute inset-y-0 right-0 w-[400px] bg-white shadow-2xl border-l border-gray-200 z-50 flex flex-col animate-in slide-in-from-right duration-300">
+        <div className="absolute inset-y-0 right-0 w-[420px] bg-white shadow-2xl border-l border-gray-200 z-50 flex flex-col animate-in slide-in-from-right duration-300">
           
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Task Details</h2>
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Task Details</span>
+              {selectedTask.project?.name && (
+                <div className="text-xs font-bold text-[#346E3A]">{selectedTask.project.name}</div>
+              )}
+            </div>
             <button 
               onClick={() => setSelectedTask(null)}
-              className="p-2 text-gray-400 hover:text-gray-900 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1.5 text-gray-400 hover:text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             >
               <Plus className="w-5 h-5 rotate-45" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-8">
-            
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-3">
+                {getPriorityBadge(selectedTask.priority)}
                 {(selectedTask.labels || []).map((tag: string, idx: number) => (
-                  <span key={idx} className="px-2 py-1 bg-[#A5D149]/20 text-[#346E3A] text-xs font-bold rounded uppercase tracking-wider">
+                  <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-[10px] font-bold rounded uppercase tracking-wider">
                     {tag}
                   </span>
                 ))}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedTask.title}</h3>
-              <div className="flex items-center gap-4 text-sm font-semibold text-gray-500">
-                {selectedTask.dueDate && (
-                  <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-gray-400" /> Due {new Date(selectedTask.dueDate).toLocaleDateString()}</span>
-                )}
-                <span className="flex items-center gap-1.5 border border-gray-200 px-2 py-1 rounded-md bg-gray-50 uppercase text-[10px] tracking-wider text-gray-600">{selectedTask.status.replace('_', ' ')}</span>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{selectedTask.title}</h3>
+              
+              <div className="flex items-center gap-2 mt-3">
+                <span className="text-xs font-semibold text-gray-500">Status:</span>
+                <select
+                  value={selectedTask.status}
+                  onChange={async (e) => {
+                    const updated = await TasksApi.updateStatus(selectedTask.id, e.target.value);
+                    setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
+                    setSelectedTask(updated);
+                  }}
+                  className="text-xs font-bold bg-gray-100 border border-gray-200 rounded px-2 py-1"
+                >
+                  <option value="TODO">To-do</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="IN_REVISION">In Revision</option>
+                  <option value="DONE">Done</option>
+                </select>
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Description</h4>
-              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+              <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Description</h4>
+              <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap bg-gray-50 p-3 rounded-lg border border-gray-100">
                 {selectedTask.description || "No description provided."}
               </p>
             </div>
 
+            {/* Assignees with Role Badges */}
             <div>
-              <div className="flex justify-between items-end mb-2">
-                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Progress</h4>
-                <span className="text-xs font-bold text-gray-500">{selectedTask.progressPercent || 0}%</span>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Assigned Members</h4>
               </div>
-              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-[#346E3A] rounded-full" 
-                  style={{ width: `${selectedTask.progressPercent || 0}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="relative">
-              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Assignees</h4>
-              <div className="flex items-center gap-3">
-                {selectedTask.assignees?.map((assignee: any) => (
-                  <div key={assignee.id} className="flex items-center gap-2">
-                    <img src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'U'}&background=random`} className="w-8 h-8 rounded-full border border-gray-200" />
-                    <span className="text-sm font-semibold text-gray-700">{assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'Unknown'}</span>
-                  </div>
-                ))}
-                <div className="relative">
-                  <button 
-                    onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                    className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:border-gray-400 transition-colors relative z-10 bg-white"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                  {showAssigneeDropdown && (
-                    <div className="absolute top-full mt-2 left-0 w-48 bg-white border border-gray-100 shadow-lg rounded-xl z-50 overflow-hidden animate-in fade-in zoom-in-95">
-                      <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                        Add Assignee
+              <div className="space-y-2">
+                {selectedTask.assignees?.map((assignee: any) => {
+                  const isTeam = assignee.projectMember?.memberType === 'TEAM_USER';
+                  const name = assignee.projectMember?.user?.firstName || assignee.projectMember?.clientContact?.name || 'Member';
+                  const role = assignee.projectMember?.role || (isTeam ? 'Team' : 'Client');
+                  return (
+                    <div key={assignee.id} className="flex items-center justify-between bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                      <div className="flex items-center gap-2.5">
+                        <img src={assignee.projectMember?.user?.avatarUrl || `https://ui-avatars.com/api/?name=${name}&background=random`} className="w-7 h-7 rounded-full" />
+                        <span className="text-xs font-bold text-gray-900">{name}</span>
                       </div>
-                      <div className="max-h-48 overflow-y-auto">
-                        {projectMembers.filter(pm => !selectedTask.assignees?.find((a: any) => a.projectMemberId === pm.id)).length === 0 ? (
-                          <div className="p-3 text-xs text-gray-500 text-center">No more members to assign</div>
-                        ) : (
-                          projectMembers
-                            .filter(pm => !selectedTask.assignees?.find((a: any) => a.projectMemberId === pm.id))
-                            .map(pm => (
-                            <button 
-                              key={pm.id}
-                              onClick={() => handleAssignUser(pm.id)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                            >
-                              <div className="w-6 h-6 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-xs shrink-0">
-                                {(pm.user?.firstName || pm.clientContact?.name || 'U').charAt(0).toUpperCase()}
-                              </div>
-                              <span className="truncate">{pm.user?.firstName || pm.clientContact?.name || 'Unknown'}</span>
-                            </button>
-                          ))
-                        )}
-                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                        isTeam ? 'bg-[#346E3A]/10 text-[#346E3A]' : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {role}
+                      </span>
                     </div>
-                  )}
-                </div>
+                  );
+                })}
+              </div>
+
+              {/* Assign User Dropdown */}
+              <div className="mt-3 relative">
+                <button
+                  onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
+                  className="text-xs font-bold text-[#346E3A] hover:underline flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Assign Project Member
+                </button>
+
+                {showAssigneeDropdown && (
+                  <div className="absolute left-0 bottom-full mb-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-2">
+                    <div className="text-[10px] font-bold text-gray-400 uppercase px-2 py-1">Project Members</div>
+                    {projectMembers.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => handleAssignUser(m.id)}
+                        className="w-full text-left px-2 py-1.5 text-xs hover:bg-gray-100 rounded font-semibold text-gray-700 flex justify-between"
+                      >
+                        <span>{m.user?.firstName || m.clientContact?.name || 'Member'}</span>
+                        <span className="text-[10px] text-gray-400 uppercase">{m.role}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
           </div>
-
-          <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
-            <button className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-xl hover:bg-gray-50 transition-colors">
-              Edit Task
-            </button>
-            <button 
-              onClick={async () => {
-                try {
-                  await TasksApi.updateStatus(selectedTask.id, 'DONE');
-                } catch (error) {
-                  console.error('Failed to mark task complete', error);
-                }
-              }}
-              className="flex-1 py-2.5 bg-[#346E3A] text-white font-bold text-sm rounded-xl hover:bg-[#2b592f] shadow-sm transition-colors"
-            >
-              Mark Complete
-            </button>
-          </div>
-
         </div>
       )}
 
       {/* Add Task Modal */}
       {showAddTaskModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-in fade-in duration-200">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">Create New Task</h3>
-            <p className="text-sm text-gray-500 mb-6">Fill in the details for the new task.</p>
-            
-            <form onSubmit={handleCreateTask} className="space-y-4 mb-6">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-base font-bold text-gray-900">Create Project Task</h3>
+              <button onClick={() => setShowAddTaskModal(false)} className="text-gray-400 hover:text-gray-600">
+                <Plus className="w-5 h-5 rotate-45" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs font-bold text-gray-700 mb-1">Project (Required)</label>
+                <select
+                  required
+                  value={newTask.projectId}
+                  onChange={(e) => setNewTask({ ...newTask, projectId: e.target.value })}
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#346E3A]"
+                >
+                  <option value="">Select Project...</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Task Title</label>
+                <input
+                  type="text"
                   required
                   placeholder="Task title..."
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
                 />
               </div>
-              
-              {projectId === 'all' && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Project</label>
-                  <select 
-                    value={newTask.projectId}
-                    onChange={(e) => {
-                      setNewTask({ ...newTask, projectId: e.target.value, clientContactIds: [] });
-                    }}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]"
-                  >
-                    <option value="">-- Select Project --</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
+
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-                <textarea 
-                  placeholder="Task description..."
+                <label className="block text-xs font-bold text-gray-700 mb-1">Description</label>
+                <textarea
+                  rows={3}
+                  placeholder="Optional details..."
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400 min-h-[80px]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Invite Collaborators (Emails)</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. contractor@example.com, alice@test.com"
-                  value={newTask.collaboratorEmails}
-                  onChange={(e) => setNewTask({ ...newTask, collaboratorEmails: e.target.value })}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400"
-                />
-              </div>
-
-              {newTask.projectId && (() => {
-                const sp = projects.find(p => p.id === newTask.projectId);
-                const contacts = sp?.client?.contacts || [];
-                if (contacts.length === 0) return null;
-                return (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Client Contacts</label>
-                    <div className="flex flex-col gap-2 max-h-32 overflow-y-auto bg-gray-50 border border-gray-200 p-2 rounded-lg">
-                      {contacts.map((c: any) => (
-                        <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-100 p-1 rounded transition-colors">
-                          <input 
-                            type="checkbox" 
-                            checked={newTask.clientContactIds.includes(c.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setNewTask({ ...newTask, clientContactIds: [...newTask.clientContactIds, c.id] });
-                              } else {
-                                setNewTask({ ...newTask, clientContactIds: newTask.clientContactIds.filter(id => id !== c.id) });
-                              }
-                            }}
-                            className="w-4 h-4 text-[#A5D149] focus:ring-[#A5D149] rounded border-gray-300"
-                          />
-                          <span className="text-gray-800">{c.name} {c.email ? `(${c.email})` : ''}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
-              
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
-                  <select 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Status</label>
+                  <select
                     value={newTask.status}
                     onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]"
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
                   >
-                    <option value="TODO">To Do</option>
+                    <option value="TODO">To-do</option>
                     <option value="IN_PROGRESS">In Progress</option>
                     <option value="IN_REVISION">In Revision</option>
                     <option value="DONE">Done</option>
                   </select>
                 </div>
-                
-                <div className="flex-1">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Due Date</label>
-                  <input 
-                    type="date"
-                    value={newTask.dueDate}
-                    onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]"
-                  />
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Priority</label>
+                  <select
+                    value={newTask.priority}
+                    onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="URGENT">Urgent</option>
+                  </select>
                 </div>
               </div>
-              
-              <div className="flex gap-3 justify-end pt-4">
-                <button 
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Due Date</label>
+                <input
+                  type="date"
+                  value={newTask.dueDate}
+                  onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
                   type="button"
-                  onClick={() => setShowAddTaskModal(false)} 
-                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900"
+                  onClick={() => setShowAddTaskModal(false)}
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
-                  disabled={isSubmitting || !newTask.title.trim()}
-                  className="px-4 py-2 text-sm font-semibold bg-[#346E3A] text-white rounded-lg hover:bg-[#2b592f] disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-[#FBDF4B] text-gray-900 font-bold rounded-lg text-xs hover:bg-[#F3D53C] transition-colors"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Task'}
                 </button>

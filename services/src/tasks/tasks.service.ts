@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { TaskStatus } from '@prisma/client';
+import { TaskStatus, TaskPriority } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
 
 @Injectable()
@@ -10,12 +10,28 @@ export class TasksService {
     private readonly eventsGateway: EventsGateway
   ) {}
 
-  async getTasksForProject(projectId: string) {
-    const where = projectId === 'all' ? {} : { projectId };
+  async getTasksForProject(projectId: string, assignedToMeUserId?: string) {
+    const where: any = {};
+    if (projectId !== 'all') {
+      where.projectId = projectId;
+    }
+
+    if (assignedToMeUserId) {
+      where.assignees = {
+        some: {
+          projectMember: {
+            userId: assignedToMeUserId
+          }
+        }
+      };
+    }
 
     return this.prisma.task.findMany({
       where,
       include: {
+        project: {
+          select: { id: true, name: true }
+        },
         assignees: {
           include: { projectMember: { include: { user: true, clientContact: true } } }
         },
@@ -28,7 +44,7 @@ export class TasksService {
   }
 
   async createTask(projectId: string, data: any) {
-    const { collaboratorEmails = [], clientContactIds = [] } = data;
+    const { collaboratorEmails = [], clientContactIds = [], priority = 'MEDIUM' } = data;
     const projectMemberIds: string[] = [];
 
     // Process client contacts
@@ -77,6 +93,7 @@ export class TasksService {
         title: data.title,
         description: data.description,
         status: data.status || TaskStatus.TODO,
+        priority: (priority as TaskPriority) || TaskPriority.MEDIUM,
         labels: data.labels || [],
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
         assignees: {
@@ -84,6 +101,9 @@ export class TasksService {
         }
       },
       include: {
+        project: {
+          select: { id: true, name: true }
+        },
         assignees: {
           include: { projectMember: { include: { user: true, clientContact: true } } }
         },
@@ -107,6 +127,9 @@ export class TasksService {
       where: { id },
       data: { status },
       include: {
+        project: {
+          select: { id: true, name: true }
+        },
         assignees: {
           include: { projectMember: { include: { user: true, clientContact: true } } }
         },
@@ -138,6 +161,9 @@ export class TasksService {
     const updatedTask = await this.prisma.task.findUnique({
       where: { id: taskId },
       include: {
+        project: {
+          select: { id: true, name: true }
+        },
         assignees: {
           include: { projectMember: { include: { user: true, clientContact: true } } }
         },
@@ -147,7 +173,6 @@ export class TasksService {
       }
     });
     
-    // Broadcast the update so UI updates immediately
     if (updatedTask) {
       this.eventsGateway.broadcastToProject(updatedTask.projectId, 'task_status_changed', updatedTask);
     }

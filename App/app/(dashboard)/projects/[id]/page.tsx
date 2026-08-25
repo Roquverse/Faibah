@@ -14,13 +14,17 @@ import {
   LayoutDashboard,
   FileBox,
   Receipt,
-  MessageSquare
+  MessageSquare,
+  CheckSquare,
+  Calendar
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import ProjectChannel from '@/components/dashboard/ProjectChannel';
+import KanbanBoard from '@/components/dashboard/KanbanBoard';
+import ProjectSchedule from '@/components/dashboard/ProjectSchedule';
 
-type Tab = 'overview' | 'channel' | 'proposal' | 'quotation' | 'invoice' | 'files';
+type Tab = 'overview' | 'proposal' | 'quotation' | 'invoice' | 'channel' | 'files' | 'tasks' | 'schedule';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -207,13 +211,27 @@ Total: ₦450,000`}
     </div>
   );
 
+  const renderTasks = () => (
+    <div className="animate-in fade-in duration-300 h-[650px] border border-gray-200 rounded-xl overflow-hidden">
+      <KanbanBoard projectId={project.id as string} />
+    </div>
+  );
+
+  const renderSchedule = () => (
+    <div className="animate-in fade-in duration-300 h-[650px] border border-gray-200 rounded-xl overflow-hidden">
+      <ProjectSchedule projectId={project.id as string} />
+    </div>
+  );
+
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { id: 'channel', label: 'Channel', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'proposal', label: 'Proposal', icon: <FileText className="w-4 h-4" /> },
     { id: 'quotation', label: 'Quotation', icon: <FileBox className="w-4 h-4" /> },
     { id: 'invoice', label: 'Invoice', icon: <Receipt className="w-4 h-4" /> },
+    { id: 'channel', label: 'Channel', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'files', label: 'Files', icon: <Download className="w-4 h-4" /> },
+    { id: 'tasks', label: 'Tasks', icon: <CheckSquare className="w-4 h-4" /> },
+    { id: 'schedule', label: 'Schedule', icon: <Calendar className="w-4 h-4" /> },
   ];
 
   return (
@@ -259,11 +277,13 @@ Total: ₦450,000`}
       {/* Tab Content */}
       <div className="min-h-[400px]">
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'channel' && renderChannel()}
         {activeTab === 'proposal' && renderProposal()}
         {activeTab === 'quotation' && renderQuotation()}
         {activeTab === 'invoice' && renderInvoice()}
+        {activeTab === 'channel' && renderChannel()}
         {activeTab === 'files' && renderFiles()}
+        {activeTab === 'tasks' && renderTasks()}
+        {activeTab === 'schedule' && renderSchedule()}
       </div>
 
     </div>

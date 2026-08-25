@@ -19,6 +19,7 @@ import { EventsModule } from './events/events.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { ReceiptsModule } from './receipts/receipts.module';
 import { AdminModule } from './admin/admin.module';
+import { ScheduleEventsModule } from './schedule-events/schedule-events.module';
 import { RedisModule } from './redis/redis.module';
 import { RedisThrottlerStorage } from './redis/redis-throttler.storage';
 import { BullConfigModule } from './bull/bull-config.module';
@@ -51,6 +52,7 @@ import { MailModule } from './mail/mail.module';
     ClientsModule,
     ProjectsModule,
     TasksModule,
+    ScheduleEventsModule,
     TimeLogsModule,
     AppointmentsModule,
     ChannelsModule,
