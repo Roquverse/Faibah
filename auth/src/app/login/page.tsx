@@ -44,6 +44,33 @@ export default function LoginPage() {
     }
   };
 
+  const handleOAuthLogin = async (provider: 'google' | 'apple') => {
+    try {
+      setIsLoading(true);
+      const supabase = createClient();
+      const redirectTo = `${window.location.origin}/auth/callback`;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        alert(error.message);
+        setIsLoading(false);
+      }
+    } catch (e: any) {
+      alert(e.message || 'Failed to initiate social login.');
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white">
       {/* Left section: Form (50%) */}
@@ -120,17 +147,17 @@ export default function LoginPage() {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
-                <span className="text-sm font-medium text-gray-700">Remember me</span>
+                <span className="text-xs lg:text-sm text-gray-600 font-medium">Remember me</span>
               </label>
-              <Link href="/forgot-password" className="text-sm font-medium text-gray-500 hover:text-deep-green transition-colors">
-                Forgot Password?
+              <Link href="/forgot-password" className="text-xs lg:text-sm font-semibold text-deep-green hover:underline">
+                Forgot password?
               </Link>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-2.5 lg:py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-deep-green hover:bg-[#2a5a2e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-deep-green transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-2.5 lg:py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-deep-green hover:bg-[#2a5a2e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-deep-green transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -144,14 +171,16 @@ export default function LoginPage() {
                 <div className="w-full border-t border-gray-100" />
               </div>
               <div className="relative flex justify-center text-xs uppercase tracking-wider">
-                <span className="px-4 bg-white text-gray-400">Or</span>
+                <span className="px-4 bg-white text-gray-400 font-semibold">Or continue with</span>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2.5 lg:gap-3">
               <button
                 type="button"
-                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2 lg:py-2.5 border border-gray-200 rounded-lg bg-white text-[13px] lg:text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition-all shadow-sm"
+                onClick={() => handleOAuthLogin('google')}
+                disabled={isLoading}
+                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2.5 border border-gray-200 rounded-xl bg-white text-[13px] lg:text-[13.5px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition-all shadow-xs cursor-pointer disabled:opacity-50"
               >
                 <svg viewBox="0 0 24 24" className="w-4 h-4">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -159,18 +188,20 @@ export default function LoginPage() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
-                Sign In with Google
+                Google
               </button>
 
               <button
                 type="button"
-                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2 lg:py-2.5 border border-gray-200 rounded-lg bg-white text-[13px] lg:text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition-all shadow-sm"
+                onClick={() => handleOAuthLogin('apple')}
+                disabled={isLoading}
+                className="w-full sm:flex-1 flex items-center justify-center gap-2.5 py-2.5 border border-black rounded-xl bg-black text-[13px] lg:text-[13.5px] font-semibold text-white hover:bg-gray-800 focus:outline-none transition-all shadow-xs cursor-pointer disabled:opacity-50"
               >
-                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-black">
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-white">
                   <path d="M16.365 14.736c-.035-3.23 2.656-4.793 2.778-4.873-1.493-2.193-3.805-2.493-4.636-2.528-1.97-.2-3.847 1.163-4.85 1.163-1.002 0-2.55-1.127-4.168-1.096-2.09.03-4.015 1.218-5.088 3.08-2.18 3.784-.555 9.387 1.558 12.44 1.042 1.5 2.277 3.178 3.905 3.12 1.562-.06 2.155-.99 4.043-.99 1.886 0 2.42.99 4.045.96 1.683-.03 2.748-1.503 3.78-3.007 1.194-1.745 1.685-3.435 1.71-3.522-.04-.015-3.18-1.22-3.21-4.783h.133z" />
                   <path d="M14.938 5.753c.857-1.04 1.436-2.484 1.278-3.923-1.24.05-2.735.827-3.62 1.865-.79.882-1.484 2.355-1.298 3.77 1.385.108 2.78-.66 3.64-1.712z" />
                 </svg>
-                Sign In with Apple
+                Apple
               </button>
             </div>
 
