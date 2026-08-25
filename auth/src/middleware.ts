@@ -6,6 +6,9 @@ export async function middleware(request: NextRequest) {
     request,
   })
 
+  const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || 
+    (process.env.NODE_ENV === 'production' ? '.faibah.com' : undefined);
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_key',
@@ -20,12 +23,12 @@ export async function middleware(request: NextRequest) {
             request,
           })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, { ...options, domain: cookieDomain })
           )
         },
       },
       cookieOptions: {
-        domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
+        domain: cookieDomain,
       },
     }
   )
