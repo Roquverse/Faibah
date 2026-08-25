@@ -151,18 +151,24 @@ export default function ChannelsPage() {
       let filteredProjects = projectsData || [];
       let filteredChannels = channelsData || [];
 
-      if (userProfile && projectsData && projectsData.length > 0) {
-        const matches = projectsData.filter((p: any) => {
+      if (userProfile) {
+        const userEmail = (userProfile.email || '').toLowerCase();
+        const userId = userProfile.id;
+
+        filteredProjects = (projectsData || []).filter((p: any) => {
+          if (userProfile.companyId && p.client?.companyId === userProfile.companyId) return true;
           if (userProfile.companyId && p.companyId === userProfile.companyId) return true;
-          if (userProfile.clientId && p.clientId === userProfile.clientId) return true;
-          if (p.members && Array.isArray(p.members) && p.members.length > 0) {
-            return p.members.some((m: any) => m.userId === userProfile.id || m.clientContactId === userProfile.id);
+          if (p.members && Array.isArray(p.members)) {
+            return p.members.some((m: any) => 
+              m.userId === userId || 
+              (m.user?.email && m.user.email.toLowerCase() === userEmail)
+            );
           }
           return false;
         });
-        if (matches.length > 0) {
-          filteredProjects = matches;
-        }
+
+        const validProjectIds = new Set(filteredProjects.map((p: any) => p.id));
+        filteredChannels = (channelsData || []).filter((c: any) => c.projectId && validProjectIds.has(c.projectId));
       }
 
       setChannels(filteredChannels);

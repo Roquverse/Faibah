@@ -87,10 +87,43 @@ export class ProjectsService {
   }
 
   async getAllProjects(userId?: string) {
-    const companyId = await this.resolveCompanyId(userId);
     let whereClause: any = {};
-    if (companyId) {
-      whereClause = { client: { companyId } };
+
+    if (userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, companyId: true },
+      });
+
+      const clientContact = await this.prisma.clientContact.findFirst({
+        where: { OR: [{ id: userId }, { email: user?.email || userId }] },
+        select: { id: true, clientId: true, email: true },
+      });
+
+      const conditions: any[] = [];
+
+      if (user?.companyId) {
+        conditions.push({ client: { companyId: user.companyId } });
+        conditions.push({ members: { some: { userId: user.id } } });
+      }
+
+      if (clientContact) {
+        conditions.push({ clientId: clientContact.clientId });
+        conditions.push({ client: { email: clientContact.email } });
+        conditions.push({ members: { some: { clientContactId: clientContact.id } } });
+        conditions.push({ members: { some: { user: { email: clientContact.email } } } });
+      }
+
+      if (user?.email) {
+        conditions.push({ client: { email: user.email } });
+        conditions.push({ client: { contacts: { some: { email: user.email } } } });
+        conditions.push({ members: { some: { user: { email: user.email } } } });
+        conditions.push({ members: { some: { clientContact: { email: user.email } } } });
+      }
+
+      if (conditions.length > 0) {
+        whereClause = { OR: conditions };
+      }
     }
 
     return this.prisma.project.findMany({

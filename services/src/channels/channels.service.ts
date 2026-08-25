@@ -9,8 +9,48 @@ export class ChannelsService {
     private eventsGateway: EventsGateway
   ) {}
 
-  async getAllChannels() {
+  async getAllChannels(userId?: string) {
+    let whereClause: any = {};
+
+    if (userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, companyId: true },
+      });
+
+      const clientContact = await this.prisma.clientContact.findFirst({
+        where: { OR: [{ id: userId }, { email: user?.email || userId }] },
+        select: { id: true, clientId: true, email: true },
+      });
+
+      const projectConditions: any[] = [];
+      if (user?.companyId) {
+        projectConditions.push({ client: { companyId: user.companyId } });
+        projectConditions.push({ members: { some: { userId: user.id } } });
+      }
+      if (clientContact) {
+        projectConditions.push({ clientId: clientContact.clientId });
+        projectConditions.push({ client: { email: clientContact.email } });
+        projectConditions.push({ members: { some: { clientContactId: clientContact.id } } });
+      }
+      if (user?.email) {
+        projectConditions.push({ client: { email: user.email } });
+        projectConditions.push({ client: { contacts: { some: { email: user.email } } } });
+        projectConditions.push({ members: { some: { user: { email: user.email } } } });
+        projectConditions.push({ members: { some: { clientContact: { email: user.email } } } });
+      }
+
+      if (projectConditions.length > 0) {
+        whereClause = {
+          project: {
+            OR: projectConditions
+          }
+        };
+      }
+    }
+
     return this.prisma.projectChannel.findMany({
+      where: whereClause,
       include: {
         project: {
           include: { client: true }

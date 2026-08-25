@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Patch, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Query, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { ChannelsService } from './channels.service';
 
 @Controller('projects/:projectId/channel')
@@ -37,8 +38,9 @@ export class GlobalChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
   @Get()
-  async getAllChannels() {
-    return this.channelsService.getAllChannels();
+  async getAllChannels(@Req() req: Request) {
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
+    return this.channelsService.getAllChannels(userId);
   }
 
   @Post()
