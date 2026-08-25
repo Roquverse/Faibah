@@ -506,8 +506,29 @@ export default function ChannelsPage() {
               ) : (
                 messages.map((msg, i) => {
                   const isCurrentUser = msg.senderId === currentUser?.id;
-                  const senderMember = activeProjectMembers.find(m => m.userId === msg.senderId || m.clientContactId === msg.senderId);
-                  const senderName = isCurrentUser ? 'You' : (senderMember?.user?.firstName ? `${senderMember.user.firstName} ${senderMember.user.lastName || ''}` : senderMember?.clientContact?.name || 'Unknown User');
+                  const senderMember = activeProjectMembers.find(m => 
+                    m.userId === msg.senderId || 
+                    m.clientContactId === msg.senderId || 
+                    m.id === msg.senderId ||
+                    m.user?.id === msg.senderId ||
+                    m.clientContact?.id === msg.senderId
+                  );
+
+                  let senderName = 'Member';
+                  if (msg.senderId === 'SYS' || msg.senderType === 'SYSTEM') {
+                    senderName = 'System';
+                  } else if (isCurrentUser) {
+                    senderName = 'You';
+                  } else if (senderMember?.user?.firstName) {
+                    senderName = `${senderMember.user.firstName} ${senderMember.user.lastName || ''}`.trim();
+                  } else if (senderMember?.user?.email) {
+                    senderName = senderMember.user.email.split('@')[0];
+                  } else if (senderMember?.clientContact?.name) {
+                    senderName = senderMember.clientContact.name;
+                  } else if (activeChannelData?.project?.client?.name) {
+                    senderName = activeChannelData.project.client.name;
+                  }
+
                   const senderAvatar = isCurrentUser ? currentUser?.avatarUrl : (senderMember?.user?.avatarUrl);
                   const avatarLetter = senderName.charAt(0).toUpperCase();
 

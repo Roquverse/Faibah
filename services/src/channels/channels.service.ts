@@ -12,7 +12,9 @@ export class ChannelsService {
   async getAllChannels() {
     return this.prisma.projectChannel.findMany({
       include: {
-        project: true,
+        project: {
+          include: { client: true }
+        },
         _count: {
           select: { messages: true }
         }
@@ -25,7 +27,9 @@ export class ChannelsService {
     return this.prisma.projectChannel.create({
       data: { projectId, name: channelName },
       include: { 
-        project: true,
+        project: {
+          include: { client: true }
+        },
         _count: {
           select: { messages: true }
         }
@@ -37,6 +41,9 @@ export class ChannelsService {
     let channel: any = await this.prisma.projectChannel.findFirst({
       where: { projectId, name: channelName },
       include: {
+        project: {
+          include: { client: true }
+        },
         messages: {
           orderBy: { createdAt: 'asc' },
           include: {
@@ -48,10 +55,14 @@ export class ChannelsService {
     });
 
     if (!channel) {
-      // Auto-create if it doesn't exist
       channel = await this.prisma.projectChannel.create({
         data: { projectId, name: channelName },
-        include: { messages: true },
+        include: {
+          project: {
+            include: { client: true }
+          },
+          messages: true
+        },
       });
     }
 
@@ -65,7 +76,7 @@ export class ChannelsService {
     const message = await this.prisma.channelMessage.create({
       data: {
         channelId: channel.id,
-        senderId: data.senderId || 'SYS', // Normally from auth context
+        senderId: data.senderId || 'SYS',
         senderType: data.senderType || 'TEAM',
         content: data.content,
         attachmentUrl: data.attachmentUrl,

@@ -165,13 +165,96 @@ export class ProjectsService {
   }
 
   async getProjectMembers(projectId: string) {
-    return this.prisma.projectMember.findMany({
-      where: { projectId },
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
       include: {
-        user: true,
-        clientContact: true,
+        client: {
+          include: {
+            contacts: true,
+            company: {
+              include: { users: true }
+            }
+          }
+        },
+        members: {
+          include: {
+            user: true,
+            clientContact: true,
+          }
+        }
       }
     });
+
+    if (!project) return [];
+
+    const memberList = [...project.members];
+    const existingUserIds = new Set(memberList.map(m => m.userId).filter(Boolean));
+    const existingContactIds = new Set(memberList.map(m => m.clientContactId).filter(Boolean));
+
+    // 1. Include Company Users (Owners/Team)
+    if (project.client?.company?.users) {
+      for (const u of project.client.company.users) {
+        if (!existingUserIds.has(u.id)) {
+          memberList.push({
+            id: `company-user-${u.id}`,
+            projectId,
+            memberType: 'TEAM_USER',
+            userId: u.id,
+            user: u,
+            clientContactId: null,
+            clientContact: null,
+            role: 'OWNER',
+            status: 'ACTIVE',
+          } as any);
+          existingUserIds.add(u.id);
+        }
+      }
+    }
+
+    // 2. Include Client Contacts / Client Person
+    if (project.client) {
+      if (project.client.contacts && project.client.contacts.length > 0) {
+        for (const cc of project.client.contacts) {
+          if (!existingContactIds.has(cc.id)) {
+            memberList.push({
+              id: `client-contact-${cc.id}`,
+              projectId,
+              memberType: 'CLIENT_CONTACT',
+              userId: null,
+              user: null,
+              clientContactId: cc.id,
+              clientContact: cc,
+              role: 'PRIMARY_CONTACT',
+              status: 'ACTIVE',
+            } as any);
+            existingContactIds.add(cc.id);
+          }
+        }
+      } else {
+        const syntheticContactId = `client-${project.client.id}`;
+        if (!existingContactIds.has(syntheticContactId)) {
+          memberList.push({
+            id: syntheticContactId,
+            projectId,
+            memberType: 'CLIENT_CONTACT',
+            userId: null,
+            user: null,
+            clientContactId: project.client.id,
+            clientContact: {
+              id: project.client.id,
+              name: project.client.name,
+              email: project.client.email,
+              whatsappNumber: project.client.whatsappNumber,
+              role: 'Client Contact',
+            },
+            role: 'PRIMARY_CONTACT',
+            status: 'ACTIVE',
+          } as any);
+        }
+      }
+    }
+
+    return memberList;
   }
 
   async inviteMember(projectId: string, email: string, role?: string) {
