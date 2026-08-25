@@ -40,7 +40,7 @@ export default function Solutions() {
         <div className={styles.imageContainer}>
           <img
             src="/solutions.png"
-            alt="ChronoTask Dashboard"
+            alt="User Dashboard"
             className={styles.dashboardImage}
           />
         </div>

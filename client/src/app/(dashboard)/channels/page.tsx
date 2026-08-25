@@ -148,15 +148,21 @@ export default function ChannelsPage() {
         UsersApi.getProfile().catch(() => null),
         ProjectsApi.getPendingInvitations().catch(() => [])
       ]);
-      let filteredProjects = projectsData;
-      let filteredChannels = channelsData;
+      let filteredProjects = projectsData || [];
+      let filteredChannels = channelsData || [];
 
-      if (userProfile) {
-        filteredProjects = projectsData.filter((p: any) => 
-          p.members?.some((m: any) => m.userId === userProfile.id || m.clientContactId === userProfile.id)
-        );
-        const validProjectIds = filteredProjects.map((p: any) => p.id);
-        filteredChannels = channelsData.filter((c: any) => validProjectIds.includes(c.projectId));
+      if (userProfile && projectsData && projectsData.length > 0) {
+        const matches = projectsData.filter((p: any) => {
+          if (userProfile.companyId && p.companyId === userProfile.companyId) return true;
+          if (userProfile.clientId && p.clientId === userProfile.clientId) return true;
+          if (p.members && Array.isArray(p.members) && p.members.length > 0) {
+            return p.members.some((m: any) => m.userId === userProfile.id || m.clientContactId === userProfile.id);
+          }
+          return false;
+        });
+        if (matches.length > 0) {
+          filteredProjects = matches;
+        }
       }
 
       setChannels(filteredChannels);
@@ -650,7 +656,17 @@ export default function ChannelsPage() {
                     senderName = activeChannelData.project.client.name;
                   }
 
-                  const senderAvatar = isCurrentUser ? currentUser?.avatarUrl : (senderMember?.user?.avatarUrl);
+                  const senderAvatar = isCurrentUser 
+                    ? (currentUser?.avatarUrl || currentUser?.user_metadata?.avatar_url || currentUser?.avatar_url)
+                    : (
+                        senderMember?.user?.avatarUrl || 
+                        senderMember?.user?.user_metadata?.avatar_url || 
+                        senderMember?.clientContact?.avatarUrl || 
+                        senderMember?.clientContact?.user?.avatarUrl || 
+                        senderMember?.avatarUrl || 
+                        msg.senderAvatar || 
+                        msg.sender?.avatarUrl
+                      );
                   const showHeader = i === 0 || messages[i-1].senderId !== msg.senderId || (new Date(msg.createdAt).getTime() - new Date(messages[i-1].createdAt).getTime() > 300000);
                   const isPinned = pinnedMessageIds.includes(msg.id);
                   

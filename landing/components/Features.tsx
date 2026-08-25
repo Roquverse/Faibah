@@ -15,7 +15,7 @@ export default function Features() {
         <div className={styles.content}>
           <div className={styles.leftCol}>
             <div className={styles.imageCard}>
-              <img src="/solutions.png" alt="Dashboard" className={styles.laptopImage} />
+              <img src="/proposal.png" alt="Dashboard" className={styles.laptopImage} />
 
               <div className={styles.demoBadge}>
                 <span className={styles.demoText}>Demo our dashboard.</span>
