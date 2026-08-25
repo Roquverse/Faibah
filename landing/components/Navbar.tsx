@@ -29,8 +29,8 @@ export default function Navbar() {
         </div>
 
         <div className={styles.authGroup}>
-          <Link href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/login`} className={styles.signIn}>Sign in</Link>
-          <Link href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/signup`} className={styles.requestDemo}>Get started &rarr;</Link>
+          <Link href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/login`} className={styles.signIn}>Sign in</Link>
+          <Link href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/signup`} className={styles.requestDemo}>Get started &rarr;</Link>
         </div>
       </nav>
 
@@ -54,8 +54,8 @@ export default function Navbar() {
             </div>
 
             <div className={styles.mobileFooter}>
-              <Link href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/login`} className={styles.mobileSignIn} onClick={() => setIsOpen(false)}>Sign in</Link>
-              <Link href="#demo" className={styles.mobileDemo} onClick={() => setIsOpen(false)}>Get started &rarr;</Link>
+              <Link href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/login`} className={styles.mobileSignIn} onClick={() => setIsOpen(false)}>Sign in</Link>
+              <Link href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/signup`} className={styles.mobileDemo} onClick={() => setIsOpen(false)}>Get started &rarr;</Link>
             </div>
           </div>
         </div>

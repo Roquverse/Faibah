@@ -62,6 +62,55 @@ export default function ChannelsPage() {
   const [inviteRole, setInviteRole] = useState('CONTRACTOR');
   const [isInviting, setIsInviting] = useState(false);
   const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
+  
+  // Local Reactions state
+  const [reactions, setReactions] = useState<Record<string, Record<string, number>>>({});
+
+  const handleToggleReaction = (msgId: string, emoji: string) => {
+    setReactions(prev => {
+      const msgReactions = prev[msgId] || {};
+      const currentCount = msgReactions[emoji] || 0;
+      const newCount = currentCount > 0 ? currentCount - 1 : currentCount + 1;
+      const updated = { ...msgReactions };
+      if (newCount <= 0) {
+        delete updated[emoji];
+      } else {
+        updated[emoji] = newCount;
+      }
+      return { ...prev, [msgId]: updated };
+    });
+  };
+
+  const formatRelativeTime = (dateStr: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  };
+
+  const renderMessageWithMentions = (content: string) => {
+    if (!content) return null;
+    const parts = content.split(/(@[A-Za-z0-9_.\s]+?(?=\s[A-Za-z0-9]|\s*$|,|\.|\?|!))/g);
+    return parts.map((part, idx) => {
+      if (part.startsWith('@')) {
+        return (
+          <span key={idx} className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-md mx-0.5 inline-block">
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
 
   const loadData = async () => {
     try {
@@ -71,23 +120,34 @@ export default function ChannelsPage() {
         UsersApi.getProfile().catch(() => null),
         ProjectsApi.getPendingInvitations().catch(() => [])
       ]);
-      setChannels(channelsData);
-      setProjects(projectsData);
+      let filteredProjects = projectsData;
+      let filteredChannels = channelsData;
+
+      if (userProfile) {
+        filteredProjects = projectsData.filter((p: any) => 
+          p.members?.some((m: any) => m.userId === userProfile.id || m.clientContactId === userProfile.id)
+        );
+        const validProjectIds = filteredProjects.map((p: any) => p.id);
+        filteredChannels = channelsData.filter((c: any) => validProjectIds.includes(c.projectId));
+      }
+
+      setChannels(filteredChannels);
+      setProjects(filteredProjects);
       if (userProfile) setCurrentUser(userProfile);
       setPendingInvitations(pendingInvs || []);
       
       // Auto-expand all projects in sidebar
       const expanded: Record<string, boolean> = {};
-      projectsData.forEach((p: any) => expanded[p.id] = true);
+      filteredProjects.forEach((p: any) => expanded[p.id] = true);
       setExpandedProjects(expanded);
 
-      if (channelsData.length > 0) {
-        let targetId = channelsData[0].id;
+      if (filteredChannels.length > 0) {
+        let targetId = filteredChannels[0].id;
         if (typeof window !== 'undefined') {
           const params = new URLSearchParams(window.location.search);
           const projectParam = params.get('project');
           if (projectParam) {
-            const match = channelsData.find((c: any) => c.projectId === projectParam);
+            const match = filteredChannels.find((c: any) => c.projectId === projectParam);
             if (match) targetId = match.id;
           }
         }
@@ -387,17 +447,12 @@ export default function ChannelsPage() {
       <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#F9FAFB] dark:bg-slate-800 border-r border-gray-100 dark:border-slate-800 flex flex-col shrink-0 transition-transform duration-200 ease-in-out md:static md:w-64 md:translate-x-0 ${showMobileSidebar ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}`}>
         <div className="px-4 py-4 border-b border-gray-100 dark:border-slate-700/50 flex items-center justify-between">
           <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">Channels</h2>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setShowCreateModal(true)} className="w-6 h-6 rounded flex items-center justify-center hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-500 transition-colors">
-              <Plus className="w-4 h-4" />
-            </button>
-            <button 
-              onClick={() => setShowMobileSidebar(false)} 
-              className="md:hidden text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 rounded-lg"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <button 
+            onClick={() => setShowMobileSidebar(false)} 
+            className="md:hidden text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 rounded-lg"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
         
         <div className="flex-1 overflow-y-auto py-4 px-2 space-y-6">
@@ -574,58 +629,116 @@ export default function ChannelsPage() {
                   const isPinned = pinnedMessageIds.includes(msg.id);
                   
                   return (
-                    <div key={msg.id} className={`flex gap-4 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} ${!showHeader ? 'mt-1' : ''} group relative ${isPinned ? 'bg-yellow-50/50 -mx-6 px-6 py-2 rounded' : ''}`}>
+                    <div key={msg.id} className={`flex gap-3 px-3 py-3.5 hover:bg-gray-50/70 dark:hover:bg-slate-800/40 rounded-xl transition-colors group relative ${isPinned ? 'bg-amber-50/60 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/50' : ''}`}>
                       
-                      {/* Message Actions (Hover) */}
-                      <div className={`absolute ${isCurrentUser ? 'left-4' : 'right-4'} top-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-gray-200 rounded-lg shadow-sm flex items-center z-10`}>
+                      {/* Hover Action Bar */}
+                      <div className="absolute right-3 top-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-sm flex items-center gap-1 p-0.5 z-10">
+                        <button 
+                          onClick={() => handleToggleReaction(msg.id, '❤️')}
+                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors text-xs"
+                          title="Love"
+                        >
+                          ❤️
+                        </button>
+                        <button 
+                          onClick={() => handleToggleReaction(msg.id, '👍')}
+                          className="p-1 text-gray-400 hover:text-amber-500 hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors text-xs"
+                          title="Thumbs Up"
+                        >
+                          👍
+                        </button>
                         <button 
                           onClick={() => setPinnedMessageIds(prev => prev.includes(msg.id) ? prev.filter(id => id !== msg.id) : [...prev, msg.id])}
-                          className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                          className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors"
                           title={isPinned ? "Unpin message" : "Pin message"}
                         >
-                          <Pin className={`w-3.5 h-3.5 ${isPinned ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+                          <Pin className={`w-3.5 h-3.5 ${isPinned ? 'fill-amber-500 text-amber-500' : ''}`} />
                         </button>
                       </div>
 
-                      {showHeader ? (
-                        <div className="w-10 h-10 rounded-full bg-indigo-100 shrink-0 overflow-hidden flex items-center justify-center font-bold text-indigo-700">
-                          {senderAvatar ? (
-                            <img src={senderAvatar} className="w-full h-full object-cover" />
-                          ) : (
-                            <img src={`https://ui-avatars.com/api/?name=${avatarLetter}&background=random`} className="w-full h-full object-cover" />
-                          )}
+                      {/* User Avatar */}
+                      <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-slate-800 shrink-0 overflow-hidden border border-gray-200 dark:border-slate-700 mt-0.5">
+                        {senderAvatar ? (
+                          <img src={senderAvatar} alt={senderName} className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(senderName)}&background=random`} alt={senderName} className="w-full h-full object-cover" />
+                        )}
+                      </div>
+
+                      {/* Message Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold text-gray-900 dark:text-white text-sm tracking-tight">{senderName}</span>
+                          <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                            {formatRelativeTime(msg.createdAt)}
+                          </span>
                         </div>
-                      ) : (
-                        <div className="w-10 shrink-0 opacity-0 group-hover:opacity-100 text-[10px] text-gray-400 text-center pt-2">
-                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+                        {/* Content */}
+                        <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-relaxed font-normal whitespace-pre-wrap">
+                          {renderMessageWithMentions(msg.content)}
                         </div>
-                      )}
-                      
-                      <div className={`flex-1 flex flex-col ${isCurrentUser ? 'items-end pr-0 pl-12' : 'items-start pr-12 pl-0'} min-w-0`}>
-                        {showHeader && (
-                          <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                            <span className="font-bold text-gray-900">{senderName}</span>
-                            <span className="text-[11px] font-medium text-gray-400">
-                              {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
+
+                        {/* Attachments & Link Cards */}
+                        {msg.attachmentUrl && (
+                          <div className="mt-2.5">
+                            {msg.attachmentUrl.match(/\.(webm|mp3|wav|ogg)$/i) || msg.content === 'Voice Message' ? (
+                              <audio controls src={msg.attachmentUrl} className="max-w-full h-9 outline-none" />
+                            ) : msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i) || msg.attachmentUrl.includes('/image/upload/') ? (
+                              <img src={msg.attachmentUrl} alt="Attachment" className="max-w-sm max-h-72 object-cover rounded-xl border border-gray-200 dark:border-slate-700 shadow-xs" />
+                            ) : (
+                              <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-gray-200/80 dark:border-slate-700/80 max-w-md shadow-xs">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-9 h-9 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg flex items-center justify-center shrink-0 font-bold">
+                                    📄
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                                      {msg.attachmentUrl.split('/').pop() || 'Attachment'}
+                                    </div>
+                                    <div className="text-[11px] text-gray-400 truncate">Document / File Link</div>
+                                  </div>
+                                </div>
+                                <a 
+                                  href={msg.attachmentUrl} 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 text-xs font-semibold text-gray-700 dark:text-gray-200 rounded-lg border border-gray-200 dark:border-slate-600 transition-colors shrink-0 ml-3"
+                                >
+                                  Quick view
+                                </a>
+                              </div>
+                            )}
                           </div>
                         )}
-                        <div className={`inline-block px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed max-w-[85%] ${isCurrentUser ? 'bg-[#346E3A] text-white rounded-tr-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 rounded-tl-sm'}`}>
-                          {msg.content}
-                          {msg.attachmentUrl && (
-                            <div className="mt-2">
-                              {msg.attachmentUrl.match(/\.(webm|mp3|wav|ogg)$/i) || msg.content === 'Voice Message' ? (
-                                <audio controls src={msg.attachmentUrl} className="max-w-full h-10 outline-none" />
-                              ) : msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i) || msg.attachmentUrl.includes('/image/upload/') ? (
-                                <img src={msg.attachmentUrl} alt="Attachment" className="max-w-xs max-h-64 object-cover rounded-lg border border-gray-200" />
-                              ) : (
-                                <a href={msg.attachmentUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 w-fit hover:bg-gray-100 transition-colors">
-                                  <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-gray-500 shadow-sm shrink-0">
-                                    <FileIcon className="w-4 h-4" />
-                                  </div>
-                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">View Attachment</div>
-                                </a>
-                              )}
+
+                        {/* Reactions Bar */}
+                        <div className="flex items-center gap-1.5 mt-2">
+                          {reactions[msg.id] && Object.keys(reactions[msg.id]).length > 0 ? (
+                            Object.entries(reactions[msg.id]).map(([emoji, count]) => (
+                              <button
+                                key={emoji}
+                                onClick={() => handleToggleReaction(msg.id, emoji)}
+                                className="px-2 py-0.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1 transition-colors"
+                              >
+                                <span>{emoji}</span>
+                                <span>{count}</span>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleToggleReaction(msg.id, '❤️')}
+                                className="px-2.5 py-0.5 bg-gray-50 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200/60 dark:border-slate-700/60 rounded-full text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 transition-colors"
+                              >
+                                ❤️
+                              </button>
+                              <button
+                                onClick={() => handleToggleReaction(msg.id, '👍')}
+                                className="px-2.5 py-0.5 bg-gray-50 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200/60 dark:border-slate-700/60 rounded-full text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 transition-colors"
+                              >
+                                👍
+                              </button>
                             </div>
                           )}
                         </div>
