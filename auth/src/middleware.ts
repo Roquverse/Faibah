@@ -45,27 +45,21 @@ export async function middleware(request: NextRequest) {
   // Protect /portal and /(dashboard) routes
   // The /(dashboard) routes are mounted at the root except for /onboarding, /api, /login
   
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup') || request.nextUrl.pathname.startsWith('/verify')
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || 
+                      request.nextUrl.pathname.startsWith('/signup') || 
+                      request.nextUrl.pathname.startsWith('/verify') ||
+                      request.nextUrl.pathname.startsWith('/forgot-password')
   const isApiRoute = request.nextUrl.pathname.startsWith('/api') || request.nextUrl.pathname.startsWith('/auth')
   const isPublicRoute = isAuthRoute || isApiRoute || request.nextUrl.pathname.startsWith('/onboarding')
   const isProtectedRoute = !isPublicRoute && !request.nextUrl.pathname.match(/\.(.*)$/) // ignore static files
 
-  const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'https://auth.faibah.com'
-
   if (isProtectedRoute && !user) {
-    // Redirect unauthenticated users to the centralized Auth app
-    return NextResponse.redirect(`${authUrl}/login`)
+    return NextResponse.redirect(new URL('/login', request.url))
   }
   
   if (isAuthRoute && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/'
-    return NextResponse.redirect(url)
-  }
-
-  if (isAuthRoute && !user) {
-    // Redirect them to the centralized auth app's login page
-    return NextResponse.redirect(`${authUrl}${request.nextUrl.pathname}`)
+    const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL || 'https://app.faibah.com'
+    return NextResponse.redirect(mainAppUrl)
   }
 
   return supabaseResponse
