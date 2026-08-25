@@ -16,7 +16,12 @@ export const metadata: Metadata = {
   title: "Faibah - Agency Operating System",
   description: "The complete operating system for agencies. Manage projects, clients, invoices, and communication in one unified platform.",
   icons: {
-    icon: '/favicon.png',
+    icon: [
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/favicon.ico', type: 'image/x-icon' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
   },
 };
 

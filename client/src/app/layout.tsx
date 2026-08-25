@@ -16,7 +16,12 @@ export const metadata: Metadata = {
   title: "Faibah - Client Portal",
   description: "Secure client portal for managing projects, invoices, and communication.",
   icons: {
-    icon: '/favicon.png',
+    icon: [
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/favicon.ico', type: 'image/x-icon' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
   },
 };
 
