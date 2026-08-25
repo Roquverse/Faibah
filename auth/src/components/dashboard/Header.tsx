@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Settings, Bell, Moon, Sun, ArrowRight, FileText, CheckCircle2, Menu, X } from 'lucide-react';
+import { Search, Settings, Bell, Moon, Sun, ArrowRight, FileText, CheckCircle2, Menu, X, MessageSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { CompanyApi, UsersApi } from '@/lib/api';
+import { CompanyApi, UsersApi, ProjectsApi, ChannelsApi } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
 
 export default function Header() {
@@ -20,16 +20,36 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [companyName, setCompanyName] = useState('Faibah Agency');
   const [user, setUser] = useState<any>(null);
-  const [reminders, setReminders] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Click outside listener for notifications and profile dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const loadData = async () => {
     try {
-      const [companyData, userData, overviewData] = await Promise.all([
+      const [companyData, userData, overviewData, pendingInvs, channelsData] = await Promise.all([
         CompanyApi.getProfile().catch(() => null),
         UsersApi.getProfile().catch(() => null),
-        CompanyApi.getOverview().catch(() => null)
+        CompanyApi.getOverview().catch(() => null),
+        ProjectsApi.getPendingInvitations().catch(() => []),
+        ChannelsApi.getAll().catch(() => [])
       ]);
       if (companyData && companyData.name) {
         setCompanyName(companyData.name);
@@ -37,16 +57,62 @@ export default function Header() {
       if (userData) {
         setUser(userData);
       }
-      if (overviewData && overviewData.reminders) {
-        setReminders(overviewData.reminders);
+
+      const items: any[] = [];
+      if (pendingInvs && pendingInvs.length > 0) {
+        pendingInvs.forEach((inv: any) => {
+          items.push({
+            id: `inv-${inv.id}`,
+            type: 'INVITATION',
+            title: `Channel Request: ${inv.project?.name || 'Project'}`,
+            description: `You have a pending invitation to join this project channel.`,
+            link: `/channels?project=${inv.projectId}`,
+            createdAt: inv.createdAt || new Date().toISOString(),
+          });
+        });
       }
+
+      if (channelsData && channelsData.length > 0) {
+        channelsData.slice(0, 5).forEach((ch: any) => {
+          if (ch._count?.messages > 0) {
+            items.push({
+              id: `ch-${ch.id}`,
+              type: 'CHANNEL_ACTIVITY',
+              title: `Channel Activity: #${ch.name}`,
+              description: `${ch.project?.name || 'Project'} channel updated. Click to view messages.`,
+              link: `/channels?project=${ch.projectId}`,
+              createdAt: ch.updatedAt || ch.createdAt || new Date().toISOString(),
+            });
+          }
+        });
+      }
+
+      if (overviewData && overviewData.reminders) {
+        overviewData.reminders.forEach((rem: any) => {
+          items.push({
+            id: `rem-${rem.id}`,
+            type: 'REMINDER',
+            title: rem.title,
+            description: rem.description || 'System notification',
+            link: rem.link || '/',
+            createdAt: rem.createdAt || new Date().toISOString(),
+          });
+        });
+      }
+
+      const sorted = items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setNotifications(sorted);
     } catch (e) {}
   };
 
   useEffect(() => {
     loadData();
     window.addEventListener('company-updated', loadData);
-    return () => window.removeEventListener('company-updated', loadData);
+    const interval = setInterval(loadData, 30000);
+    return () => {
+      window.removeEventListener('company-updated', loadData);
+      clearInterval(interval);
+    };
   }, []);
 
   // Mount effect for next-themes
@@ -160,45 +226,73 @@ export default function Header() {
             <Settings size={18} strokeWidth={2} />
           </Link>
 
-          <div className="relative">
+          {/* Notifications Dropdown Container */}
+          <div className="relative" ref={notificationRef}>
             <button 
               onClick={() => {
                 setIsNotificationsOpen(!isNotificationsOpen);
                 setIsProfileOpen(false);
               }}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors relative"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors relative cursor-pointer"
             >
               <Bell size={18} strokeWidth={2} />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#F8F9FA]"></span>
+              {notifications.length > 0 && (
+                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#F8F9FA] animate-pulse"></span>
+              )}
             </button>
 
             {/* Notifications Dropdown */}
             {isNotificationsOpen && (
-              <div className="fixed sm:absolute top-16 right-4 sm:top-full sm:right-0 mt-2 w-[calc(100vw-32px)] sm:w-80 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="fixed sm:absolute top-16 right-4 sm:top-full sm:right-0 mt-2 w-[calc(100vw-32px)] sm:w-88 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                  <span className="text-sm font-bold text-gray-900 tracking-tight">Notifications</span>
-                  <button className="text-xs font-medium text-[#346E3A] hover:underline">Mark all read</button>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-gray-900 tracking-tight">Notifications</span>
+                    {notifications.length > 0 && (
+                      <span className="px-2 py-0.5 bg-[#346E3A]/10 text-[#346E3A] rounded-full text-[10px] font-bold">
+                        {notifications.length}
+                      </span>
+                    )}
+                  </div>
+                  <button onClick={() => setNotifications([])} className="text-xs font-medium text-[#346E3A] hover:underline">
+                    Mark all read
+                  </button>
                 </div>
-                <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
-                  {reminders.length > 0 ? (
-                    reminders.map((reminder) => (
-                      <div key={reminder.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-                          <CheckCircle2 size={16} className="text-[#346E3A]" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900 leading-tight mb-1">{reminder.title}</div>
-                          {reminder.description && (
-                            <div className="text-xs text-gray-500">{reminder.description}</div>
+
+                <div className="divide-y divide-gray-100 max-h-88 overflow-y-auto">
+                  {notifications.length > 0 ? (
+                    notifications.map((n) => (
+                      <Link
+                        key={n.id}
+                        href={n.link}
+                        onClick={() => setIsNotificationsOpen(false)}
+                        className="p-3.5 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 block"
+                      >
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                          {n.type === 'INVITATION' ? (
+                            <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
+                              📩
+                            </div>
+                          ) : n.type === 'CHANNEL_ACTIVITY' ? (
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                              <MessageSquare size={15} />
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-green-50 text-[#346E3A] flex items-center justify-center">
+                              <CheckCircle2 size={15} />
+                            </div>
                           )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-gray-900 leading-snug truncate mb-0.5">{n.title}</div>
+                          <div className="text-[11px] text-gray-500 line-clamp-2 leading-tight">{n.description}</div>
                           <div className="text-[10px] text-gray-400 font-medium mt-1">
-                            {new Date(reminder.createdAt).toLocaleDateString()}
+                            {new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     ))
                   ) : (
-                    <div className="p-6 text-center text-sm text-gray-500">No new notifications</div>
+                    <div className="p-6 text-center text-xs text-gray-400">No new notifications</div>
                   )}
                 </div>
               </div>
@@ -214,13 +308,13 @@ export default function Header() {
         </div>
 
         {/* Profile */}
-        <div className="relative">
+        <div className="relative" ref={profileRef}>
           <button 
             onClick={() => {
               setIsProfileOpen(!isProfileOpen);
               setIsNotificationsOpen(false);
             }}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left cursor-pointer"
           >
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-gray-900 text-sm font-semibold leading-none mb-1">
@@ -246,10 +340,10 @@ export default function Header() {
                 </div>
                 <div className="text-xs text-gray-500 truncate">{companyName}</div>
               </div>
-              <Link href="/settings" className="flex items-center px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors">
+              <Link href="/settings" onClick={() => setIsProfileOpen(false)} className="flex items-center px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors">
                 Settings
               </Link>
-              <button className="w-full text-left flex items-center px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors">
+              <button onClick={() => setIsProfileOpen(false)} className="w-full text-left flex items-center px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors">
                 Billing & Plan
               </button>
               <div className="h-px bg-gray-100 my-1"></div>
@@ -257,7 +351,8 @@ export default function Header() {
                 onClick={async () => {
                   const supabase = createClient();
                   await supabase.auth.signOut();
-                  window.location.href = `/login`;
+                  const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'http://localhost:3001';
+                  window.location.href = `${authUrl}/login`;
                 }}
                 className="w-full text-left flex items-center px-4 py-2 hover:bg-red-50 text-sm font-medium text-red-600 transition-colors"
               >
