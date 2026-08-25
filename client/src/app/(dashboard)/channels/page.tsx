@@ -1059,23 +1059,31 @@ export default function ChannelsPage() {
                   </div>
                   
                   <div className="space-y-4">
-                    {displayMembers.map((member: any) => (
-                      <div key={member.id} className="flex items-center justify-between group">
-                        <div className="flex items-center gap-3">
-                          <img src={`https://ui-avatars.com/api/?name=${member.user?.firstName || member.clientContact?.name || 'U'}&background=random`} className="w-8 h-8 rounded-full border border-gray-200" />
-                          <div>
-                            <div className="font-bold text-gray-900 text-[13px] leading-tight">
-                              {member.user?.firstName ? `${member.user.firstName} ${member.user.lastName || ''}` : member.clientContact?.name || 'Unknown User'}
-                              {member.user?.id === currentUser?.id && ' (You)'}
+                    {displayMembers.map((member: any) => {
+                      const memberAvatar = member.user?.avatarUrl || member.user?.avatar_url || member.clientContact?.avatarUrl || member.clientContact?.user?.avatarUrl;
+                      const memberName = member.user?.firstName ? `${member.user.firstName} ${member.user.lastName || ''}`.trim() : member.clientContact?.name || 'User';
+                      return (
+                        <div key={member.id} className="flex items-center justify-between group">
+                          <div className="flex items-center gap-3">
+                            {memberAvatar ? (
+                              <img src={memberAvatar} alt={memberName} className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-slate-700" />
+                            ) : (
+                              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(memberName)}&background=random`} className="w-8 h-8 rounded-full border border-gray-200 dark:border-slate-700" />
+                            )}
+                            <div>
+                              <div className="font-bold text-gray-900 dark:text-white text-[13px] leading-tight">
+                                {memberName}
+                                {member.user?.id === currentUser?.id && ' (You)'}
+                              </div>
+                              <div className="text-[11px] text-gray-500 dark:text-gray-400">{member.role || 'Member'}</div>
                             </div>
-                            <div className="text-[11px] text-gray-500">{member.role || 'Member'}</div>
+                          </div>
+                          <div className="px-2 py-1 bg-[#346E3A]/10 text-[#346E3A] rounded text-[10px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                            {member.role || 'Member'}
                           </div>
                         </div>
-                        <div className="px-2 py-1 bg-[#346E3A]/10 text-[#346E3A] rounded text-[10px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                          {member.role || 'Member'}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>

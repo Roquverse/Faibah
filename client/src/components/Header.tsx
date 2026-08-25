@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { ProjectsApi, ChannelsApi, CompanyApi } from '@/lib/api';
+import { ProjectsApi, ChannelsApi, CompanyApi, UsersApi } from '@/lib/api';
 
 export default function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const pathname = usePathname();
@@ -16,6 +16,8 @@ export default function Header({ toggleSidebar }: { toggleSidebar?: () => void }
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [firstName, setFirstName] = useState<string>('');
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [supabaseUser, setSupabaseUser] = useState<any>(null);
 
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -98,17 +100,24 @@ export default function Header({ toggleSidebar }: { toggleSidebar?: () => void }
 
   useEffect(() => {
     setMounted(true);
+
     const fetchUser = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const meta = user.user_metadata as Record<string, string> | undefined;
-        const name =
-          meta?.first_name ||
-          (meta?.full_name ? meta.full_name.split(' ')[0] : '') ||
-          (user.email ? user.email.split('@')[0] : 'Client');
-        setFirstName(name);
-      }
+      try {
+        const [profile, { data: { user } }] = await Promise.all([
+          UsersApi.getProfile().catch(() => null),
+          createClient().auth.getUser()
+        ]);
+        if (profile) setUserProfile(profile);
+        if (user) {
+          setSupabaseUser(user);
+          const meta = user.user_metadata as Record<string, string> | undefined;
+          const name =
+            meta?.first_name ||
+            (meta?.full_name ? meta.full_name.split(' ')[0] : '') ||
+            (user.email ? user.email.split('@')[0] : 'Client');
+          setFirstName(name);
+        }
+      } catch (e) {}
     };
     fetchUser();
     loadNotifications();
@@ -256,14 +265,28 @@ export default function Header({ toggleSidebar }: { toggleSidebar?: () => void }
         <div className="h-8 w-px bg-gray-200 dark:bg-slate-700 mx-1 md:mx-2 hidden md:block"></div>
 
         {/* Profile */}
-        <Link href="/settings" className="flex items-center gap-3 p-1.5 pr-3 md:pr-4 rounded-full hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-slate-700">
-          <div className="w-8 h-8 rounded-full bg-deep-green text-white flex items-center justify-center font-bold text-sm">
-            {firstName ? firstName.charAt(0).toUpperCase() : 'C'}
-          </div>
-          <div className="hidden md:flex flex-col items-start">
-            <span className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">{firstName || 'Client'}</span>
-          </div>
-        </Link>
+        {(() => {
+          const avatarUrl = userProfile?.avatarUrl || userProfile?.avatar_url || supabaseUser?.user_metadata?.avatar_url || supabaseUser?.user_metadata?.picture;
+          const fullName = (userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName || ''}`.trim() : '') ||
+                           supabaseUser?.user_metadata?.full_name ||
+                           supabaseUser?.user_metadata?.name ||
+                           firstName ||
+                           'Client';
+          return (
+            <Link href="/settings" className="flex items-center gap-3 p-1.5 pr-3 md:pr-4 rounded-full hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-slate-700">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={fullName} className="w-8 h-8 rounded-full object-cover shrink-0 border border-gray-200 dark:border-slate-700" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-deep-green text-white flex items-center justify-center font-bold text-sm shrink-0">
+                  {fullName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="hidden md:flex flex-col items-start">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">{fullName}</span>
+              </div>
+            </Link>
+          );
+        })()}
       </div>
     </header>
   );

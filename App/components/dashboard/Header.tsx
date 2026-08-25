@@ -20,6 +20,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [companyName, setCompanyName] = useState('Faibah Agency');
   const [user, setUser] = useState<any>(null);
+  const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +57,12 @@ export default function Header() {
       }
       if (userData) {
         setUser(userData);
+      }
+
+      const supabase = createClient();
+      const { data: { user: sbUser } } = await supabase.auth.getUser();
+      if (sbUser) {
+        setSupabaseUser(sbUser);
       }
 
       const items: any[] = [];
@@ -308,59 +315,68 @@ export default function Header() {
         </div>
 
         {/* Profile */}
-        <div className="relative" ref={profileRef}>
-          <button 
-            onClick={() => {
-              setIsProfileOpen(!isProfileOpen);
-              setIsNotificationsOpen(false);
-            }}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left cursor-pointer"
-          >
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="text-gray-900 text-sm font-semibold leading-none mb-1">
-                {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : companyName}
-              </span>
-              <span className="text-[11px] font-medium text-gray-500 leading-none">{companyName}</span>
-            </div>
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="Profile" className="w-10 h-10 rounded-full object-cover shrink-0" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-sm shrink-0">
-                {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
-              </div>
-            )}
-          </button>
-
-          {/* Profile Dropdown */}
-          {isProfileOpen && (
-            <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="px-4 pb-2 mb-2 border-b border-gray-100">
-                <div className="text-sm font-bold text-gray-900 tracking-tight truncate">
-                  {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : companyName}
-                </div>
-                <div className="text-xs text-gray-500 truncate">{companyName}</div>
-              </div>
-              <Link href="/settings" onClick={() => setIsProfileOpen(false)} className="flex items-center px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors">
-                Settings
-              </Link>
-              <button onClick={() => setIsProfileOpen(false)} className="w-full text-left flex items-center px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors">
-                Billing & Plan
-              </button>
-              <div className="h-px bg-gray-100 my-1"></div>
+        {(() => {
+          const avatarUrl = user?.avatarUrl || user?.avatar_url || supabaseUser?.user_metadata?.avatar_url || supabaseUser?.user_metadata?.picture;
+          const displayName = (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '') ||
+                              supabaseUser?.user_metadata?.full_name ||
+                              supabaseUser?.user_metadata?.name ||
+                              (supabaseUser?.email ? supabaseUser.email.split('@')[0] : 'User');
+          return (
+            <div className="relative" ref={profileRef}>
               <button 
-                onClick={async () => {
-                  const supabase = createClient();
-                  await supabase.auth.signOut();
-                  const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'https://auth.faibah.com';
-                  window.location.href = `${authUrl}/login`;
+                onClick={() => {
+                  setIsProfileOpen(!isProfileOpen);
+                  setIsNotificationsOpen(false);
                 }}
-                className="w-full text-left flex items-center px-4 py-2 hover:bg-red-50 text-sm font-medium text-red-600 transition-colors"
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left cursor-pointer"
               >
-                Log Out
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-gray-900 dark:text-white text-sm font-semibold leading-none mb-1">
+                    {displayName}
+                  </span>
+                  <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 leading-none">{companyName}</span>
+                </div>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={displayName} className="w-10 h-10 rounded-full object-cover shrink-0 border border-gray-200 dark:border-slate-700 shadow-xs" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-[#346E3A] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </button>
+
+              {/* Profile Dropdown */}
+              {isProfileOpen && (
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-lg overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="px-4 pb-2 mb-2 border-b border-gray-100 dark:border-slate-800">
+                    <div className="text-sm font-bold text-gray-900 dark:text-white tracking-tight truncate">
+                      {displayName}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{supabaseUser?.email || companyName}</div>
+                  </div>
+                  <Link href="/settings" onClick={() => setIsProfileOpen(false)} className="flex items-center px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors">
+                    Settings
+                  </Link>
+                  <button onClick={() => setIsProfileOpen(false)} className="w-full text-left flex items-center px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors">
+                    Billing & Plan
+                  </button>
+                  <div className="h-px bg-gray-100 dark:bg-slate-800 my-1"></div>
+                  <button 
+                    onClick={async () => {
+                      const supabase = createClient();
+                      await supabase.auth.signOut();
+                      const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'https://auth.faibah.com';
+                      window.location.href = `${authUrl}/login`;
+                    }}
+                    className="w-full text-left flex items-center px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm font-medium text-red-600 dark:text-red-400 transition-colors"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })()}
       </div>
     </header>
   );
