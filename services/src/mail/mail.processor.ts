@@ -14,27 +14,31 @@ export class MailProcessor extends WorkerHost {
   async process(job: Job<any, any, string>): Promise<any> {
     this.logger.log(`Processing background email job: ${job.name} (ID: ${job.id})`);
 
-    switch (job.name) {
-      case 'send-project-approval':
-        await this.mailService.sendProjectApprovalDirect(job.data);
-        break;
+    try {
+      switch (job.name) {
+        case 'send-project-approval':
+          await this.mailService.sendProjectApprovalDirect(job.data);
+          break;
 
-      case 'send-invoice-created':
-        await this.mailService.sendInvoiceCreatedDirect(job.data);
-        break;
+        case 'send-invoice-created':
+          await this.mailService.sendInvoiceCreatedDirect(job.data);
+          break;
 
-      case 'send-payment-receipt':
-        await this.mailService.sendPaymentReceiptDirect(job.data);
-        break;
+        case 'send-payment-receipt':
+          await this.mailService.sendPaymentReceiptDirect(job.data);
+          break;
 
-      case 'send-activity-notice':
-        await this.mailService.sendActivityNoticeDirect(job.data);
-        break;
+        case 'send-activity-notice':
+          await this.mailService.sendActivityNoticeDirect(job.data);
+          break;
 
-      default:
-        this.logger.warn(`Unknown email job type: ${job.name}`);
+        default:
+          this.logger.warn(`Unknown email job type: ${job.name}`);
+      }
+      return { completed: true };
+    } catch (error: any) {
+      this.logger.error(`Error processing email job ${job.name}: ${error.message}`, error.stack);
+      throw error;
     }
-
-    return { completed: true };
   }
 }

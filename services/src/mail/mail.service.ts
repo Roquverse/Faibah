@@ -57,20 +57,34 @@ export class MailService {
         port,
         secure: port === 465,
         auth: { user, pass },
+        tls: {
+          rejectUnauthorized: false
+        }
       });
       this.logger.log(`[MailService] Configured SMTP via ${host}:${port}`);
+      this.transporter.verify((error) => {
+        if (error) {
+          this.logger.error(`[MailService] ❌ SMTP Verification Failed for ${host}:${port} -> ${error.message}`);
+        } else {
+          this.logger.log(`[MailService] ✅ SMTP Server ${host}:${port} is verified and ready.`);
+        }
+      });
     } else {
       this.transporter = nodemailer.createTransport({
         streamTransport: true,
         newline: 'unix',
         buffer: true,
       });
-      this.logger.log('[MailService] SMTP credentials not set. Falling back to log transport.');
+      this.logger.warn('[MailService] ⚠️ SMTP credentials not set. Falling back to stream transport (emails will not be delivered externally).');
     }
   }
 
   private getFromHeader(): string {
-    return process.env.SMTP_FROM || process.env.MAIL_FROM || '"Faiba Platform" <noreply@faibah.com>';
+    const fromEnv = process.env.SMTP_FROM || process.env.MAIL_FROM;
+    if (fromEnv) return fromEnv;
+    const smtpUser = process.env.SMTP_USER || process.env.MAIL_USER;
+    if (smtpUser) return `"Faiba Platform" <${smtpUser}>`;
+    return '"Faiba Platform" <noreply@faibah.com>';
   }
 
   // Queue methods (Asynchronous background processing)
@@ -151,14 +165,18 @@ export class MailService {
       </html>
     `;
 
-    await this.transporter.sendMail({
-      from: this.getFromHeader(),
-      to: clientEmail,
-      subject: `Action Required: New Project Proposal "${projectName}" from ${companyName || 'Faiba'}`,
-      html,
-    });
-
-    this.logger.log(`[MailService] Sent Project Approval email to ${clientEmail}`);
+    try {
+      await this.transporter.sendMail({
+        from: this.getFromHeader(),
+        to: clientEmail,
+        subject: `Action Required: New Project Proposal "${projectName}" from ${companyName || 'Faiba'}`,
+        html,
+      });
+      this.logger.log(`[MailService] ✅ Sent Project Approval email to ${clientEmail}`);
+    } catch (err: any) {
+      this.logger.error(`[MailService] ❌ Failed to send Project Approval email to ${clientEmail}: ${err.message}`, err.stack);
+      throw err;
+    }
   }
 
   async sendInvoiceCreatedDirect(data: InvoiceMailData) {
@@ -207,14 +225,18 @@ export class MailService {
       </html>
     `;
 
-    await this.transporter.sendMail({
-      from: this.getFromHeader(),
-      to: clientEmail,
-      subject: `New Invoice ${invoiceRef} (${amount})`,
-      html,
-    });
-
-    this.logger.log(`[MailService] Sent Invoice email to ${clientEmail}`);
+    try {
+      await this.transporter.sendMail({
+        from: this.getFromHeader(),
+        to: clientEmail,
+        subject: `New Invoice ${invoiceRef} (${amount})`,
+        html,
+      });
+      this.logger.log(`[MailService] ✅ Sent Invoice email to ${clientEmail}`);
+    } catch (err: any) {
+      this.logger.error(`[MailService] ❌ Failed to send Invoice email to ${clientEmail}: ${err.message}`, err.stack);
+      throw err;
+    }
   }
 
   async sendPaymentReceiptDirect(data: PaymentReceiptMailData) {
@@ -255,14 +277,18 @@ export class MailService {
       </html>
     `;
 
-    await this.transporter.sendMail({
-      from: this.getFromHeader(),
-      to: clientEmail,
-      subject: `Payment Receipt: ${invoiceRef} (${amountPaid})`,
-      html,
-    });
-
-    this.logger.log(`[MailService] Sent Payment Receipt email to ${clientEmail}`);
+    try {
+      await this.transporter.sendMail({
+        from: this.getFromHeader(),
+        to: clientEmail,
+        subject: `Payment Receipt: ${invoiceRef} (${amountPaid})`,
+        html,
+      });
+      this.logger.log(`[MailService] ✅ Sent Payment Receipt email to ${clientEmail}`);
+    } catch (err: any) {
+      this.logger.error(`[MailService] ❌ Failed to send Payment Receipt email to ${clientEmail}: ${err.message}`, err.stack);
+      throw err;
+    }
   }
 
   async sendActivityNoticeDirect(data: ActivityNoticeMailData) {
@@ -302,13 +328,17 @@ export class MailService {
       </html>
     `;
 
-    await this.transporter.sendMail({
-      from: this.getFromHeader(),
-      to: recipientEmail,
-      subject: title,
-      html,
-    });
-
-    this.logger.log(`[MailService] Sent Activity Notice email to ${recipientEmail}`);
+    try {
+      await this.transporter.sendMail({
+        from: this.getFromHeader(),
+        to: recipientEmail,
+        subject: title,
+        html,
+      });
+      this.logger.log(`[MailService] ✅ Sent Activity Notice email to ${recipientEmail}`);
+    } catch (err: any) {
+      this.logger.error(`[MailService] ❌ Failed to send Activity Notice email to ${recipientEmail}: ${err.message}`, err.stack);
+      throw err;
+    }
   }
 }
