@@ -57,7 +57,12 @@ export class ChannelsService {
       where: whereClause,
       include: {
         project: {
-          include: { client: true }
+          include: {
+            client: true,
+            members: {
+              include: { user: true, clientContact: true }
+            }
+          }
         },
         _count: {
           select: { messages: true }
@@ -72,7 +77,12 @@ export class ChannelsService {
       data: { projectId, name: channelName },
       include: { 
         project: {
-          include: { client: true }
+          include: {
+            client: true,
+            members: {
+              include: { user: true, clientContact: true }
+            }
+          }
         },
         _count: {
           select: { messages: true }
@@ -86,7 +96,12 @@ export class ChannelsService {
       where: { projectId, name: channelName },
       include: {
         project: {
-          include: { client: true }
+          include: {
+            client: true,
+            members: {
+              include: { user: true, clientContact: true }
+            }
+          }
         },
         messages: {
           orderBy: { createdAt: 'asc' },
@@ -103,7 +118,12 @@ export class ChannelsService {
         data: { projectId, name: channelName },
         include: {
           project: {
-            include: { client: true }
+            include: {
+              client: true,
+              members: {
+                include: { user: true, clientContact: true }
+              }
+            }
           },
           messages: true
         },

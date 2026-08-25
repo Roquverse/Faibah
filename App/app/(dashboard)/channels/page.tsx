@@ -1022,11 +1022,24 @@ export default function ChannelsPage() {
               <div className="space-y-8">
                 {/* Main Info */}
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-4 text-base">Main info</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-base">Main info</h3>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500 flex items-center gap-2"><User className="w-4 h-4" /> Creator</span>
-                      <span className="font-medium text-gray-900">System</span>
+                      <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2"><User className="w-4 h-4" /> Creator</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {(() => {
+                          const owner = displayMembers.find((m: any) => m.role === 'OWNER' || m.role === 'PRIMARY_CONTACT' || m.role === 'ADMIN');
+                          if (owner?.user?.firstName) return `${owner.user.firstName} ${owner.user.lastName || ''}`.trim();
+                          if (owner?.clientContact?.name) return owner.clientContact.name;
+
+                          const firstUser = displayMembers.find((m: any) => m.user?.firstName);
+                          if (firstUser?.user?.firstName) return `${firstUser.user.firstName} ${firstUser.user.lastName || ''}`.trim();
+
+                          if (activeChannelData?.project?.client?.name) return activeChannelData.project.client.name;
+                          if (currentUser?.firstName) return `${currentUser.firstName} ${currentUser.lastName || ''}`.trim();
+                          return 'Project Owner';
+                        })()}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500 flex items-center gap-2"><Calendar className="w-4 h-4" /> Created</span>
