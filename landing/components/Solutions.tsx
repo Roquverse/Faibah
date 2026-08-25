@@ -39,7 +39,7 @@ export default function Solutions() {
 
         <div className={styles.imageContainer}>
           <img
-            src="/solutions.png"
+            src="/solutions.jpeg"
             alt="User Dashboard"
             className={styles.dashboardImage}
           />
