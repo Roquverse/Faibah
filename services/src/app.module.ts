@@ -25,6 +25,7 @@ import { RedisThrottlerStorage } from './redis/redis-throttler.storage';
 import { BullConfigModule } from './bull/bull-config.module';
 import { REDIS_CLIENT } from './redis/redis.constants';
 import { MailModule } from './mail/mail.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { MailModule } from './mail/mail.module';
     EventsModule,
     InvoicesModule,
     ReceiptsModule,
+    PaymentsModule,
     AdminModule,
   ],
   controllers: [AppController],

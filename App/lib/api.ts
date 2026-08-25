@@ -172,6 +172,11 @@ export const ReceiptsApi = {
   getAll: () => fetchApi('/receipts'),
   getById: (id: string) => fetchApi(`/receipts/${id}`),
   create: (data: any) => fetchApi('/receipts', { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: string) => fetchApi(`/receipts/${id}`, { method: 'DELETE' }),
+};
+
+export const PaymentsApi = {
+  getAll: () => fetchApi('/payments'),
 };
 
 export const InvoicesApi = {

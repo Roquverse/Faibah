@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { MailService } from '../mail/mail.service';
 
@@ -9,11 +9,31 @@ export class ReceiptsService {
     private mailService: MailService,
   ) {}
 
-  async getAllReceipts() {
+  async getAllReceipts(userId?: string) {
+    let whereClause: any = {};
+
+    if (userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true, email: true },
+      });
+
+      if (user?.companyId) {
+        whereClause = {
+          invoice: {
+            client: {
+              companyId: user.companyId
+            }
+          }
+        };
+      }
+    }
+
     return this.prisma.receipt.findMany({
+      where: whereClause,
       include: {
         invoice: {
-          include: { client: true }
+          include: { client: true, project: true }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -35,9 +55,9 @@ export class ReceiptsService {
       data: {
         receiptRef,
         invoiceId,
-        amountPaid,
-        paymentMethod,
-        paymentDate: new Date(paymentDate),
+        amountPaid: Number(amountPaid),
+        paymentMethod: paymentMethod || 'Bank Transfer',
+        paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
       },
       include: {
         invoice: {
@@ -56,10 +76,20 @@ export class ReceiptsService {
         clientEmail: receipt.invoice.client.email,
         clientName: receipt.invoice.client.name,
         invoiceRef: receipt.invoice.invoiceRef || undefined,
-        amountPaid: `₦${amountPaid.toLocaleString()}`,
+        amountPaid: `₦${Number(amountPaid).toLocaleString()}`,
       });
     }
 
     return receipt;
+  }
+
+  async deleteReceipt(id: string) {
+    const existing = await this.prisma.receipt.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Receipt not found');
+    }
+
+    await this.prisma.receipt.delete({ where: { id } });
+    return { success: true };
   }
 }
