@@ -1,12 +1,12 @@
 .heroContainer {
   position: relative;
   width: 100%;
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: visible;
-  padding: 4rem 2rem;
+  padding: 7.5rem 2rem 4rem;
 }
 
 .backgroundPattern {
@@ -31,7 +31,7 @@
 
 .title {
   font-family: var(--font-plus-jakarta-sans), sans-serif;
-  font-size: 5.5rem;
+  font-size: 4.6rem;
   font-weight: 500;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -462,43 +462,69 @@
 
 /* Breakpoints for responsiveness */
 @media (max-width: 1440px) {
+  .heroContainer {
+    padding-top: 6.5rem;
+    padding-bottom: 3rem;
+  }
+
+  .title {
+    font-size: 3.8rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    margin-bottom: 1.8rem;
+  }
+
   .topLeft {
     left: 2%;
     transform-origin: center left;
+    transform: scale(0.85);
   }
 
   .topRight {
     right: 2%;
     transform-origin: center right;
+    transform: scale(0.85);
   }
 
   .bottomLeft {
     left: 2%;
     transform-origin: center left;
+    transform: scale(0.85);
   }
 
   .bottomRight {
     right: 2%;
     transform-origin: center right;
+    transform: scale(0.85);
   }
 }
 
 @media (max-width: 1200px) {
+  .heroContainer {
+    padding-top: 6rem;
+  }
+
   .title {
-    font-size: 4.8rem;
+    font-size: 3.4rem;
   }
 
   .topLeft,
   .topRight,
   .bottomLeft,
   .bottomRight {
-    transform: scale(0.85);
+    transform: scale(0.72);
   }
 }
 
 @media (max-width: 1024px) {
+  .heroContainer {
+    padding-top: 5.5rem;
+  }
+
   .title {
-    font-size: 4rem;
+    font-size: 3rem;
   }
 
   .subtitle {
@@ -510,7 +536,7 @@
   .topRight,
   .bottomLeft,
   .bottomRight {
-    transform: scale(0.7);
+    transform: scale(0.65);
   }
 }
 
