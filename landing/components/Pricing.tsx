@@ -31,7 +31,7 @@ export default function Pricing() {
               <li style={{ opacity: 0.5 }}><X size={16} /> No Project Page or Schedule</li>
             </ul>
             <div className={styles.learnMoreWrapper}>
-              <a href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/signup`} className={styles.learnMore}>Learn more</a>
+              <a href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://auth.faibah.com'}/signup`} className={styles.learnMore}>Learn more</a>
             </div>
           </div>
 
@@ -50,7 +50,7 @@ export default function Pricing() {
               <span className={styles.period}>/mo</span>
             </div>
             <div className={styles.bestChoice}>Best choice</div>
-            <a href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/signup`} className={styles.buttonSolid} style={{ display: 'inline-block', textDecoration: 'none', textAlign: 'center' }}>Get started</a>
+            <a href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://auth.faibah.com'}/signup`} className={styles.buttonSolid} style={{ display: 'inline-block', textDecoration: 'none', textAlign: 'center' }}>Get started</a>
             <ul className={styles.features}>
               <li><Check size={16} /> Everything in Basic</li>
               <li><Check size={16} /> AI Proposals & Quotations</li>

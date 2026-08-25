@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = isAuthRoute || isApiRoute || request.nextUrl.pathname.startsWith('/onboarding')
   const isProtectedRoute = !isPublicRoute && !request.nextUrl.pathname.match(/\.(.*)$/) // ignore static files
 
-  const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'http://localhost:3001'
+  const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'https://auth.faibah.com'
 
   if (isProtectedRoute && !user) {
     // Redirect unauthenticated users to the centralized Auth app

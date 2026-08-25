@@ -9,11 +9,52 @@ import { createClient } from '@/lib/supabase/client';
 function VerifyEmailForm() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const searchParams = useSearchParams();
   const router = useRouter();
   const email = searchParams.get('email') || '';
+
+  // 5-minute countdown effect
+  React.useEffect(() => {
+    if (timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleResend = async () => {
+    if (timeLeft > 0 || isResending || !email) return;
+    try {
+      setIsResending(true);
+      const supabase = createClient();
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+      });
+      setIsResending(false);
+      if (error) {
+        alert(error.message);
+      } else {
+        alert('A new verification code has been sent to your email.');
+        setTimeLeft(300); // Reset to 5 mins
+      }
+    } catch (e: any) {
+      setIsResending(false);
+      alert(e.message || 'Failed to resend verification code.');
+    }
+  };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +91,23 @@ function VerifyEmailForm() {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').trim().replace(/\D/g, '');
+    if (!pastedData) return;
+
+    const newCode = [...code];
+    for (let i = 0; i < 6; i++) {
+      if (pastedData[i]) {
+        newCode[i] = pastedData[i];
+      }
+    }
+    setCode(newCode);
+
+    const nextFocusIndex = Math.min(pastedData.length, 5);
+    inputRefs.current[nextFocusIndex]?.focus();
+  };
+
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
@@ -61,7 +119,7 @@ function VerifyEmailForm() {
       {/* Left section: Form (50%) */}
       <div className="w-full lg:w-1/2 flex flex-col p-8 sm:p-12 xl:p-20 bg-white min-h-screen relative">
         <div className="absolute top-8 left-8 sm:top-12 sm:left-12 flex items-center gap-2">
-          <img src="/logo.png" alt="" width={200} />
+          <img src="/logo.png" alt="Faibah" className="w-[160px] sm:w-[180px]" />
         </div>
 
         <div className="flex-1 flex flex-col justify-center max-w-[420px] w-full mx-auto">
@@ -89,6 +147,7 @@ function VerifyEmailForm() {
                   value={digit}
                   onChange={(e) => handleChange(idx, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(idx, e)}
+                  onPaste={handlePaste}
                   className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold text-gray-900 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-deep-green focus:border-transparent transition-all"
                 />
               ))}
@@ -107,9 +166,20 @@ function VerifyEmailForm() {
             </button>
             
             <div className="text-center">
-              <p className="text-sm font-semibold text-gray-600">
-                Resend code in 59:00
-              </p>
+              {timeLeft > 0 ? (
+                <p className="text-sm font-semibold text-gray-600">
+                  Resend code in <span className="text-deep-green font-bold">{formatTimer(timeLeft)}</span>
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={isResending}
+                  className="text-sm font-bold text-deep-green hover:underline focus:outline-none disabled:opacity-50"
+                >
+                  {isResending ? 'Resending code...' : "Didn't receive a code? Resend code"}
+                </button>
+              )}
             </div>
           </form>
 

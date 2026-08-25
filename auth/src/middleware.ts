@@ -36,7 +36,6 @@ export async function middleware(request: NextRequest) {
     const { data } = await supabase.auth.getUser()
     user = data.user
   } catch (err) {
-    // If this throws, it usually means NEXT_PUBLIC_SUPABASE_URL is missing or a network error occurred
     console.error('Error fetching user in middleware:', err);
   }
 
@@ -48,10 +47,11 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = isAuthRoute || isApiRoute || request.nextUrl.pathname.startsWith('/onboarding')
   const isProtectedRoute = !isPublicRoute && !request.nextUrl.pathname.match(/\.(.*)$/) // ignore static files
 
+  const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'https://auth.faibah.com'
+
   if (isProtectedRoute && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+    // Redirect unauthenticated users to the centralized Auth app
+    return NextResponse.redirect(`${authUrl}/login`)
   }
   
   if (isAuthRoute && user) {
@@ -60,10 +60,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Force unauthenticated users to the local login page if they hit an unknown route, though handled above
   if (isAuthRoute && !user) {
-    // Let them access the local login route since they are unauthenticated
-    return supabaseResponse
+    // Redirect them to the centralized auth app's login page
+    return NextResponse.redirect(`${authUrl}${request.nextUrl.pathname}`)
   }
 
   return supabaseResponse

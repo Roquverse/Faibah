@@ -44,7 +44,7 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
       if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
         const supabase = createClient();
         supabase.auth.signOut().finally(() => {
-          const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'http://localhost:3001';
+          const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'https://auth.faibah.com';
           window.location.href = `${authUrl}/login`;
         });
       }

@@ -27,7 +27,7 @@ export default function Sidebar() {
     const supabase = createClient();
     await supabase.auth.signOut();
     // Redirect to centralized auth app login
-    const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'http://localhost:3001';
+    const authUrl = process.env.NEXT_PUBLIC_AUTH_APP_URL || 'https://auth.faibah.com';
     window.location.href = `${authUrl}/login`;
   };
 

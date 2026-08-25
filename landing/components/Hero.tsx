@@ -111,7 +111,7 @@ export default function Hero() {
           Faibah brings your projects, tasks, time tracking and invoicing into one simple workspace — so you always know what has been done, what you've billed, and what you're still owed.
         </p>
         <div className={styles.buttonGroup}>
-          <Link href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/signup`} className={styles.ctaButton}>
+          <Link href={`${process.env.NEXT_PUBLIC_AUTH_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://auth.faibah.com'}/signup`} className={styles.ctaButton}>
             Try Faibah free &rarr;
           </Link>
           <Link href="#how-it-works" className={styles.ctaButtonSecondary}>
