@@ -10,9 +10,60 @@ export class TasksService {
     private readonly eventsGateway: EventsGateway
   ) {}
 
-  async getTasksForProject(projectId: string, assignedToMeUserId?: string) {
+  private async getAccessibleProjectIds(currentUserId?: string): Promise<string[]> {
+    if (!currentUserId) return [];
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: currentUserId },
+      select: { id: true, email: true, companyId: true },
+    });
+
+    const clientContact = await this.prisma.clientContact.findFirst({
+      where: { OR: [{ id: currentUserId }, { email: user?.email || currentUserId }] },
+      select: { id: true, clientId: true, email: true },
+    });
+
+    const projectConditions: any[] = [];
+    if (user?.companyId) {
+      projectConditions.push({ client: { companyId: user.companyId } });
+      projectConditions.push({ members: { some: { userId: user.id } } });
+    }
+    if (clientContact) {
+      projectConditions.push({ clientId: clientContact.clientId });
+      projectConditions.push({ client: { email: clientContact.email } });
+      projectConditions.push({ members: { some: { clientContactId: clientContact.id } } });
+      projectConditions.push({ members: { some: { user: { email: clientContact.email } } } });
+    }
+    if (user?.email) {
+      projectConditions.push({ client: { email: user.email } });
+      projectConditions.push({ client: { contacts: { some: { email: user.email } } } });
+      projectConditions.push({ members: { some: { user: { email: user.email } } } });
+    }
+
+    if (projectConditions.length === 0) return [];
+
+    const allowedProjects = await this.prisma.project.findMany({
+      where: { OR: projectConditions },
+      select: { id: true },
+    });
+
+    return allowedProjects.map(p => p.id);
+  }
+
+  async getTasksForProject(projectId: string, currentUserId?: string, assignedToMeUserId?: string) {
     const where: any = {};
-    if (projectId !== 'all') {
+
+    if (currentUserId) {
+      const allowedIds = await this.getAccessibleProjectIds(currentUserId);
+      if (projectId !== 'all') {
+        if (!allowedIds.includes(projectId)) {
+          return [];
+        }
+        where.projectId = projectId;
+      } else {
+        where.projectId = { in: allowedIds };
+      }
+    } else if (projectId !== 'all') {
       where.projectId = projectId;
     }
 

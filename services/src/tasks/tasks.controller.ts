@@ -1,4 +1,5 @@
-import { Controller, Post, Patch, Body, Param, Get, Query } from '@nestjs/common';
+import { Controller, Post, Patch, Body, Param, Get, Query, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { TasksService } from './tasks.service';
 import { TaskStatus } from '@prisma/client';
 
@@ -8,15 +9,21 @@ export class TasksController {
 
   @Get('project/:projectId')
   async getTasks(
+    @Req() req: Request,
     @Param('projectId') projectId: string,
     @Query('assignedTo') assignedTo?: string
   ) {
-    return this.tasksService.getTasksForProject(projectId, assignedTo);
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
+    return this.tasksService.getTasksForProject(projectId, userId, assignedTo);
   }
 
   @Get()
-  async getAllTasks(@Query('assignedTo') assignedTo?: string) {
-    return this.tasksService.getTasksForProject('all', assignedTo);
+  async getAllTasks(
+    @Req() req: Request,
+    @Query('assignedTo') assignedTo?: string
+  ) {
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
+    return this.tasksService.getTasksForProject('all', userId, assignedTo);
   }
 
   @Post()

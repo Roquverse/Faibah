@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { ScheduleEventsService } from './schedule-events.service';
 
 @Controller('schedule-events')
@@ -6,8 +7,12 @@ export class ScheduleEventsController {
   constructor(private readonly scheduleEventsService: ScheduleEventsService) {}
 
   @Get()
-  async getEvents(@Query('projectId') projectId?: string) {
-    return this.scheduleEventsService.getEvents(projectId);
+  async getEvents(
+    @Req() req: Request,
+    @Query('projectId') projectId?: string
+  ) {
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
+    return this.scheduleEventsService.getEvents(projectId, userId);
   }
 
   @Post()
