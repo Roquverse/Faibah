@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   MessageSquare, Plus, Folder, Hash, Search, Bell, Settings, 
   MoreVertical, Smile, Paperclip, Mic, Send, Info, Pin, File as FileIcon, Link as LinkIcon,
-  ChevronRight, ChevronDown, User, Zap, Calendar, AtSign, Play, Square, Circle, X, Loader2, Menu
+  ChevronRight, ChevronDown, User, Zap, Calendar, AtSign, Play, Square, Circle, X, Loader2, Menu, Trash2
 } from 'lucide-react';
 import { ChannelsApi, ProjectsApi, UsersApi, UploadApi } from '@/lib/api';
 import { io } from 'socket.io-client';
@@ -286,6 +286,20 @@ export default function ChannelsPage() {
       socket.disconnect();
     };
   }, [activeChannelId, channels]);
+
+  const handleRevokeMember = async (memberId: string, memberName: string) => {
+    if (!confirm(`Are you sure you want to revoke ${memberName} from this project channel?`)) return;
+    try {
+      await ProjectsApi.removeMember(memberId);
+      if (activeChannelData?.projectId) {
+        const members = await ProjectsApi.getMembers(activeChannelData.projectId);
+        setActiveProjectMembers(members || []);
+      }
+    } catch (e) {
+      console.error('Failed to revoke member:', e);
+      alert('Failed to revoke member. Please try again.');
+    }
+  };
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -613,12 +627,20 @@ export default function ChannelsPage() {
               </div>
               <div className="flex items-center gap-4 text-gray-500">
                 <div className="flex -space-x-2">
-                  {activeProjectMembers.slice(0, 3).map((member: any) => (
-                    <img key={member.id} src={`https://ui-avatars.com/api/?name=${member.user?.firstName || 'U'}&background=random`} className="w-7 h-7 rounded-full border-2 border-white" />
-                  ))}
-                  <div className="w-7 h-7 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">
-                    +{activeProjectMembers.length}
-                  </div>
+                  {activeProjectMembers.slice(0, 3).map((member: any) => {
+                    const avatar = member.user?.avatarUrl || member.user?.avatar_url || member.clientContact?.avatarUrl || member.clientContact?.user?.avatarUrl;
+                    const name = member.user?.firstName ? `${member.user.firstName} ${member.user.lastName || ''}`.trim() : member.clientContact?.name || 'User';
+                    return avatar ? (
+                      <img key={member.id} src={avatar} alt={name} title={name} className="w-7 h-7 rounded-full object-cover border-2 border-white dark:border-slate-900 shadow-xs" />
+                    ) : (
+                      <img key={member.id} src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`} alt={name} title={name} className="w-7 h-7 rounded-full border-2 border-white dark:border-slate-900 shadow-xs" />
+                    );
+                  })}
+                  {activeProjectMembers.length > 3 && (
+                    <div className="w-7 h-7 rounded-full border-2 border-white dark:border-slate-900 bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-gray-600 dark:text-gray-300">
+                      +{activeProjectMembers.length - 3}
+                    </div>
+                  )}
                 </div>
                 <button 
                   onClick={() => setShowRightPane(!showRightPane)}
@@ -1091,8 +1113,17 @@ export default function ChannelsPage() {
                               <div className="text-[11px] text-gray-500 dark:text-gray-400">{member.role || 'Member'}</div>
                             </div>
                           </div>
-                          <div className="px-2 py-1 bg-[#346E3A]/10 text-[#346E3A] rounded text-[10px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                            {member.role || 'Member'}
+                          <div className="flex items-center gap-2">
+                            <div className="px-2 py-1 bg-[#346E3A]/10 text-[#346E3A] rounded text-[10px] font-bold uppercase tracking-wider">
+                              {member.role || 'Member'}
+                            </div>
+                            <button
+                              onClick={() => handleRevokeMember(member.id, memberName)}
+                              title="Revoke member from channel"
+                              className="p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
                       );

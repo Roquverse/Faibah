@@ -385,4 +385,9 @@ export class ProjectsService {
     await this.prisma.projectMember.delete({ where: { id: memberId } });
     return { success: true };
   }
+
+  async removeMember(memberId: string) {
+    await this.prisma.projectMember.delete({ where: { id: memberId } });
+    return { success: true };
+  }
 }

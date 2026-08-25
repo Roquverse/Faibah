@@ -58,4 +58,9 @@ export class ProjectsController {
   async inviteMember(@Param('id') id: string, @Body() body: { email: string; role?: string }) {
     return this.projectsService.inviteMember(id, body.email, body.role);
   }
+
+  @Delete('members/:memberId')
+  async removeMember(@Param('memberId') memberId: string) {
+    return this.projectsService.removeMember(memberId);
+  }
 }

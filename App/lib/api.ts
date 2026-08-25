@@ -107,6 +107,7 @@ export const ProjectsApi = {
   getPendingInvitations: () => fetchApi('/projects/invitations/pending'),
   acceptInvitation: (memberId: string) => fetchApi(`/projects/invitations/${memberId}/accept`, { method: 'PATCH' }),
   declineInvitation: (memberId: string) => fetchApi(`/projects/invitations/${memberId}/decline`, { method: 'DELETE' }),
+  removeMember: (memberId: string) => fetchApi(`/projects/members/${memberId}`, { method: 'DELETE' }),
 };
 
 export const AppointmentsApi = {
