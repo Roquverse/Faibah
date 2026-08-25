@@ -47,26 +47,31 @@ export class MailService {
     @InjectQueue('email-queue') private readonly emailQueue: Queue,
   ) {
     const host = process.env.SMTP_HOST || process.env.MAIL_HOST;
-    const port = Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 587);
+    const rawPort = process.env.SMTP_PORT || process.env.MAIL_PORT;
+    const port = rawPort ? Number(rawPort) : 465; // Default 465 for Zoho SSL
     const user = process.env.SMTP_USER || process.env.MAIL_USER;
     const pass = process.env.SMTP_PASS || process.env.MAIL_PASS;
 
     if (host && user && pass) {
+      const isSecure = port === 465;
       this.transporter = nodemailer.createTransport({
         host,
         port,
-        secure: port === 465,
+        secure: isSecure, // true for 465 (Zoho SSL), false for 587 (Zoho STARTTLS)
         auth: { user, pass },
         tls: {
           rejectUnauthorized: false
         }
       });
-      this.logger.log(`[MailService] Configured SMTP via ${host}:${port}`);
+      
+      this.logger.log(`[MailService] Configured SMTP via ${host}:${port} (secure: ${isSecure})`);
+      
+      // Verify connection configuration
       this.transporter.verify((error) => {
         if (error) {
-          this.logger.error(`[MailService] ❌ SMTP Verification Failed for ${host}:${port} -> ${error.message}`);
+          this.logger.error(`[MailService] ❌ Zoho/SMTP Connection Error (${host}:${port}): ${error.message}`);
         } else {
-          this.logger.log(`[MailService] ✅ SMTP Server ${host}:${port} is verified and ready.`);
+          this.logger.log(`[MailService] ✅ Zoho/SMTP Server ${host}:${port} is authenticated and ready to send!`);
         }
       });
     } else {
@@ -75,7 +80,7 @@ export class MailService {
         newline: 'unix',
         buffer: true,
       });
-      this.logger.warn('[MailService] ⚠️ SMTP credentials not set. Falling back to stream transport (emails will not be delivered externally).');
+      this.logger.warn('[MailService] ⚠️ SMTP credentials not set. Falling back to stream transport (emails will not be sent).');
     }
   }
 
