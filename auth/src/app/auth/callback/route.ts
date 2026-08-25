@@ -2,9 +2,26 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+function getAuthBaseUrl(request: Request) {
+  if (process.env.NEXT_PUBLIC_AUTH_APP_URL) {
+    return process.env.NEXT_PUBLIC_AUTH_APP_URL.replace(/\/$/, '');
+  }
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+    const proto = request.headers.get('x-forwarded-proto') || 'https';
+    return `${proto}://${host}`;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://auth.faibah.com';
+  }
+  const { origin } = new URL(request.url);
+  return origin;
+}
+
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
+  const authBaseUrl = getAuthBaseUrl(request);
 
   if (code) {
     const cookieStore = await cookies();
@@ -45,9 +62,9 @@ export async function GET(request: Request) {
         return NextResponse.redirect(process.env.NEXT_PUBLIC_MAIN_APP_URL || 'https://app.faibah.com');
       }
 
-      return NextResponse.redirect(`${origin}/onboarding`);
+      return NextResponse.redirect(`${authBaseUrl}/onboarding`);
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=Could%20not%20authenticate%20user`);
+  return NextResponse.redirect(`${authBaseUrl}/login?error=Could%20not%20authenticate%20user`);
 }
