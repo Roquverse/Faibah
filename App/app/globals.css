@@ -63,6 +63,22 @@
   color: var(--foreground) !important;
 }
 
+/* Preserve dark black text color on yellow/primary buttons and badges in dark mode */
+.dark .bg-\[\#FBDF4B\],
+.dark .bg-\[\#FBDF4B\] *,
+.dark .bg-\[\#F3D53C\],
+.dark .bg-\[\#F3D53C\] *,
+.dark .bg-amber-400,
+.dark .bg-amber-400 *,
+.dark .bg-yellow-400,
+.dark .bg-yellow-400 *,
+.dark .bg-yellow-500,
+.dark .bg-yellow-500 *,
+.dark button.bg-\[\#FBDF4B\],
+.dark button.bg-\[\#FBDF4B\] * {
+  color: #0F172A !important;
+}
+
 .dark .dashboard-layout .text-gray-700,
 .dark .dashboard-layout .text-gray-600 {
   color: #CBD5E1 !important; /* Slate 300 */
