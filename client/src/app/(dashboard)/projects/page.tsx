@@ -195,7 +195,7 @@ export default function ProjectsPage() {
               {/* Cards Container */}
               <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                 {projects.filter(p => p.status === col.id).map(project => (
-                  <Link href={`/workspace/${project.id}`} key={project.id}>
+                  <Link href={`/channels?project=${project.id}`} key={project.id}>
                     <div 
                       className="bg-white p-4 rounded-xl border border-gray-200 hover:border-gray-300 transition-all cursor-pointer group mb-4 block"
                     >
@@ -285,7 +285,7 @@ export default function ProjectsPage() {
               {projects.map(project => (
                 <tr key={project.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-6 py-4">
-                    <Link href={`/workspace/${project.id}`} className="font-bold text-gray-900 group-hover:text-[#346E3A] transition-colors">
+                    <Link href={`/channels?project=${project.id}`} className="font-bold text-gray-900 group-hover:text-[#346E3A] transition-colors">
                       {project.title}
                     </Link>
                   </td>

@@ -78,8 +78,17 @@ export default function ChannelsPage() {
       projectsData.forEach((p: any) => expanded[p.id] = true);
       setExpandedProjects(expanded);
 
-      if (channelsData.length > 0 && !activeChannelId) {
-        setActiveChannelId(channelsData[0].id);
+      if (channelsData.length > 0) {
+        let targetId = channelsData[0].id;
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          const projectParam = params.get('project');
+          if (projectParam) {
+            const match = channelsData.find((c: any) => c.projectId === projectParam);
+            if (match) targetId = match.id;
+          }
+        }
+        setActiveChannelId(targetId);
       }
     } catch (error) {
       console.error('Failed to load channels', error);
