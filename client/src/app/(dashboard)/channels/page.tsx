@@ -97,18 +97,46 @@ export default function ChannelsPage() {
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
-  const renderMessageWithMentions = (content: string) => {
+  const renderFormattedContent = (content: string, members: any[] = []) => {
     if (!content) return null;
-    const parts = content.split(/(@[A-Za-z0-9_.\s]+?(?=\s[A-Za-z0-9]|\s*$|,|\.|\?|!))/g);
-    return parts.map((part, idx) => {
-      if (part.startsWith('@')) {
+
+    // URL regex for http, https, or www
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+    const parts = content.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        const href = part.toLowerCase().startsWith('www.') ? `https://${part}` : part;
         return (
-          <span key={idx} className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-md mx-0.5 inline-block">
+          <a
+            key={index}
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            className="text-blue-600 dark:text-blue-400 underline font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors break-all cursor-pointer inline-flex items-center gap-1 mx-0.5"
+          >
             {part}
-          </span>
+          </a>
         );
       }
-      return part;
+
+      // Check for mentions in non-URL text (@Name or @Name Lastname)
+      const mentionRegex = /(@[A-Za-z0-9_.]+(?:\s+[A-Za-z0-9_.]+)?)/g;
+      const textSegments = part.split(mentionRegex);
+
+      return textSegments.map((segment, subIdx) => {
+        if (segment.startsWith('@')) {
+          return (
+            <span
+              key={`${index}-${subIdx}`}
+              className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40 px-1.5 py-0.5 rounded-md mx-0.5 inline-block"
+            >
+              {segment}
+            </span>
+          );
+        }
+        return segment;
+      });
     });
   };
 
@@ -587,7 +615,7 @@ export default function ChannelsPage() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 md:px-6 space-y-0.5">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center max-w-sm mx-auto">
                   <div className="w-16 h-16 bg-[#346E3A]/10 text-[#346E3A] rounded-full flex items-center justify-center mb-4">
@@ -623,16 +651,120 @@ export default function ChannelsPage() {
                   }
 
                   const senderAvatar = isCurrentUser ? currentUser?.avatarUrl : (senderMember?.user?.avatarUrl);
-                  const avatarLetter = senderName.charAt(0).toUpperCase();
-
                   const showHeader = i === 0 || messages[i-1].senderId !== msg.senderId || (new Date(msg.createdAt).getTime() - new Date(messages[i-1].createdAt).getTime() > 300000);
                   const isPinned = pinnedMessageIds.includes(msg.id);
                   
+                  if (showHeader) {
+                    return (
+                      <div key={msg.id} className={`flex gap-3 px-3 py-2 mt-3 hover:bg-gray-50/70 dark:hover:bg-slate-800/40 rounded-xl transition-colors group relative ${isPinned ? 'bg-amber-50/60 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/50' : ''}`}>
+                        
+                        {/* Hover Action Bar */}
+                        <div className="absolute right-3 top-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-sm flex items-center gap-1 p-0.5 z-10">
+                          <button 
+                            onClick={() => handleToggleReaction(msg.id, '❤️')}
+                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors text-xs"
+                            title="Love"
+                          >
+                            ❤️
+                          </button>
+                          <button 
+                            onClick={() => handleToggleReaction(msg.id, '👍')}
+                            className="p-1 text-gray-400 hover:text-amber-500 hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors text-xs"
+                            title="Thumbs Up"
+                          >
+                            👍
+                          </button>
+                          <button 
+                            onClick={() => setPinnedMessageIds(prev => prev.includes(msg.id) ? prev.filter(id => id !== msg.id) : [...prev, msg.id])}
+                            className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors"
+                            title={isPinned ? "Unpin message" : "Pin message"}
+                          >
+                            <Pin className={`w-3.5 h-3.5 ${isPinned ? 'fill-amber-500 text-amber-500' : ''}`} />
+                          </button>
+                        </div>
+
+                        {/* User Avatar */}
+                        <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-slate-800 shrink-0 overflow-hidden border border-gray-200 dark:border-slate-700 mt-0.5">
+                          {senderAvatar ? (
+                            <img src={senderAvatar} alt={senderName} className="w-full h-full object-cover" />
+                          ) : (
+                            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(senderName)}&background=random`} alt={senderName} className="w-full h-full object-cover" />
+                          )}
+                        </div>
+
+                        {/* Message Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="font-bold text-gray-900 dark:text-white text-sm tracking-tight">{senderName}</span>
+                            <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                              {formatRelativeTime(msg.createdAt)}
+                            </span>
+                          </div>
+
+                          {/* Content */}
+                          <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap">
+                            {renderFormattedContent(msg.content, activeProjectMembers)}
+                          </div>
+
+                          {/* Attachments & Link Cards */}
+                          {msg.attachmentUrl && (
+                            <div className="mt-2">
+                              {msg.attachmentUrl.match(/\.(webm|mp3|wav|ogg)$/i) || msg.content === 'Voice Message' ? (
+                                <audio controls src={msg.attachmentUrl} className="max-w-full h-9 outline-none" />
+                              ) : msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i) || msg.attachmentUrl.includes('/image/upload/') ? (
+                                <img src={msg.attachmentUrl} alt="Attachment" className="max-w-sm max-h-72 object-cover rounded-xl border border-gray-200 dark:border-slate-700 shadow-xs" />
+                              ) : (
+                                <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-gray-200/80 dark:border-slate-700/80 max-w-md shadow-xs">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-9 h-9 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg flex items-center justify-center shrink-0 font-bold">
+                                      📄
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                                        {msg.attachmentUrl.split('/').pop() || 'Attachment'}
+                                      </div>
+                                      <div className="text-[11px] text-gray-400 truncate">Document / File Link</div>
+                                    </div>
+                                  </div>
+                                  <a 
+                                    href={msg.attachmentUrl} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 text-xs font-semibold text-gray-700 dark:text-gray-200 rounded-lg border border-gray-200 dark:border-slate-600 transition-colors shrink-0 ml-3"
+                                  >
+                                    Quick view
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Reactions Bar */}
+                          {reactions[msg.id] && Object.keys(reactions[msg.id]).length > 0 && (
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              {Object.entries(reactions[msg.id]).map(([emoji, count]) => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => handleToggleReaction(msg.id, emoji)}
+                                  className="px-2 py-0.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1 transition-colors"
+                                >
+                                  <span>{emoji}</span>
+                                  <span>{count}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Consecutive message from same sender (compact grouping)
                   return (
-                    <div key={msg.id} className={`flex gap-3 px-3 py-3.5 hover:bg-gray-50/70 dark:hover:bg-slate-800/40 rounded-xl transition-colors group relative ${isPinned ? 'bg-amber-50/60 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/50' : ''}`}>
+                    <div key={msg.id} className={`flex gap-3 pl-12 pr-3 py-0.5 hover:bg-gray-50/70 dark:hover:bg-slate-800/40 rounded-lg transition-colors group relative ${isPinned ? 'bg-amber-50/60 dark:bg-amber-900/20' : ''}`}>
                       
                       {/* Hover Action Bar */}
-                      <div className="absolute right-3 top-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-sm flex items-center gap-1 p-0.5 z-10">
+                      <div className="absolute right-3 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-sm flex items-center gap-1 p-0.5 z-10">
                         <button 
                           onClick={() => handleToggleReaction(msg.id, '❤️')}
                           className="p-1 text-gray-400 hover:text-red-500 hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors text-xs"
@@ -656,32 +788,19 @@ export default function ChannelsPage() {
                         </button>
                       </div>
 
-                      {/* User Avatar */}
-                      <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-slate-800 shrink-0 overflow-hidden border border-gray-200 dark:border-slate-700 mt-0.5">
-                        {senderAvatar ? (
-                          <img src={senderAvatar} alt={senderName} className="w-full h-full object-cover" />
-                        ) : (
-                          <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(senderName)}&background=random`} alt={senderName} className="w-full h-full object-cover" />
-                        )}
+                      {/* Hover timestamp in left margin */}
+                      <div className="w-9 -ml-12 shrink-0 opacity-0 group-hover:opacity-100 text-[10px] text-gray-400 text-right pr-2 pt-0.5 font-medium transition-opacity">
+                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
 
-                      {/* Message Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-gray-900 dark:text-white text-sm tracking-tight">{senderName}</span>
-                          <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
-                            {formatRelativeTime(msg.createdAt)}
-                          </span>
+                        <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap">
+                          {renderFormattedContent(msg.content, activeProjectMembers)}
                         </div>
 
-                        {/* Content */}
-                        <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-relaxed font-normal whitespace-pre-wrap">
-                          {renderMessageWithMentions(msg.content)}
-                        </div>
-
-                        {/* Attachments & Link Cards */}
+                        {/* Attachments */}
                         {msg.attachmentUrl && (
-                          <div className="mt-2.5">
+                          <div className="mt-2">
                             {msg.attachmentUrl.match(/\.(webm|mp3|wav|ogg)$/i) || msg.content === 'Voice Message' ? (
                               <audio controls src={msg.attachmentUrl} className="max-w-full h-9 outline-none" />
                             ) : msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i) || msg.attachmentUrl.includes('/image/upload/') ? (
@@ -713,9 +832,9 @@ export default function ChannelsPage() {
                         )}
 
                         {/* Reactions Bar */}
-                        <div className="flex items-center gap-1.5 mt-2">
-                          {reactions[msg.id] && Object.keys(reactions[msg.id]).length > 0 ? (
-                            Object.entries(reactions[msg.id]).map(([emoji, count]) => (
+                        {reactions[msg.id] && Object.keys(reactions[msg.id]).length > 0 && (
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            {Object.entries(reactions[msg.id]).map(([emoji, count]) => (
                               <button
                                 key={emoji}
                                 onClick={() => handleToggleReaction(msg.id, emoji)}
@@ -724,24 +843,9 @@ export default function ChannelsPage() {
                                 <span>{emoji}</span>
                                 <span>{count}</span>
                               </button>
-                            ))
-                          ) : (
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => handleToggleReaction(msg.id, '❤️')}
-                                className="px-2.5 py-0.5 bg-gray-50 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200/60 dark:border-slate-700/60 rounded-full text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 transition-colors"
-                              >
-                                ❤️
-                              </button>
-                              <button
-                                onClick={() => handleToggleReaction(msg.id, '👍')}
-                                className="px-2.5 py-0.5 bg-gray-50 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200/60 dark:border-slate-700/60 rounded-full text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 transition-colors"
-                              >
-                                👍
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
