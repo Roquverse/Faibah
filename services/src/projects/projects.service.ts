@@ -173,4 +173,95 @@ export class ProjectsService {
       }
     });
   }
+
+  async inviteMember(projectId: string, email: string, role?: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { client: { include: { company: true } } }
+    });
+    if (!project) throw new NotFoundException('Project not found');
+
+    const cleanEmail = email.trim().toLowerCase();
+    const existingUser = await this.prisma.user.findUnique({ where: { email: cleanEmail } });
+
+    if (existingUser) {
+      const existingMember = await this.prisma.projectMember.findFirst({
+        where: { projectId, userId: existingUser.id }
+      });
+
+      let member;
+      if (existingMember) {
+        member = await this.prisma.projectMember.update({
+          where: { id: existingMember.id },
+          data: { status: 'INVITED' },
+          include: { user: true }
+        });
+      } else {
+        member = await this.prisma.projectMember.create({
+          data: {
+            projectId,
+            userId: existingUser.id,
+            memberType: 'TEAM_USER',
+            role: (role as any) || 'CONTRACTOR',
+            status: 'INVITED',
+          },
+          include: { user: true }
+        });
+      }
+
+      await this.mailService.queueActivityNotice({
+        recipientEmail: cleanEmail,
+        recipientName: existingUser.firstName || 'User',
+        title: `Project Channel Invitation: ${project.name}`,
+        message: `You have been invited to join the project channel for "${project.name}". Log in to accept your channel request.`,
+        actionUrl: `${process.env.NEXT_PUBLIC_MAIN_APP_URL || 'https://app.faibah.com'}/channels`,
+        actionText: 'View Channel Request'
+      });
+
+      return { success: true, isRegistered: true, member };
+    } else {
+      await this.mailService.queueActivityNotice({
+        recipientEmail: cleanEmail,
+        title: `Invitation to join "${project.name}" on Faiba`,
+        message: `You have been invited to collaborate on the project "${project.name}". Click below to sign up and join the channel.`,
+        actionUrl: `${process.env.NEXT_PUBLIC_AUTH_APP_URL || 'https://auth.faibah.com'}/login`,
+        actionText: 'Sign Up & Join'
+      });
+
+      return { success: true, isRegistered: false, message: `Invitation email sent to ${cleanEmail}` };
+    }
+  }
+
+  async getPendingInvitations(userId: string) {
+    if (!userId) return [];
+    return this.prisma.projectMember.findMany({
+      where: {
+        userId,
+        status: 'INVITED',
+      },
+      include: {
+        project: {
+          include: { client: true }
+        }
+      }
+    });
+  }
+
+  async acceptInvitation(memberId: string) {
+    const member = await this.prisma.projectMember.findUnique({ where: { id: memberId } });
+    if (!member) throw new NotFoundException('Invitation not found');
+
+    const updated = await this.prisma.projectMember.update({
+      where: { id: memberId },
+      data: { status: 'ACTIVE' },
+      include: { user: true, project: true }
+    });
+
+    return { success: true, member: updated };
+  }
+
+  async declineInvitation(memberId: string) {
+    await this.prisma.projectMember.delete({ where: { id: memberId } });
+    return { success: true };
+  }
 }

@@ -102,6 +102,10 @@ export const ProjectsApi = {
   updateStatus: (id: string, status: string) => fetchApi(`/projects/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   createProposal: (projectId: string, content: string) => fetchApi(`/projects/${projectId}/proposals`, { method: 'POST', body: JSON.stringify({ content }) }),
   getMembers: (projectId: string) => fetchApi(`/projects/${projectId}/members`),
+  inviteMember: (projectId: string, email: string, role?: string) => fetchApi(`/projects/${projectId}/members/invite`, { method: 'POST', body: JSON.stringify({ email, role }) }),
+  getPendingInvitations: () => fetchApi('/projects/invitations/pending'),
+  acceptInvitation: (memberId: string) => fetchApi(`/projects/invitations/${memberId}/accept`, { method: 'PATCH' }),
+  declineInvitation: (memberId: string) => fetchApi(`/projects/invitations/${memberId}/decline`, { method: 'DELETE' }),
 };
 
 export const AppointmentsApi = {
