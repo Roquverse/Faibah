@@ -143,10 +143,27 @@ export const UploadApi = {
 };
 
 export const TasksApi = {
-  getTasks: (projectId: string) => fetchApi(`/tasks/project/${projectId}`),
+  getTasks: (projectId: string, assignedTo?: string) => 
+    fetchApi(`/tasks/project/${projectId}${assignedTo ? `?assignedTo=${assignedTo}` : ''}`),
   createTask: (data: any) => fetchApi('/tasks', { method: 'POST', body: JSON.stringify(data) }),
   updateStatus: (id: string, status: string) => fetchApi(`/tasks/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   assignUser: (taskId: string, projectMemberId: string) => fetchApi(`/tasks/${taskId}/assign`, { method: 'POST', body: JSON.stringify({ projectMemberId }) }),
+};
+
+export const ScheduleEventsApi = {
+  getEvents: (projectId?: string) => 
+    fetchApi(`/schedule-events${projectId ? `?projectId=${projectId}` : ''}`),
+  create: (data: {
+    projectId: string;
+    title: string;
+    description?: string;
+    type?: string;
+    startTime: string;
+    endTime?: string;
+    linkedTaskId?: string;
+  }) => fetchApi('/schedule-events', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: any) => fetchApi(`/schedule-events/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) => fetchApi(`/schedule-events/${id}`, { method: 'DELETE' }),
 };
 
 export const ChannelsApi = {
@@ -160,6 +177,11 @@ export const ReceiptsApi = {
   getAll: () => fetchApi('/receipts'),
   getById: (id: string) => fetchApi(`/receipts/${id}`),
   create: (data: any) => fetchApi('/receipts', { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: string) => fetchApi(`/receipts/${id}`, { method: 'DELETE' }),
+};
+
+export const PaymentsApi = {
+  getAll: () => fetchApi('/payments'),
 };
 
 export const InvoicesApi = {
@@ -168,4 +190,3 @@ export const InvoicesApi = {
   create: (data: any) => fetchApi('/invoices', { method: 'POST', body: JSON.stringify(data) }),
   delete: (id: string) => fetchApi(`/invoices/${id}`, { method: 'DELETE' }),
 };
-
