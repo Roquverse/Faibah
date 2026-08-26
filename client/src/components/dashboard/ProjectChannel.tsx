@@ -16,6 +16,7 @@ import {
   ThumbsUp,
   Smile,
   Hash,
+  Eye,
   Image as ImageIcon
 } from 'lucide-react';
 import { UploadApi, TasksApi } from '@/lib/api';
@@ -323,13 +324,29 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                           <FileText className="w-5 h-5" />
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-gray-900">{message.attachmentUrl}</div>
-                          <div className="text-xs text-gray-500">PDF • 2.4 MB</div>
+                          <div className="text-sm font-bold text-gray-900">{message.attachmentUrl.split('/').pop() || 'Attachment'}</div>
+                          <div className="text-xs text-gray-500">Attachment File</div>
                         </div>
                       </div>
-                      <button className="text-xs font-bold bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5">
-                        <Download className="w-3.5 h-3.5" /> Open
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <a 
+                          href={message.attachmentUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-bold bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View
+                        </a>
+                        <a 
+                          href={message.attachmentUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          download
+                          className="text-xs font-bold bg-[#346E3A] text-white px-3 py-1.5 rounded-lg hover:bg-[#2c5d31] transition-colors flex items-center gap-1.5"
+                        >
+                          <Download className="w-3.5 h-3.5" /> Download
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
