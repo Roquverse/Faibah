@@ -711,7 +711,19 @@ export default function ChannelsPage() {
       {/* Pane 1: Left Sidebar (Navigation) */}
       <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#F9FAFB] dark:bg-slate-800 border-r border-gray-100 dark:border-slate-800 flex flex-col shrink-0 transition-transform duration-200 ease-in-out md:static md:w-64 md:translate-x-0 ${showMobileSidebar ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}`}>
         <div className="px-4 py-4 border-b border-gray-100 dark:border-slate-700/50 flex items-center justify-between">
-          <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">Channels</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">Channels</h2>
+            <button 
+              onClick={() => {
+                setNewChannel({ name: '', projectId: projects[0]?.id || '' });
+                setShowCreateModal(true);
+              }}
+              className="p-1 text-[#346E3A] dark:text-green-400 hover:bg-[#346E3A]/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
+              title="Create New Channel"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
           <button 
             onClick={() => setShowMobileSidebar(false)} 
             className="md:hidden text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 rounded-lg"
@@ -756,23 +768,44 @@ export default function ChannelsPage() {
           <div>
             <div className="px-2 mb-2 text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
               <span>Projects</span>
+              <button 
+                onClick={() => {
+                  setNewChannel({ name: '', projectId: projects[0]?.id || '' });
+                  setShowCreateModal(true);
+                }}
+                className="text-gray-400 hover:text-[#346E3A] dark:hover:text-green-400 p-0.5 rounded hover:bg-gray-200/50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-semibold"
+                title="Create New Channel"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
             </div>
             
             {projects.map(project => (
               <div key={project.id} className="mb-2">
-                <button 
-                  onClick={() => toggleProjectExpand(project.id)}
-                  className="w-full flex items-center justify-between px-2 py-1.5 text-gray-700 dark:text-gray-200 hover:bg-gray-200/50 dark:hover:bg-slate-700/50 rounded-lg group transition-colors"
-                >
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between group rounded-lg hover:bg-gray-200/50 dark:hover:bg-slate-700/50 transition-colors">
+                  <button 
+                    onClick={() => toggleProjectExpand(project.id)}
+                    className="flex-1 flex items-center gap-2 px-2 py-1.5 text-gray-700 dark:text-gray-200 text-left min-w-0"
+                  >
                     {expandedProjects[project.id] ? (
-                      <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                     ) : (
-                      <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                     )}
-                    <span className="font-bold text-[13px]">{project.name}</span>
-                  </div>
-                </button>
+                    <span className="font-bold text-[13px] truncate">{project.name}</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNewChannel({ name: '', projectId: project.id });
+                      setShowCreateModal(true);
+                    }}
+                    className="p-1 mr-1 text-gray-400 hover:text-[#346E3A] dark:hover:text-green-400 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    title={`Create Channel in ${project.name}`}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
                 
                 {expandedProjects[project.id] && (
                   <div className="mt-1 ml-5 border-l border-gray-200 dark:border-slate-700 pl-2 space-y-0.5">
