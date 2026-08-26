@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   MessageSquare, Plus, Folder, Hash, Search, Bell, Settings, 
   MoreVertical, Smile, Paperclip, Mic, Send, Info, Pin, File as FileIcon, Link as LinkIcon,
-  ChevronRight, ChevronDown, User, Zap, Calendar, AtSign, Play, Square, Circle, X, Loader2, Menu, Trash2, Eye, Download, ExternalLink, FileText
+  ChevronRight, ChevronDown, User, Zap, Calendar, AtSign, Play, Square, Circle, X, Loader2, Menu, Trash2, Eye, Download, ExternalLink, FileText, Star
 } from 'lucide-react';
 import { ChannelsApi, ProjectsApi, UsersApi, UploadApi } from '@/lib/api';
 import { io } from 'socket.io-client';
@@ -27,6 +27,60 @@ export default function ChannelsPage() {
   
   // Local features state
   const [pinnedMessageIds, setPinnedMessageIds] = useState<string[]>([]);
+  const [favoriteChannelIds, setFavoriteChannelIds] = useState<string[]>([]);
+
+  // Load pinned messages from localStorage whenever activeChannelId changes
+  useEffect(() => {
+    if (activeChannelId) {
+      try {
+        const saved = localStorage.getItem(`faibah_pinned_messages_${activeChannelId}`);
+        if (saved) {
+          setPinnedMessageIds(JSON.parse(saved));
+        } else {
+          setPinnedMessageIds([]);
+        }
+      } catch (e) {
+        setPinnedMessageIds([]);
+      }
+    }
+  }, [activeChannelId]);
+
+  // Load favorite channels from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('faibah_favorite_channels');
+      if (saved) {
+        setFavoriteChannelIds(JSON.parse(saved));
+      }
+    } catch (e) {}
+  }, []);
+
+  const togglePinMessage = (messageId: string) => {
+    setPinnedMessageIds(prev => {
+      const updated = prev.includes(messageId)
+        ? prev.filter(id => id !== messageId)
+        : [...prev, messageId];
+      if (activeChannelId) {
+        try {
+          localStorage.setItem(`faibah_pinned_messages_${activeChannelId}`, JSON.stringify(updated));
+        } catch (e) {}
+      }
+      return updated;
+    });
+  };
+
+  const toggleFavoriteChannel = (channelId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setFavoriteChannelIds(prev => {
+      const updated = prev.includes(channelId)
+        ? prev.filter(id => id !== channelId)
+        : [...prev, channelId];
+      try {
+        localStorage.setItem('faibah_favorite_channels', JSON.stringify(updated));
+      } catch (err) {}
+      return updated;
+    });
+  };
   
   // Attachment Preview Lightbox State
   const [previewAttachment, setPreviewAttachment] = useState<{
@@ -670,10 +724,32 @@ export default function ChannelsPage() {
           {/* Favorites */}
           <div>
             <div className="px-2 mb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Favorites</div>
-            <button className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-slate-700/50 transition-colors">
-              <span className="w-5 h-5 flex items-center justify-center text-yellow-500 text-lg">⭐</span>
-              <span className="font-medium">general</span>
-            </button>
+            {channels.filter(c => favoriteChannelIds.includes(c.id)).length === 0 ? (
+              <div className="px-2 py-1 text-xs text-gray-400 italic">No favorite channels yet. Click ⭐ to pin a channel.</div>
+            ) : (
+              channels.filter(c => favoriteChannelIds.includes(c.id)).map(favChannel => (
+                <button
+                  key={`fav-${favChannel.id}`}
+                  onClick={() => {
+                    setActiveChannelId(favChannel.id);
+                    setShowMobileSidebar(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors group ${activeChannelId === favChannel.id ? 'bg-[#346E3A]/10 text-[#346E3A] font-bold' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-slate-700/50'}`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
+                    <span className="truncate text-[13px]">{favChannel.name}</span>
+                  </div>
+                  <button
+                    onClick={(e) => toggleFavoriteChannel(favChannel.id, e)}
+                    title="Remove from Favorites"
+                    className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-red-500 transition-opacity cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </button>
+              ))
+            )}
           </div>
 
           {/* Grouped by Projects */}
@@ -707,10 +783,19 @@ export default function ChannelsPage() {
                           setActiveChannelId(channel.id);
                           setShowMobileSidebar(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors ${activeChannelId === channel.id ? 'bg-[#346E3A]/10 text-[#346E3A] font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-slate-700/50 font-medium'}`}
+                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-md transition-colors group ${activeChannelId === channel.id ? 'bg-[#346E3A]/10 text-[#346E3A] font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-slate-700/50 font-medium'}`}
                       >
-                        <Hash className="w-3.5 h-3.5 opacity-50" />
-                        <span className="truncate text-[13px]">{channel.name}</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Hash className="w-3.5 h-3.5 opacity-50 shrink-0" />
+                          <span className="truncate text-[13px]">{channel.name}</span>
+                        </div>
+                        <button
+                          onClick={(e) => toggleFavoriteChannel(channel.id, e)}
+                          title={favoriteChannelIds.includes(channel.id) ? "Remove from Favorites" : "Pin to Favorites"}
+                          className="p-1 text-gray-400 hover:text-yellow-500 transition-colors cursor-pointer"
+                        >
+                          <Star className={`w-3.5 h-3.5 ${favoriteChannelIds.includes(channel.id) ? 'fill-yellow-400 text-yellow-400 opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                        </button>
                       </button>
                     ))}
                     {(!channelsByProject[project.id] || channelsByProject[project.id].length === 0) && (
@@ -876,8 +961,8 @@ export default function ChannelsPage() {
                             👍
                           </button>
                           <button 
-                            onClick={() => setPinnedMessageIds(prev => prev.includes(msg.id) ? prev.filter(id => id !== msg.id) : [...prev, msg.id])}
-                            className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors"
+                            onClick={() => togglePinMessage(msg.id)}
+                            className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors cursor-pointer"
                             title={isPinned ? "Unpin message" : "Pin message"}
                           >
                             <Pin className={`w-3.5 h-3.5 ${isPinned ? 'fill-amber-500 text-amber-500' : ''}`} />
@@ -955,8 +1040,8 @@ export default function ChannelsPage() {
                           👍
                         </button>
                         <button 
-                          onClick={() => setPinnedMessageIds(prev => prev.includes(msg.id) ? prev.filter(id => id !== msg.id) : [...prev, msg.id])}
-                          className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors"
+                          onClick={() => togglePinMessage(msg.id)}
+                          className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-700 rounded transition-colors cursor-pointer"
                           title={isPinned ? "Unpin message" : "Pin message"}
                         >
                           <Pin className={`w-3.5 h-3.5 ${isPinned ? 'fill-amber-500 text-amber-500' : ''}`} />
@@ -1245,8 +1330,8 @@ export default function ChannelsPage() {
                   pinnedMessagesList.map(msg => (
                     <div key={msg.id} className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm text-xs group relative">
                       <button 
-                        onClick={() => setPinnedMessageIds(prev => prev.filter(id => id !== msg.id))}
-                        className="absolute right-2 top-2 p-1 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => togglePinMessage(msg.id)}
+                        className="absolute right-2 top-2 p-1 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         title="Unpin"
                       >
                         <Pin className="w-3 h-3 fill-yellow-500 text-yellow-500" />
