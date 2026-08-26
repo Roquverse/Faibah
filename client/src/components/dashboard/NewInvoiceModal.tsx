@@ -178,22 +178,77 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
           <div>
             <h3 className="text-sm font-bold text-gray-900 mb-3">Line Items</h3>
             
-                        </div>
-                      </div>
+            <div className="space-y-4">
+              {items.map((item, index) => (
+                <div key={index} className="flex flex-col sm:flex-row items-start sm:items-end gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 relative">
+                  
+                  <div className="w-full sm:flex-1 space-y-1.5 pr-8 sm:pr-0">
+                    <label className="text-xs font-semibold text-gray-700">Item Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Web Development"
+                      value={item.itemName}
+                      onChange={e => handleItemChange(index, 'itemName', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 mb-2"
+                      required
+                    />
+                    <label className="text-xs font-semibold text-gray-700">Description</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Professional service delivered as per project requirements."
+                      value={item.details}
+                      onChange={e => handleItemChange(index, 'details', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="flex-1 sm:w-20 space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-700">Qty</label>
+                      <input 
+                        type="number" 
+                        placeholder="0"
+                        min="1"
+                        value={item.quantity}
+                        onChange={e => handleItemChange(index, 'quantity', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                        required
+                      />
                     </div>
                     
-                    <button 
-                      type="button" 
-                      onClick={() => removeItem(index)}
-                      className="absolute top-4 right-4 sm:static sm:mb-1.5 p-2 sm:p-1.5 text-gray-400 hover:text-red-500 transition-colors bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent disabled:opacity-50"
-                      disabled={items.length === 1}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex-1 sm:w-28 space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-700">Price</label>
+                      <input 
+                        type="number" 
+                        placeholder="0.00"
+                        min="0"
+                        value={item.unitPrice}
+                        onChange={e => handleItemChange(index, 'unitPrice', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                        required
+                      />
+                    </div>
                     
+                    <div className="flex-1 sm:w-24 space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-700">Amount</label>
+                      <div className="h-[38px] flex items-center justify-end px-3 text-sm font-bold text-gray-900 bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent">
+                        {item.amount.toLocaleString()}
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
+                  
+                  <button 
+                    type="button" 
+                    onClick={() => removeItem(index)}
+                    className="absolute top-4 right-4 sm:static sm:mb-1.5 p-2 sm:p-1.5 text-gray-400 hover:text-red-500 transition-colors bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent disabled:opacity-50"
+                    disabled={items.length === 1}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  
+                </div>
+              ))}
+            </div>
 
               <button 
                 type="button"
