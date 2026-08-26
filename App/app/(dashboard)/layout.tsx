@@ -11,10 +11,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Sidebar />
         </div>
         <div className="flex-1 md:ml-64 print:ml-0 flex flex-col min-w-0 h-full print:h-auto print:block relative z-0">
-          <div className="print:hidden">
+          <div className="print:hidden relative z-50">
             <Header />
           </div>
-          <main className="flex-1 overflow-x-hidden overflow-y-auto print:overflow-visible print:h-auto w-full relative">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto print:overflow-visible print:h-auto w-full relative z-0">
             {children}
           </main>
         </div>

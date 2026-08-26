@@ -15,11 +15,13 @@ export default function DashboardLayout({
         <Sidebar />
 
         {/* Main Content Area - fluid width */}
-        <div className="flex-1 flex flex-col md:ml-64 min-w-0 transition-all">
-          <Header />
+        <div className="flex-1 flex flex-col md:ml-64 min-w-0 transition-all relative z-0">
+          <div className="relative z-50">
+            <Header />
+          </div>
           
           {/* Scrollable Content */}
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-[#0A0F1C]">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-[#0A0F1C] relative z-0">
             <div className="w-full h-full min-h-[calc(100vh-5rem)]">
               {children}
             </div>

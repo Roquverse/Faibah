@@ -139,7 +139,7 @@ export default function Header() {
   };
 
   return (
-    <header className="h-20 bg-white flex items-center justify-between px-4 md:px-8 font-sans w-full relative z-40">
+    <header className="h-20 bg-white flex items-center justify-between px-4 md:px-8 font-sans w-full relative z-50">
       <div className="flex items-center gap-3 flex-1">
         <button 
           className="md:hidden text-gray-500 hover:text-gray-900"
@@ -243,7 +243,7 @@ export default function Header() {
 
             {/* Notifications Dropdown */}
             {isNotificationsOpen && (
-              <div className="fixed sm:absolute top-16 right-4 sm:top-full sm:right-0 mt-2 w-[calc(100vw-32px)] sm:w-88 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="fixed sm:absolute top-16 right-4 sm:top-full sm:right-0 mt-2 w-[calc(100vw-32px)] sm:w-88 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-gray-900 tracking-tight">Notifications</span>
@@ -333,7 +333,7 @@ export default function Header() {
 
           {/* Profile Dropdown */}
           {isProfileOpen && (
-            <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 pb-2 mb-2 border-b border-gray-100">
                 <div className="text-sm font-bold text-gray-900 tracking-tight truncate">
                   {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : companyName}

@@ -1110,13 +1110,14 @@ export default function ChannelsPage() {
                                 {memberName}
                                 {member.user?.id === currentUser?.id && ' (You)'}
                               </div>
-                              <div className="text-[11px] text-gray-500 dark:text-gray-400">{member.role || 'Member'}</div>
+                              <div className="mt-1">
+                                <span className="px-2 py-0.5 bg-[#346E3A]/10 text-[#346E3A] rounded text-[10px] font-bold uppercase tracking-wider inline-block">
+                                  {member.role || 'Member'}
+                                </span>
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="px-2 py-1 bg-[#346E3A]/10 text-[#346E3A] rounded text-[10px] font-bold uppercase tracking-wider">
-                              {member.role || 'Member'}
-                            </div>
                             <button
                               onClick={() => handleRevokeMember(member.id, memberName)}
                               title="Revoke member from channel"
