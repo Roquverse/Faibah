@@ -81,14 +81,16 @@ export default function NewProjectProposal() {
  { id: '2', description: '2-Day On-Site Photography & Video', quantity: 1, rate: 2500000 },
  { id: '3', description: 'Post-Production Editing', quantity: 1, rate: 750000 },
  ]);
- const [taxRate, setTaxRate] = useState(7.5);
- const [deposit, setDeposit] = useState(50);
+ const [taxRate, setTaxRate] = useState<number | string>(7.5);
+ const [deposit, setDeposit] = useState<number | string>(50);
 
  // Calculations
- const subtotal = items.reduce((acc, item) => acc + (item.quantity * item.rate), 0);
- const taxAmount = (subtotal * taxRate) / 100;
+ const numericTax = taxRate === '' ? 0 : Number(taxRate);
+ const numericDep = deposit === '' ? 0 : Number(deposit);
+ const subtotal = items.reduce((acc, item) => acc + ((Number(item.quantity) || 0) * (Number(item.rate) || 0)), 0);
+ const taxAmount = (subtotal * (isNaN(numericTax) ? 0 : numericTax)) / 100;
  const total = subtotal + taxAmount;
- const depositAmount = (total * deposit) / 100;
+ const depositAmount = (total * (isNaN(numericDep) ? 0 : numericDep)) / 100;
 
  const formatCurrency = (amount: number) => {
  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
@@ -493,13 +495,13 @@ export default function NewProjectProposal() {
  <textarea rows={1} value={item.description} onChange={(e) => updateItem(item.id, 'description', e.target.value)} placeholder="Item description..." className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 focus:outline-none resize-none leading-snug transition-all" />
  </td>
  <td className="py-4 px-2">
- <input type="number" value={item.quantity || ''} onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 0)} className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 text-right focus:outline-none transition-all" />
+ <input type="number" placeholder="0" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', e.target.value)} className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 text-right focus:outline-none transition-all" />
  </td>
  <td className="py-4 px-2">
- <input type="number" value={item.rate || ''} onChange={(e) => updateItem(item.id, 'rate', parseInt(e.target.value) || 0)} className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 text-right focus:outline-none transition-all" />
+ <input type="number" placeholder="0" value={item.rate} onChange={(e) => updateItem(item.id, 'rate', e.target.value)} className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 text-right focus:outline-none transition-all" />
  </td>
  <td className="py-4 pl-4 text-right">
- <span className="text-sm font-bold text-gray-900">{formatCurrency(item.quantity * item.rate)}</span>
+ <span className="text-sm font-bold text-gray-900">{formatCurrency((Number(item.quantity) || 0) * (Number(item.rate) || 0))}</span>
  </td>
  <td className="py-4 text-right">
  <button onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1"><Trash2 className="w-4 h-4" /></button>
@@ -524,7 +526,7 @@ export default function NewProjectProposal() {
  <div className="flex items-center gap-2">
  <span>Tax</span>
  <div className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100">
- <input type="number" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)} className="w-8 bg-transparent text-xs text-right focus:outline-none" />
+ <input type="number" placeholder="0" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="w-12 bg-transparent text-xs text-right focus:outline-none" />
  <span className="text-xs">%</span>
  </div>
  </div>
@@ -540,7 +542,7 @@ export default function NewProjectProposal() {
  <div className="flex items-center gap-2">
  <span>Upfront Deposit</span>
  <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded border border-green-100">
- <input type="number" value={deposit} onChange={(e) => setDeposit(parseFloat(e.target.value) || 0)} className="w-8 bg-transparent text-xs text-right focus:outline-none text-[#346E3A]" />
+ <input type="number" placeholder="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="w-12 bg-transparent text-xs text-right focus:outline-none text-[#346E3A]" />
  <span className="text-xs">%</span>
  </div>
  </div>

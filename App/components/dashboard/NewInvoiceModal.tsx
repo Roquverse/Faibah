@@ -12,9 +12,9 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
   const [clientId, setClientId] = useState('');
   const [projectId, setProjectId] = useState('');
   const [currency, setCurrency] = useState('NGN');
-  const [taxRate, setTaxRate] = useState(0);
+  const [taxRate, setTaxRate] = useState<number | string>('');
   const [dueDate, setDueDate] = useState('');
-  const [items, setItems] = useState([{ itemName: '', details: '', quantity: 1, unitPrice: 0, amount: 0 }]);
+  const [items, setItems] = useState<any[]>([{ itemName: '', details: '', quantity: 1, unitPrice: '', amount: 0 }]);
 
   useEffect(() => {
     if (isOpen) {
@@ -38,21 +38,24 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
     newItems[index] = { ...newItems[index], [field]: value };
     // Recalculate amount
     if (field === 'quantity' || field === 'unitPrice') {
-      newItems[index].amount = Number(newItems[index].quantity) * Number(newItems[index].unitPrice);
+      const q = newItems[index].quantity === '' ? 0 : Number(newItems[index].quantity);
+      const p = newItems[index].unitPrice === '' ? 0 : Number(newItems[index].unitPrice);
+      newItems[index].amount = (isNaN(q) ? 0 : q) * (isNaN(p) ? 0 : p);
     }
     setItems(newItems);
   };
 
   const addItem = () => {
-    setItems([...items, { itemName: '', details: '', quantity: 1, unitPrice: 0, amount: 0 }]);
+    setItems([...items, { itemName: '', details: '', quantity: 1, unitPrice: '', amount: 0 }]);
   };
 
   const removeItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const subtotal = items.reduce((acc, item) => acc + item.amount, 0);
-  const total = subtotal + (subtotal * (taxRate / 100));
+  const numericTaxRate = taxRate === '' ? 0 : Number(taxRate);
+  const subtotal = items.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
+  const total = subtotal + (subtotal * ((isNaN(numericTaxRate) ? 0 : numericTaxRate) / 100));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,8 +72,8 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
     try {
       const formattedItems = items.map(item => ({
         description: `${item.itemName}|||${item.details}`,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
+        quantity: item.quantity === '' ? 0 : Number(item.quantity),
+        unitPrice: item.unitPrice === '' ? 0 : Number(item.unitPrice),
         amount: item.amount
       }));
 
@@ -78,7 +81,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
         clientId,
         projectId: projectId || undefined,
         currency,
-        taxRate,
+        taxRate: taxRate === '' ? 0 : Number(taxRate),
         dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
         items: formattedItems
       });
@@ -158,8 +161,9 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
                   type="number"
                   min="0"
                   step="0.01"
+                  placeholder="0"
                   value={taxRate}
-                  onChange={e => setTaxRate(Number(e.target.value))}
+                  onChange={e => setTaxRate(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -210,7 +214,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
                           placeholder="0"
                           min="1"
                           value={item.quantity}
-                          onChange={e => handleItemChange(index, 'quantity', Number(e.target.value))}
+                          onChange={e => handleItemChange(index, 'quantity', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                           required
                         />
@@ -223,7 +227,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
                           placeholder="0.00"
                           min="0"
                           value={item.unitPrice}
-                          onChange={e => handleItemChange(index, 'unitPrice', Number(e.target.value))}
+                          onChange={e => handleItemChange(index, 'unitPrice', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                           required
                         />
@@ -266,8 +270,8 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
                   <span className="font-semibold text-gray-900">{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-gray-500">
-                  <span>Tax ({taxRate}%)</span>
-                  <span className="font-semibold text-gray-900">{(subtotal * (taxRate / 100)).toLocaleString()}</span>
+                  <span>Tax ({taxRate || 0}%)</span>
+                  <span className="font-semibold text-gray-900">{(subtotal * (numericTaxRate / 100)).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-gray-200 font-bold text-lg text-gray-900">
                   <span>Total</span>

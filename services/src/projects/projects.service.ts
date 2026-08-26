@@ -390,4 +390,41 @@ export class ProjectsService {
     await this.prisma.projectMember.delete({ where: { id: memberId } });
     return { success: true };
   }
+
+  async getOne(id: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: {
+        client: { include: { company: true } },
+        tasks: true,
+        proposals: true,
+        invoices: { include: { items: true } },
+        members: { include: { user: true, clientContact: true } },
+        channels: true,
+        scheduleEvents: true,
+        urls: true,
+      }
+    });
+    if (!project) throw new NotFoundException('Project not found');
+    return project;
+  }
+
+  async updateProjectName(id: string, name: string) {
+    return this.prisma.project.update({
+      where: { id },
+      data: { name },
+    });
+  }
+
+  async addProjectUrl(projectId: string, label: string, url: string) {
+    return this.prisma.projectUrl.create({
+      data: { projectId, label, url }
+    });
+  }
+
+  async deleteProjectUrl(id: string) {
+    return this.prisma.projectUrl.delete({
+      where: { id }
+    });
+  }
 }

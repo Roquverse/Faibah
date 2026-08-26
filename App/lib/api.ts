@@ -99,8 +99,10 @@ export const ClientsApi = {
 
 export const ProjectsApi = {
   getAll: (clientId?: string) => fetchApi(clientId ? `/projects/client/${clientId}` : '/projects'),
+  getOne: (id: string) => fetchApi(`/projects/${id}`),
   create: (data: { clientId: string, name: string }) => fetchApi('/projects', { method: 'POST', body: JSON.stringify(data) }),
   updateStatus: (id: string, status: string) => fetchApi(`/projects/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  updateName: (id: string, name: string) => fetchApi(`/projects/${id}/name`, { method: 'PATCH', body: JSON.stringify({ name }) }),
   createProposal: (projectId: string, content: string) => fetchApi(`/projects/${projectId}/proposals`, { method: 'POST', body: JSON.stringify({ content }) }),
   getMembers: (projectId: string) => fetchApi(`/projects/${projectId}/members`),
   inviteMember: (projectId: string, email: string, role?: string) => fetchApi(`/projects/${projectId}/members/invite`, { method: 'POST', body: JSON.stringify({ email, role }) }),
@@ -108,6 +110,8 @@ export const ProjectsApi = {
   acceptInvitation: (memberId: string) => fetchApi(`/projects/invitations/${memberId}/accept`, { method: 'PATCH' }),
   declineInvitation: (memberId: string) => fetchApi(`/projects/invitations/${memberId}/decline`, { method: 'DELETE' }),
   removeMember: (memberId: string) => fetchApi(`/projects/members/${memberId}`, { method: 'DELETE' }),
+  addUrl: (projectId: string, label: string, url: string) => fetchApi(`/projects/${projectId}/urls`, { method: 'POST', body: JSON.stringify({ label, url }) }),
+  deleteUrl: (urlId: string) => fetchApi(`/projects/urls/${urlId}`, { method: 'DELETE' }),
 };
 
 export const AppointmentsApi = {

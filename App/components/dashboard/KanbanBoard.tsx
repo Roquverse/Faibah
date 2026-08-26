@@ -3,11 +3,14 @@ import { Plus, Search, Filter, MessageSquare, Paperclip, MoreHorizontal, Calenda
 import { TasksApi, ProjectsApi, UsersApi } from '@/lib/api';
 import { io } from 'socket.io-client';
 
+import { useProjectDrawer } from '@/context/ProjectDrawerContext';
+
 interface KanbanBoardProps {
   projectId: string;
 }
 
 export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoardProps) {
+  const { openProjectDrawer } = useProjectDrawer();
   const [selectedProjectId, setSelectedProjectId] = useState<string>(initialProjectId);
   const [myTasksOnly, setMyTasksOnly] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -324,7 +327,13 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                         {/* Project Tag Badge (Global roll-up view indicator) */}
                         {selectedProjectId === 'all' && (task.project?.name || projects.find(p => p.id === task.projectId)?.name) && (
                           <div className="mb-2">
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#346E3A]/10 text-[#346E3A] text-[10px] font-bold rounded-full">
+                            <span 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openProjectDrawer(task.projectId);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#346E3A]/10 text-[#346E3A] hover:bg-[#346E3A]/20 text-[10px] font-bold rounded-full cursor-pointer transition-colors"
+                            >
                               <FolderGit2 className="w-3 h-3" />
                               {task.project?.name || projects.find(p => p.id === task.projectId)?.name}
                             </span>
@@ -435,7 +444,15 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                     <td className="px-6 py-4 font-bold text-gray-900">{task.title}</td>
                     {selectedProjectId === 'all' && (
                       <td className="px-6 py-4 font-semibold text-[#346E3A]">
-                        {task.project?.name || projects.find(p => p.id === task.projectId)?.name || '-'}
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openProjectDrawer(task.projectId);
+                          }}
+                          className="font-bold text-[#346E3A] hover:underline cursor-pointer text-left"
+                        >
+                          {task.project?.name || projects.find(p => p.id === task.projectId)?.name || '-'}
+                        </button>
                       </td>
                     )}
                     <td className="px-6 py-4">{getPriorityBadge(task.priority)}</td>

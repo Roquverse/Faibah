@@ -30,11 +30,14 @@ import {
 } from 'lucide-react';
 import { ScheduleEventsApi, ProjectsApi, TasksApi } from '@/lib/api';
 
+import { useProjectDrawer } from '@/context/ProjectDrawerContext';
+
 interface ProjectScheduleProps {
   projectId: string;
 }
 
 export default function ProjectSchedule({ projectId: initialProjectId }: ProjectScheduleProps) {
+  const { openProjectDrawer } = useProjectDrawer();
   const [selectedProjectId, setSelectedProjectId] = useState<string>(initialProjectId);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<any[]>([]);
@@ -310,8 +313,16 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
 
             <h3 className="text-lg font-bold text-gray-900 mb-2">{viewEvent.title}</h3>
             {viewEvent.project?.name && (
-              <div className="text-xs font-bold text-[#346E3A] mb-4 flex items-center gap-1.5">
-                <FolderGit2 className="w-3.5 h-3.5" /> Project: {viewEvent.project.name}
+              <div className="text-xs font-bold text-[#346E3A] mb-4">
+                <button
+                  onClick={() => {
+                    setViewEvent(null);
+                    openProjectDrawer(viewEvent.project.id || viewEvent.projectId);
+                  }}
+                  className="flex items-center gap-1.5 hover:underline cursor-pointer"
+                >
+                  <FolderGit2 className="w-3.5 h-3.5" /> Project: {viewEvent.project.name}
+                </button>
               </div>
             )}
 

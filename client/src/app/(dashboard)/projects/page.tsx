@@ -35,7 +35,10 @@ const COLUMNS: { id: ProjectStatus; label: string; dotColor: string }[] = [
   { id: 'CANCELLED', label: 'Cancelled', dotColor: 'text-gray-900' },
 ];
 
+import { useProjectDrawer } from '@/context/ProjectDrawerContext';
+
 export default function ProjectsPage() {
+  const { openProjectDrawer } = useProjectDrawer();
   const [view, setView] = useState<'board' | 'list'>('board');
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -195,66 +198,66 @@ export default function ProjectsPage() {
               {/* Cards Container */}
               <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                 {projects.filter(p => p.status === col.id).map(project => (
-                  <Link href={`/channels?project=${project.id}`} key={project.id}>
-                    <div 
-                      className="bg-white p-4 rounded-xl border border-gray-200 hover:border-gray-300 transition-all cursor-pointer group mb-4 block"
-                    >
-                      <div className="flex items-start justify-between mb-1">
-                        <h4 className="font-bold text-gray-900 text-[13px] group-hover:text-indigo-600 transition-colors leading-snug">
-                          {project.title}
-                        </h4>
-                        <button className="text-gray-400 hover:text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
+                  <div 
+                    key={project.id}
+                    onClick={() => openProjectDrawer(project.id)}
+                    className="bg-white p-4 rounded-xl border border-gray-200 hover:border-gray-300 transition-all cursor-pointer group mb-4 block"
+                  >
+                    <div className="flex items-start justify-between mb-1">
+                      <h4 className="font-bold text-gray-900 text-[13px] group-hover:text-[#346E3A] transition-colors leading-snug">
+                        {project.title}
+                      </h4>
+                      <button onClick={(e) => { e.stopPropagation(); }} className="text-gray-400 hover:text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    <p className="text-xs text-gray-500 mb-3 truncate">{project.client.name} deliverables and planning</p>
+                    
+                    {project.tags && project.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {project.tags.map((tag, idx) => (
+                          <span key={idx} className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold ${tag.bgColor} ${tag.textColor}`}>
+                            <Circle className={`w-1.5 h-1.5 fill-current ${tag.dotColor}`} />
+                            {tag.label}
+                          </span>
+                        ))}
                       </div>
-                      
-                      <p className="text-xs text-gray-500 mb-3 truncate">{project.client.name} deliverables and planning</p>
-                      
-                      {project.tags && project.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {project.tags.map((tag, idx) => (
-                            <span key={idx} className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold ${tag.bgColor} ${tag.textColor}`}>
-                              <Circle className={`w-1.5 h-1.5 fill-current ${tag.dotColor}`} />
-                              {tag.label}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                    )}
 
-                      <div className="flex items-center justify-between text-[11px] font-semibold text-gray-400 mb-4">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5" />
-                          <span>Due Date {project.dueDate}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <ListIcon className="w-3.5 h-3.5" />
-                          <span>2/2</span>
-                        </div>
+                    <div className="flex items-center justify-between text-[11px] font-semibold text-gray-400 mb-4">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>Due Date {project.dueDate}</span>
                       </div>
-                      
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                        <div className="flex -space-x-1.5">
-                          <img src={project.client.avatar} alt="Avatar" className="w-6 h-6 rounded-full border-2 border-white object-cover bg-gray-100" />
-                          <img src={`https://ui-avatars.com/api/?name=${project.id}&background=random`} alt="Avatar" className="w-6 h-6 rounded-full border-2 border-white object-cover bg-gray-100" />
-                        </div>
-                        
-                        <div className="flex items-center gap-3 text-[11px] font-bold text-gray-400">
-                          {project.attachmentsCount !== undefined && project.attachmentsCount > 0 && (
-                            <div className="flex items-center gap-1">
-                              <Paperclip className="w-3.5 h-3.5" />
-                              <span>{project.attachmentsCount}</span>
-                            </div>
-                          )}
-                          {project.commentsCount !== undefined && project.commentsCount > 0 && (
-                            <div className="flex items-center gap-1">
-                              <MessageSquare className="w-3.5 h-3.5" />
-                              <span>{project.commentsCount}</span>
-                            </div>
-                          )}
-                        </div>
+                      <div className="flex items-center gap-1.5">
+                        <ListIcon className="w-3.5 h-3.5" />
+                        <span>2/2</span>
                       </div>
                     </div>
-                  </Link>
+                    
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                      <div className="flex -space-x-1.5">
+                        <img src={project.client.avatar} alt="Avatar" className="w-6 h-6 rounded-full border-2 border-white object-cover bg-gray-100" />
+                        <img src={`https://ui-avatars.com/api/?name=${project.id}&background=random`} alt="Avatar" className="w-6 h-6 rounded-full border-2 border-white object-cover bg-gray-100" />
+                      </div>
+                      
+                      <div className="flex items-center gap-3 text-[11px] font-bold text-gray-400">
+                        {project.attachmentsCount !== undefined && project.attachmentsCount > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Paperclip className="w-3.5 h-3.5" />
+                            <span>{project.attachmentsCount}</span>
+                          </div>
+                        )}
+                        {project.commentsCount !== undefined && project.commentsCount > 0 && (
+                          <div className="flex items-center gap-1">
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>{project.commentsCount}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))}
                 {/* Empty State Dropzone */}
                 {projects.filter(p => p.status === col.id).length === 0 && (
@@ -285,9 +288,9 @@ export default function ProjectsPage() {
               {projects.map(project => (
                 <tr key={project.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-6 py-4">
-                    <Link href={`/channels?project=${project.id}`} className="font-bold text-gray-900 group-hover:text-[#346E3A] transition-colors">
+                    <button onClick={() => openProjectDrawer(project.id)} className="font-bold text-gray-900 group-hover:text-[#346E3A] transition-colors text-left cursor-pointer">
                       {project.title}
-                    </Link>
+                    </button>
                   </td>
                   <td className="px-6 py-4 flex items-center gap-3">
                     <img src={project.client.avatar} alt="Avatar" className="w-7 h-7 rounded-full object-cover" />

@@ -3,11 +3,14 @@ import { Plus, Search, Filter, MessageSquare, Paperclip, MoreHorizontal, Calenda
 import { TasksApi, ProjectsApi } from '@/lib/api';
 import { io } from 'socket.io-client';
 
+import { useProjectDrawer } from '@/context/ProjectDrawerContext';
+
 interface KanbanBoardProps {
   projectId: string;
 }
 
 export default function KanbanBoard({ projectId }: KanbanBoardProps) {
+  const { openProjectDrawer } = useProjectDrawer();
   const [tasks, setTasks] = useState<any[]>([]);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
 

@@ -63,4 +63,24 @@ export class ProjectsController {
   async removeMember(@Param('memberId') memberId: string) {
     return this.projectsService.removeMember(memberId);
   }
+
+  @Get(':id')
+  async getOne(@Param('id') id: string) {
+    return this.projectsService.getOne(id);
+  }
+
+  @Patch(':id/name')
+  async updateName(@Param('id') id: string, @Body('name') name: string) {
+    return this.projectsService.updateProjectName(id, name);
+  }
+
+  @Post(':id/urls')
+  async addUrl(@Param('id') id: string, @Body() body: { label: string; url: string }) {
+    return this.projectsService.addProjectUrl(id, body.label, body.url);
+  }
+
+  @Delete('urls/:urlId')
+  async deleteUrl(@Param('urlId') urlId: string) {
+    return this.projectsService.deleteProjectUrl(urlId);
+  }
 }

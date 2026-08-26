@@ -1,33 +1,29 @@
 import React from 'react';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
+import Sidebar from '@/components/dashboard/Sidebar';
+import Header from '@/components/dashboard/Header';
 import InactivityGuard from '@/components/auth/InactivityGuard';
+import { ProjectDrawerProvider } from '@/context/ProjectDrawerContext';
+import ProjectQuickPanel from '@/components/dashboard/ProjectQuickPanel';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <InactivityGuard>
-      <div className="flex h-screen bg-gray-50 dark:bg-slate-950 font-sans dashboard-layout overflow-hidden">
-        {/* Sidebar - fixed width */}
-        <Sidebar />
-
-        {/* Main Content Area - fluid width */}
-        <div className="flex-1 flex flex-col md:ml-64 min-w-0 transition-all relative z-0">
-          <div className="relative z-50">
-            <Header />
+      <ProjectDrawerProvider>
+        <div className="dashboard-layout flex h-screen print:h-auto w-full overflow-hidden print:overflow-visible bg-white print:block">
+          <div className="print:hidden">
+            <Sidebar />
           </div>
-          
-          {/* Scrollable Content */}
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-[#0A0F1C] relative z-0">
-            <div className="w-full h-full min-h-[calc(100vh-5rem)]">
-              {children}
+          <div className="flex-1 md:ml-64 print:ml-0 flex flex-col min-w-0 h-full print:h-auto print:block relative z-0">
+            <div className="print:hidden relative z-50">
+              <Header />
             </div>
-          </main>
+            <main className="flex-1 overflow-x-hidden overflow-y-auto print:overflow-visible print:h-auto w-full relative z-0">
+              {children}
+            </main>
+          </div>
+          <ProjectQuickPanel />
         </div>
-      </div>
+      </ProjectDrawerProvider>
     </InactivityGuard>
   );
 }
