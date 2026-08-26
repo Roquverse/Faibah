@@ -8,7 +8,7 @@ import {
   Sparkles, Layers, ChevronRight, User, ShieldCheck
 } from 'lucide-react';
 import { useProjectDrawer } from '@/context/ProjectDrawerContext';
-import { ProjectsApi, ChannelsApi, TasksApi, InvoicesApi } from '@/lib/api';
+import { ProjectsApi, ChannelsApi, TasksApi, InvoicesApi, ScheduleEventsApi } from '@/lib/api';
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-gray-300 border-gray-200',
@@ -85,18 +85,34 @@ export default function ProjectQuickPanel() {
     const fetchProjectDetails = async () => {
       try {
         setIsLoading(true);
-        const data = await ProjectsApi.getOne(activeProjectId).catch(() => null);
-        if (data) {
-          setProject(data);
-          setTitleInput(data.name || 'Untitled Project');
-        } else {
-          // Fallback to searching in all projects
-          const all = await ProjectsApi.getAll().catch(() => []);
-          const found = all.find((p: any) => p.id === activeProjectId);
-          if (found) {
-            setProject(found);
-            setTitleInput(found.name || found.title || 'Untitled Project');
-          }
+        const [data, allProjects, liveTasks, allInvoices, liveEvents] = await Promise.all([
+          ProjectsApi.getOne(activeProjectId).catch(() => null),
+          ProjectsApi.getAll().catch(() => []),
+          TasksApi.getTasks(activeProjectId).catch(() => []),
+          InvoicesApi.getAll().catch(() => []),
+          ScheduleEventsApi.getEvents(activeProjectId).catch(() => []),
+        ]);
+
+        const target = data || allProjects.find((p: any) => p.id === activeProjectId);
+
+        if (target) {
+          const projectInvoices = (allInvoices && allInvoices.length > 0)
+            ? allInvoices.filter((inv: any) => inv.projectId === activeProjectId || (target.clientId && inv.clientId === target.clientId))
+            : (target.invoices || []);
+
+          const combinedTasks = (liveTasks && liveTasks.length > 0) ? liveTasks : (target.tasks || []);
+          const combinedEvents = (liveEvents && liveEvents.length > 0) ? liveEvents : (target.scheduleEvents || []);
+
+          const merged = {
+            ...target,
+            name: target.name || target.title || 'Untitled Project',
+            tasks: combinedTasks,
+            invoices: projectInvoices,
+            scheduleEvents: combinedEvents,
+          };
+
+          setProject(merged);
+          setTitleInput(merged.name);
         }
       } catch (err) {
         console.error('Failed to load project details:', err);
@@ -758,20 +774,6 @@ export default function ProjectQuickPanel() {
                 </div>
               </div>
 
-            </div>
-
-            {/* Footer Toolbar */}
-            <div className="p-4 border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 sticky bottom-0 shrink-0">
-              <button
-                onClick={() => {
-                  closeProjectDrawer();
-                  router.push(`/projects/${project.id}`);
-                }}
-                className="w-full py-3 bg-[#346E3A] hover:bg-[#2b592f] text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#346E3A]/20 cursor-pointer"
-              >
-                <span>Open Full Project</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
           </>
         )}

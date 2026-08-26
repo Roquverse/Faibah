@@ -8,7 +8,7 @@ import {
   Sparkles, Layers, ChevronRight, User, ShieldCheck
 } from 'lucide-react';
 import { useProjectDrawer } from '@/context/ProjectDrawerContext';
-import { ProjectsApi, ChannelsApi, TasksApi, InvoicesApi } from '@/lib/api';
+import { ProjectsApi, ChannelsApi, TasksApi, InvoicesApi, ScheduleEventsApi } from '@/lib/api';
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-gray-300 border-gray-200',
@@ -85,18 +85,34 @@ export default function ProjectQuickPanel() {
     const fetchProjectDetails = async () => {
       try {
         setIsLoading(true);
-        const data = await ProjectsApi.getOne(activeProjectId).catch(() => null);
-        if (data) {
-          setProject(data);
-          setTitleInput(data.name || 'Untitled Project');
-        } else {
-          // Fallback to searching in all projects
-          const all = await ProjectsApi.getAll().catch(() => []);
-          const found = all.find((p: any) => p.id === activeProjectId);
-          if (found) {
-            setProject(found);
-            setTitleInput(found.name || found.title || 'Untitled Project');
-          }
+        const [data, allProjects, liveTasks, allInvoices, liveEvents] = await Promise.all([
+          ProjectsApi.getOne(activeProjectId).catch(() => null),
+          ProjectsApi.getAll().catch(() => []),
+          TasksApi.getTasks(activeProjectId).catch(() => []),
+          InvoicesApi.getAll().catch(() => []),
+          ScheduleEventsApi.getEvents(activeProjectId).catch(() => []),
+        ]);
+
+        const target = data || allProjects.find((p: any) => p.id === activeProjectId);
+
+        if (target) {
+          const projectInvoices = (allInvoices && allInvoices.length > 0)
+            ? allInvoices.filter((inv: any) => inv.projectId === activeProjectId || (target.clientId && inv.clientId === target.clientId))
+            : (target.invoices || []);
+
+          const combinedTasks = (liveTasks && liveTasks.length > 0) ? liveTasks : (target.tasks || []);
+          const combinedEvents = (liveEvents && liveEvents.length > 0) ? liveEvents : (target.scheduleEvents || []);
+
+          const merged = {
+            ...target,
+            name: target.name || target.title || 'Untitled Project',
+            tasks: combinedTasks,
+            invoices: projectInvoices,
+            scheduleEvents: combinedEvents,
+          };
+
+          setProject(merged);
+          setTitleInput(merged.name);
         }
       } catch (err) {
         console.error('Failed to load project details:', err);
@@ -262,13 +278,13 @@ export default function ProjectQuickPanel() {
 
   const invoices = project?.invoices || [];
   const totalInvoiced = invoices.reduce((sum: number, inv: any) => {
-    const invTotal = (inv.items?.reduce((s: number, i: any) => s + (Number(i.amount) || 0), 0) || 0) * (1 + ((inv.taxRate || 0) / 100));
-    return sum + invTotal;
+    const invTotal = inv.amount || (inv.items?.reduce((s: number, i: any) => s + (Number(i.amount) || 0), 0) || 0) * (1 + ((inv.taxRate || 0) / 100));
+    return sum + Number(invTotal || 0);
   }, 0);
 
   const totalPaid = invoices.filter((i: any) => i.status === 'PAID').reduce((sum: number, inv: any) => {
-    const invTotal = (inv.items?.reduce((s: number, i: any) => s + (Number(i.amount) || 0), 0) || 0) * (1 + ((inv.taxRate || 0) / 100));
-    return sum + invTotal;
+    const invTotal = inv.amount || (inv.items?.reduce((s: number, i: any) => s + (Number(i.amount) || 0), 0) || 0) * (1 + ((inv.taxRate || 0) / 100));
+    return sum + Number(invTotal || 0);
   }, 0);
 
   const outstanding = Math.max(0, totalInvoiced - totalPaid);
@@ -563,14 +579,14 @@ export default function ProjectQuickPanel() {
                 <div className="space-y-2">
                   {recentInvoices.length > 0 ? (
                     recentInvoices.map((inv: any) => {
-                      const invTotal = (inv.items?.reduce((s: number, i: any) => s + (Number(i.amount) || 0), 0) || 0) * (1 + ((inv.taxRate || 0) / 100));
+                      const invTotal = inv.amount || (inv.items?.reduce((s: number, i: any) => s + (Number(i.amount) || 0), 0) || 0) * (1 + ((inv.taxRate || 0) / 100));
                       return (
                         <div key={inv.id} className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-800 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <FileText className="w-4 h-4 text-gray-400" />
                             <div>
                               <div className="text-xs font-bold text-gray-900 dark:text-white">Invoice #{inv.id.slice(0, 8)}</div>
-                              <div className="text-[10px] text-gray-400">₦{invTotal.toLocaleString()}</div>
+                              <div className="text-[10px] text-gray-400">₦{Number(invTotal || 0).toLocaleString()}</div>
                             </div>
                           </div>
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${inv.status === 'PAID' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -758,20 +774,6 @@ export default function ProjectQuickPanel() {
                 </div>
               </div>
 
-            </div>
-
-            {/* Footer Toolbar */}
-            <div className="p-4 border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 sticky bottom-0 shrink-0">
-              <button
-                onClick={() => {
-                  closeProjectDrawer();
-                  router.push(`/projects/${project.id}`);
-                }}
-                className="w-full py-3 bg-[#346E3A] hover:bg-[#2b592f] text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#346E3A]/20 cursor-pointer"
-              >
-                <span>Open Full Project</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
           </>
         )}
