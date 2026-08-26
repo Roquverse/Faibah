@@ -35,6 +35,21 @@ export default function ChannelsPage() {
     type: 'image' | 'video' | 'audio' | 'pdf' | 'document';
   } | null>(null);
 
+  // Escape key listener for closing lightbox preview
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setPreviewAttachment(null);
+      }
+    };
+    if (previewAttachment) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [previewAttachment]);
+
   const handleDownloadAttachment = async (url: string, filename?: string) => {
     if (!url) return;
     const name = filename || url.split('/').pop()?.split('?')[0] || 'attachment';
@@ -1428,9 +1443,15 @@ export default function ChannelsPage() {
 
       {/* Attachment Lightbox / Preview Modal */}
       {previewAttachment && (
-        <div className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-sm flex flex-col animate-in fade-in duration-200">
+        <div 
+          onClick={() => setPreviewAttachment(null)}
+          className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-sm flex flex-col animate-in fade-in duration-200"
+        >
           {/* Header Toolbar */}
-          <div className="flex items-center justify-between px-6 py-4 bg-black/40 border-b border-white/10 text-white shrink-0">
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center justify-between px-6 py-4 bg-black/40 border-b border-white/10 text-white shrink-0"
+          >
             <div className="flex items-center gap-3 min-w-0">
               <FileText className="w-5 h-5 text-gray-400 shrink-0" />
               <span className="font-bold text-sm truncate max-w-md">{previewAttachment.name}</span>
@@ -1453,7 +1474,7 @@ export default function ChannelsPage() {
               <button
                 onClick={() => setPreviewAttachment(null)}
                 className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-                title="Close"
+                title="Close (Esc)"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1466,6 +1487,7 @@ export default function ChannelsPage() {
               <img
                 src={previewAttachment.url}
                 alt={previewAttachment.name}
+                onClick={(e) => e.stopPropagation()}
                 className="max-h-[85vh] max-w-full object-contain rounded-lg shadow-2xl"
               />
             )}
@@ -1474,11 +1496,15 @@ export default function ChannelsPage() {
                 controls
                 autoPlay
                 src={previewAttachment.url}
+                onClick={(e) => e.stopPropagation()}
                 className="max-h-[85vh] max-w-full rounded-lg shadow-2xl"
               />
             )}
             {(previewAttachment.type === 'pdf' || previewAttachment.type === 'document') && (
-              <div className="w-full max-w-5xl h-[82vh] bg-white rounded-xl overflow-hidden shadow-2xl flex flex-col">
+              <div 
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-5xl h-[82vh] bg-white rounded-xl overflow-hidden shadow-2xl flex flex-col"
+              >
                 <iframe
                   src={previewAttachment.url}
                   className="w-full flex-1 border-none"
@@ -1487,7 +1513,10 @@ export default function ChannelsPage() {
               </div>
             )}
             {previewAttachment.type === 'audio' && (
-              <div className="p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col items-center gap-4 max-w-md w-full text-center">
+              <div 
+                onClick={(e) => e.stopPropagation()}
+                className="p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col items-center gap-4 max-w-md w-full text-center"
+              >
                 <div className="w-16 h-16 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 rounded-full flex items-center justify-center">
                   <Mic className="w-8 h-8" />
                 </div>
