@@ -95,160 +95,164 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-3xl shadow-xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Create Invoice</h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh]">
+        
+        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900">New Invoice</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form id="new-invoice-form" onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Client</label>
-              <select 
-                value={clientId} 
-                onChange={e => setClientId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
-                required
-              >
-                <option value="">Select a client...</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.companyName || c.email})</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Project (Optional)</label>
-              <select 
-                value={projectId} 
-                onChange={e => setProjectId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
-              >
-                <option value="">Select a project...</option>
-                {projects.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Currency</label>
-              <select 
-                value={currency} 
-                onChange={e => setCurrency(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
-              >
-                <option value="NGN">NGN (₦)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tax Rate (%)</label>
-              <input 
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0"
-                value={taxRate}
-                onChange={e => setTaxRate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Due Date</label>
-              <input 
-                type="date"
-                value={dueDate}
-                onChange={e => setDueDate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
-              />
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 mb-3">Line Items</h3>
+        <div className="p-6 overflow-y-auto flex-1">
+          <form id="new-invoice-form" onSubmit={handleSubmit} className="space-y-6">
             
-            <div className="space-y-4">
-              {items.map((item, index) => (
-                <div key={index} className="flex flex-col sm:flex-row items-start sm:items-end gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 relative">
-                  
-                  <div className="w-full sm:flex-1 space-y-1.5 pr-8 sm:pr-0">
-                    <label className="text-xs font-semibold text-gray-700">Item Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Web Development"
-                      value={item.itemName}
-                      onChange={e => handleItemChange(index, 'itemName', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 mb-2"
-                      required
-                    />
-                    <label className="text-xs font-semibold text-gray-700">Description</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Professional service delivered as per project requirements."
-                      value={item.details}
-                      onChange={e => handleItemChange(index, 'details', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="flex-1 sm:w-20 space-y-1.5">
-                      <label className="text-xs font-semibold text-gray-700">Qty</label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Client *</label>
+                <select 
+                  value={clientId} 
+                  onChange={e => setClientId(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+                  required
+                >
+                  <option value="">Select a client</option>
+                  {clients.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Project (Optional)</label>
+                <select 
+                  value={projectId} 
+                  onChange={e => setProjectId(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-50"
+                  disabled={!clientId}
+                >
+                  <option value="">No Project</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+               <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Currency</label>
+                <select 
+                  value={currency} 
+                  onChange={e => setCurrency(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+                >
+                  <option value="NGN">NGN (₦)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tax Rate (%)</label>
+                <input 
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0"
+                  value={taxRate}
+                  onChange={e => setTaxRate(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Due Date</label>
+                <input 
+                  type="date"
+                  value={dueDate}
+                  onChange={e => setDueDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 mb-3">Line Items</h3>
+              
+              <div className="space-y-4">
+                {items.map((item, index) => (
+                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-end gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 relative">
+                    
+                    <div className="w-full sm:flex-1 space-y-1.5 pr-8 sm:pr-0">
+                      <label className="text-xs font-semibold text-gray-700">Item Name</label>
                       <input 
-                        type="number" 
-                        placeholder="0"
-                        min="1"
-                        value={item.quantity}
-                        onChange={e => handleItemChange(index, 'quantity', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                        type="text" 
+                        placeholder="e.g. Web Development"
+                        value={item.itemName}
+                        onChange={e => handleItemChange(index, 'itemName', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 mb-2"
                         required
+                      />
+                      <label className="text-xs font-semibold text-gray-700">Description</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Professional service delivered as per project requirements."
+                        value={item.details}
+                        onChange={e => handleItemChange(index, 'details', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                       />
                     </div>
                     
-                    <div className="flex-1 sm:w-28 space-y-1.5">
-                      <label className="text-xs font-semibold text-gray-700">Price</label>
-                      <input 
-                        type="number" 
-                        placeholder="0.00"
-                        min="0"
-                        value={item.unitPrice}
-                        onChange={e => handleItemChange(index, 'unitPrice', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="flex-1 sm:w-24 space-y-1.5">
-                      <label className="text-xs font-semibold text-gray-700">Amount</label>
-                      <div className="h-[38px] flex items-center justify-end px-3 text-sm font-bold text-gray-900 bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent">
-                        {item.amount.toLocaleString()}
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                      <div className="flex-1 sm:w-20 space-y-1.5">
+                        <label className="text-xs font-semibold text-gray-700">Qty</label>
+                        <input 
+                          type="number" 
+                          placeholder="0"
+                          min="1"
+                          value={item.quantity}
+                          onChange={e => handleItemChange(index, 'quantity', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="flex-1 sm:w-28 space-y-1.5">
+                        <label className="text-xs font-semibold text-gray-700">Price</label>
+                        <input 
+                          type="number" 
+                          placeholder="0.00"
+                          min="0"
+                          value={item.unitPrice}
+                          onChange={e => handleItemChange(index, 'unitPrice', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="flex-1 sm:w-24 space-y-1.5">
+                        <label className="text-xs font-semibold text-gray-700">Amount</label>
+                        <div className="h-[38px] flex items-center justify-end px-3 text-sm font-bold text-gray-900 bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent">
+                          {item.amount.toLocaleString()}
+                        </div>
                       </div>
                     </div>
+                    
+                    <button 
+                      type="button" 
+                      onClick={() => removeItem(index)}
+                      className="absolute top-4 right-4 sm:static sm:mb-1.5 p-2 sm:p-1.5 text-gray-400 hover:text-red-500 transition-colors bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent disabled:opacity-50"
+                      disabled={items.length === 1}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    
                   </div>
-                  
-                  <button 
-                    type="button" 
-                    onClick={() => removeItem(index)}
-                    className="absolute top-4 right-4 sm:static sm:mb-1.5 p-2 sm:p-1.5 text-gray-400 hover:text-red-500 transition-colors bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent disabled:opacity-50"
-                    disabled={items.length === 1}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
               <button 
                 type="button"

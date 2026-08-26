@@ -72,8 +72,8 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
     try {
       const formattedItems = items.map(item => ({
         description: `${item.itemName}|||${item.details}`,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
+        quantity: item.quantity === '' ? 0 : Number(item.quantity),
+        unitPrice: item.unitPrice === '' ? 0 : Number(item.unitPrice),
         amount: item.amount
       }));
 
@@ -81,7 +81,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
         clientId,
         projectId: projectId || undefined,
         currency,
-        taxRate,
+        taxRate: taxRate === '' ? 0 : Number(taxRate),
         dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
         items: formattedItems
       });
