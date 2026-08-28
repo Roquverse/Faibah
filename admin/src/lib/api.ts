@@ -60,4 +60,12 @@ export class AdminApi {
   static getTeam() {
     return this.fetchWithAuth('/admin/team');
   }
+
+  static getSupportTickets() {
+    return this.fetchWithAuth('/admin/support/tickets');
+  }
+
+  static getFeatureFlags() {
+    return this.fetchWithAuth('/admin/features');
+  }
 }

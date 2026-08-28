@@ -47,4 +47,14 @@ export class AdminController {
   getTeam() {
     return this.adminService.getTeam();
   }
+
+  @Get('support/tickets')
+  getSupportTickets() {
+    return this.adminService.getSupportTickets();
+  }
+
+  @Get('features')
+  getFeatureFlags() {
+    return this.adminService.getFeatureFlags();
+  }
 }

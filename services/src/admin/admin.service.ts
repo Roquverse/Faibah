@@ -29,11 +29,58 @@ export class AdminService {
       }
     });
 
+    // Calculate users by country
+    // Since users don't have country directly, we can aggregate by Company.country or Client.country
+    // We will do a generic distribution across a few known countries for now since it's hard to aggregate deeply nested optional fields without raw SQL,
+    // Or we group by Company.country where not null.
+    const companies = await this.prisma.company.findMany({
+      where: { country: { not: null } },
+      select: { country: true }
+    });
+    
+    const countryCount: Record<string, number> = {};
+    companies.forEach(c => {
+      if (c.country) {
+        countryCount[c.country] = (countryCount[c.country] || 0) + 1;
+      }
+    });
+
+    // Recent activity logs
+    const recentActivity = await this.prisma.activityEvent.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 5
+    });
+
+    // Mockup for Revenue Chart (Area Chart) and Top Channels (Donut) until we build a full timeseries aggregator
+    // For now, we will return some structural data so the frontend can map it dynamically, but we will seed the DB later.
+    const revenueChartData = [
+      { date: 'May 12', value: 10000 },
+      { date: 'May 19', value: 15000 },
+      { date: 'May 26', value: Math.floor(mrr * 0.7) },
+      { date: 'Jun 02', value: 12000 },
+      { date: 'Jun 09', value: mrr },
+    ];
+
+    const topChannels = [
+      { name: 'Pro Plan', value: Math.floor(mrr * 0.6), color: '#3B82F6' },
+      { name: 'Basic Plan', value: Math.floor(mrr * 0.3), color: '#10B981' },
+      { name: 'Enterprise', value: Math.floor(mrr * 0.1), color: '#F59E0B' },
+    ];
+
     return {
       totalBusinesses,
       mrr,
       activeUsers,
       transactionVolume,
+      revenueChartData,
+      topChannels,
+      recentActivity: recentActivity.map(a => ({
+        id: a.id,
+        title: a.type.toString().replace('_', ' '),
+        message: a.message,
+        time: a.createdAt.toISOString()
+      })),
+      usersByCountry: Object.entries(countryCount).map(([country, count]) => ({ country, count })).sort((a,b) => b.count - a.count).slice(0, 5),
       recentSignups: recentSignups.map(c => ({
         id: c.id,
         name: c.name,
@@ -122,12 +169,21 @@ export class AdminService {
   }
 
   async getWebhookLogs() {
-    // We don't have a WebhookLog model yet. We can just return mock data for now, 
-    // since the user noted "Webhook delivery log - specifically Paystack and Termii".
-    return [
-      { id: 'wh_1', provider: 'Paystack', event: 'charge.success', status: 'Failed', tenant: 'Nexora Solutions', time: '2 mins ago', retryCount: 2 },
-      { id: 'wh_2', provider: 'Termii', event: 'whatsapp.delivered', status: 'Success', tenant: 'NovaTech', time: '5 mins ago', retryCount: 0 },
-    ];
+    const logs = await this.prisma.webhookLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: { company: { select: { name: true } } }
+    });
+
+    return logs.map(l => ({
+      id: l.id,
+      provider: l.provider,
+      event: l.event,
+      status: l.status,
+      tenant: l.company?.name || 'Unknown',
+      time: l.createdAt.toISOString(),
+      retryCount: l.retryCount
+    }));
   }
 
   async getUsers() {
@@ -192,6 +248,39 @@ export class AdminService {
       name: `${a.firstName || ''} ${a.lastName || ''}`.trim() || 'Unknown',
       email: a.email,
       date: a.createdAt.toISOString().split('T')[0]
+    }));
+  }
+
+  async getSupportTickets() {
+    const tickets = await this.prisma.supportTicket.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: { company: { select: { name: true } } }
+    });
+
+    return tickets.map(t => ({
+      id: t.id,
+      subject: t.subject,
+      tenant: t.company?.name || 'Unknown',
+      priority: t.priority,
+      status: t.status,
+      time: t.createdAt.toISOString(),
+      message: t.message
+    }));
+  }
+
+  async getFeatureFlags() {
+    const flags = await this.prisma.featureFlag.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return flags.map(f => ({
+      id: f.id,
+      key: f.key,
+      name: f.name,
+      description: f.description,
+      enabled: f.enabled,
+      date: f.createdAt.toISOString().split('T')[0]
     }));
   }
 }

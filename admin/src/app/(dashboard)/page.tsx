@@ -207,17 +207,25 @@ export default function DashboardOverview() {
               <button className="text-accent text-sm font-medium hover:underline">View all</button>
             </div>
             <div className="flex-1 flex items-center justify-center py-4">
-              {/* Donut Mockup */}
+              {/* Donut Chart (Dynamic fallback) */}
               <div className="relative w-40 h-40">
                 <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                  <path className="text-[#3B82F6]" strokeDasharray="40, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                  <path className="text-[#10B981]" strokeDasharray="30, 100" strokeDashoffset="-40" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                  <path className="text-[#F59E0B]" strokeDasharray="20, 100" strokeDashoffset="-70" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                  <path className="text-[#8B5CF6]" strokeDasharray="10, 100" strokeDashoffset="-90" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
+                  {data?.topChannels?.map((channel: any, idx: number) => {
+                    const total = data.topChannels.reduce((acc: number, curr: any) => acc + curr.value, 0);
+                    const percentage = total === 0 ? 0 : (channel.value / total) * 100;
+                    // Mocking offset logic safely
+                    const offset = - (idx * 25);
+                    return (
+                      <path key={idx} style={{ color: channel.color }} strokeDasharray={`${percentage}, 100`} strokeDashoffset={offset} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
+                    )
+                  })}
+                  {(!data?.topChannels || data.topChannels.length === 0) && (
+                    <path className="text-hairline" strokeDasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
+                  )}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-xs text-muted">Total</span>
-                  <span className="text-lg font-bold">24,780</span>
+                  <span className="text-lg font-bold">${data?.topChannels?.reduce((acc: number, curr: any) => acc + curr.value, 0).toLocaleString() || 0}</span>
                 </div>
               </div>
             </div>
@@ -232,27 +240,20 @@ export default function DashboardOverview() {
             <div className="flex flex-col gap-6 relative">
               <div className="absolute left-4 top-4 bottom-4 w-px bg-hairline"></div>
               
-              <div className="flex items-start gap-4 relative z-10">
-                <div className="w-8 h-8 rounded-full bg-[#3B82F6]/10 border-2 border-surface flex items-center justify-center flex-shrink-0">
-                  <Users size={14} className="text-[#3B82F6]" />
+              {data?.recentActivity?.length > 0 ? data.recentActivity.map((activity: any) => (
+                <div key={activity.id} className="flex items-start gap-4 relative z-10">
+                  <div className="w-8 h-8 rounded-full bg-accent/10 border-2 border-surface flex items-center justify-center flex-shrink-0">
+                    <Users size={14} className="text-accent" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-foreground capitalize">{activity.title}</h4>
+                    <p className="text-xs text-muted">{activity.message || 'No details provided'}</p>
+                  </div>
+                  <span className="text-xs text-muted">{new Date(activity.time).toLocaleDateString()}</span>
                 </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-semibold text-foreground">New user registered</h4>
-                  <p className="text-xs text-muted">Liam Johnson</p>
-                </div>
-                <span className="text-xs text-muted">2m ago</span>
-              </div>
-
-              <div className="flex items-start gap-4 relative z-10">
-                <div className="w-8 h-8 rounded-full bg-[#10B981]/10 border-2 border-surface flex items-center justify-center flex-shrink-0">
-                  <ShoppingCart size={14} className="text-[#10B981]" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-semibold text-foreground">Order completed</h4>
-                  <p className="text-xs text-muted">#ORD-1732</p>
-                </div>
-                <span className="text-xs text-muted">15m ago</span>
-              </div>
+              )) : (
+                <div className="text-sm text-muted relative z-10 p-4">No recent activity</div>
+              )}
               
             </div>
           </div>
@@ -315,18 +316,19 @@ export default function DashboardOverview() {
             </div>
             
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2"><span className="w-4 h-3 rounded-sm bg-blue-500 inline-block text-[8px] text-white flex items-center justify-center font-bold">US</span> United States</span>
-                <span className="font-semibold mono-num">2,420</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2"><span className="w-4 h-3 rounded-sm bg-red-500 inline-block text-[8px] text-white flex items-center justify-center font-bold">CA</span> Canada</span>
-                <span className="font-semibold mono-num">1,120</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2"><span className="w-4 h-3 rounded-sm bg-blue-800 inline-block text-[8px] text-white flex items-center justify-center font-bold">UK</span> United Kingdom</span>
-                <span className="font-semibold mono-num">980</span>
-              </div>
+              {data?.usersByCountry?.length > 0 ? data.usersByCountry.map((item: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-3 rounded-sm bg-accent inline-block text-[8px] text-white flex items-center justify-center font-bold">
+                      {item.country.substring(0, 2).toUpperCase()}
+                    </span> 
+                    {item.country}
+                  </span>
+                  <span className="font-semibold mono-num">{item.count.toLocaleString()}</span>
+                </div>
+              )) : (
+                <div className="text-sm text-muted">No data available</div>
+              )}
             </div>
           </div>
         </div>

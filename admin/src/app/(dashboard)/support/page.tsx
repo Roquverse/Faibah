@@ -1,15 +1,25 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Filter, LifeBuoy, MessageSquare, Clock } from 'lucide-react';
-
-const TICKETS = [
-  { id: 'tic_001', subject: 'Billing cycle issue', tenant: 'Nexora Solutions', priority: 'High', status: 'Open', time: '10 mins ago' },
-  { id: 'tic_002', subject: 'How to add custom domain?', tenant: 'Studio Alpha', priority: 'Low', status: 'Pending', time: '2 hours ago' },
-  { id: 'tic_003', subject: 'Webhook signature validation fails', tenant: 'Greenhouse Devs', priority: 'Critical', status: 'Open', time: '5 hours ago' },
-];
+import { AdminApi } from '@/lib/api';
 
 export default function SupportPage() {
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    AdminApi.getSupportTickets().then(res => {
+      setTickets(res);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <div className="p-8 text-muted">Loading support tickets...</div>;
+
   return (
     <div className="p-8 max-w-[1400px] mx-auto space-y-8 bg-background min-h-screen">
       
@@ -40,25 +50,27 @@ export default function SupportPage() {
         {/* Ticket List */}
         <div className="lg:col-span-1 bg-surface rounded-2xl border border-hairline card-shadow flex flex-col h-[700px] overflow-hidden">
           <div className="p-4 border-b border-hairline">
-            <h3 className="font-semibold text-sm text-foreground">Open Tickets (3)</h3>
+            <h3 className="font-semibold text-sm text-foreground">Open Tickets ({tickets.length})</h3>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-hairline">
-            {TICKETS.map(ticket => (
+            {tickets.length > 0 ? tickets.map((ticket: any) => (
               <div key={ticket.id} className="p-4 hover:bg-background/50 transition-colors cursor-pointer flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm ${
-                    ticket.priority === 'Critical' ? 'bg-danger/10 text-danger' : 
-                    ticket.priority === 'High' ? 'bg-[#F59E0B]/10 text-[#F59E0B]' : 
+                    ticket.priority === 'CRITICAL' ? 'bg-danger/10 text-danger' : 
+                    ticket.priority === 'HIGH' ? 'bg-[#F59E0B]/10 text-[#F59E0B]' : 
                     'bg-gray-500/10 text-gray-400'
                   }`}>
                     {ticket.priority}
                   </span>
-                  <span className="text-xs text-muted mono-num flex items-center gap-1"><Clock size={10} /> {ticket.time}</span>
+                  <span className="text-xs text-muted mono-num flex items-center gap-1"><Clock size={10} /> {new Date(ticket.time).toLocaleDateString()}</span>
                 </div>
                 <h4 className="font-semibold text-sm text-foreground">{ticket.subject}</h4>
                 <div className="text-xs text-muted">From: <span className="font-medium text-foreground">{ticket.tenant}</span></div>
               </div>
-            ))}
+            )) : (
+              <div className="p-4 text-sm text-muted text-center mt-4">No support tickets found.</div>
+            )}
           </div>
         </div>
 
