@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Download, Send, RefreshCcw } from 'lucide-react';
-import { InvoicesApi } from '@/lib/api';
+import { InvoicesApi, CompanyApi } from '@/lib/api';
 import VariantOne from '@/components/invoices/VariantOne';
 import VariantTwo from '@/components/invoices/VariantTwo';
 import VariantThree from '@/components/invoices/VariantThree';
@@ -13,14 +13,19 @@ export default function InvoicePreviewPage() {
   const router = useRouter();
   
   const [invoice, setInvoice] = useState<any>(null);
+  const [company, setCompany] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [variant, setVariant] = useState<1 | 2 | 3>(3);
 
   useEffect(() => {
     const fetchInvoice = async () => {
       try {
-        const data = await InvoicesApi.getById(id as string);
-        setInvoice(data);
+        const [invoiceData, companyData] = await Promise.all([
+          InvoicesApi.getById(id as string),
+          CompanyApi.getProfile().catch(() => null)
+        ]);
+        setInvoice(invoiceData);
+        setCompany(companyData);
       } catch (e) {
         console.error(e);
       } finally {
@@ -112,11 +117,11 @@ export default function InvoicePreviewPage() {
       <div className="mt-8 flex justify-center w-full pb-32 print:hidden">
         <div className="w-[800px] min-w-[800px] origin-top transform scale-[0.40] sm:scale-[0.65] lg:scale-100 transition-all duration-300 -mb-[60%] sm:-mb-[35%] lg:mb-0 shadow-2xl bg-white">
           {variant === 1 ? (
-            <VariantOne invoice={invoice} />
+            <VariantOne invoice={invoice} company={company} />
           ) : variant === 2 ? (
-            <VariantTwo invoice={invoice} />
+            <VariantTwo invoice={invoice} company={company} />
           ) : (
-            <VariantThree invoice={invoice} />
+            <VariantThree invoice={invoice} company={company} />
           )}
         </div>
       </div>
@@ -124,11 +129,11 @@ export default function InvoicePreviewPage() {
       {/* Dedicated Print Container */}
       <div className="hidden print:block w-full max-w-full m-0 p-0 bg-white">
         {variant === 1 ? (
-          <VariantOne invoice={invoice} />
+          <VariantOne invoice={invoice} company={company} />
         ) : variant === 2 ? (
-          <VariantTwo invoice={invoice} />
+          <VariantTwo invoice={invoice} company={company} />
         ) : (
-          <VariantThree invoice={invoice} />
+          <VariantThree invoice={invoice} company={company} />
         )}
       </div>
 

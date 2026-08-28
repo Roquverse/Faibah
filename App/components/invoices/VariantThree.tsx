@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Building2, User, FileText } from 'lucide-react';
 
-export default function VariantThree({ invoice }: { invoice: any }) {
+export default function VariantThree({ invoice, company }: { invoice: any, company?: any }) {
   const totalAmount = invoice.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
   const taxAmount = totalAmount * ((invoice.taxRate || 0) / 100);
   const formattedTotal = totalAmount + taxAmount;
@@ -20,13 +20,19 @@ export default function VariantThree({ invoice }: { invoice: any }) {
       <div className="flex justify-between items-start mb-12 print:!mb-6 border-b border-gray-200 pb-8 print:!pb-4">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col mb-4">
-            <span className="font-bold text-2xl leading-tight uppercase tracking-wider">{invoice.client?.company?.name || 'Faibah Agency'}</span>
+            {company?.logoUrl ? (
+              <div className="mb-4 h-12 flex justify-start">
+                <img src={company.logoUrl} alt={company.name || 'Agency Logo'} className="h-full object-contain" />
+              </div>
+            ) : null}
+            <span className="font-bold text-2xl leading-tight uppercase tracking-wider">{company?.name || 'Faibah Agency'}</span>
           </div>
           <div className="text-sm text-gray-600 space-y-1">
-            {invoice.client?.company?.address && <p>{invoice.client.company.address}</p>}
-            {(invoice.client?.company?.city || invoice.client?.company?.country) && <p>{[invoice.client?.company?.city, invoice.client?.company?.country].filter(Boolean).join(', ')}</p>}
-            {invoice.client?.company?.companyEmail && <p>{invoice.client.company.companyEmail}</p>}
-            {invoice.client?.company?.companyPhone && <p>{invoice.client.company.companyPhone}</p>}
+            {company?.address && <p>{company.address}</p>}
+            {(company?.city || company?.country) && <p>{[company?.city, company?.country].filter(Boolean).join(', ')}</p>}
+            {company?.companyEmail && <p>{company.companyEmail}</p>}
+            {company?.companyPhone && <p>{company.companyPhone}</p>}
+            {company?.taxRate > 0 && <p className="text-xs text-gray-400 mt-1">VAT Reg No: {company.taxRate}%</p>}
           </div>
         </div>
 
@@ -133,23 +139,23 @@ export default function VariantThree({ invoice }: { invoice: any }) {
         <div className="grid grid-cols-2 gap-y-3 gap-x-12 text-gray-600 max-w-[600px]">
           <div className="flex justify-between border-b border-gray-100 pb-1">
             <span className="font-semibold text-gray-500">Bank Name</span> 
-            <span className="font-medium text-gray-900">{invoice.client?.company?.bankName || 'Not specified'}</span>
+            <span className="font-medium text-gray-900">{company?.bankName || 'Not specified'}</span>
           </div>
           <div className="flex justify-between border-b border-gray-100 pb-1">
             <span className="font-semibold text-gray-500">Account Name</span> 
-            <span className="font-medium text-gray-900">{invoice.client?.company?.accountName || 'Not specified'}</span>
+            <span className="font-medium text-gray-900">{company?.accountName || 'Not specified'}</span>
           </div>
           <div className="flex justify-between border-b border-gray-100 pb-1">
             <span className="font-semibold text-gray-500">Account Number</span> 
-            <span className="font-medium text-gray-900">{invoice.client?.company?.accountNumber || 'Not specified'}</span>
+            <span className="font-medium text-gray-900">{company?.accountNumber || 'Not specified'}</span>
           </div>
           <div className="flex justify-between border-b border-gray-100 pb-1">
             <span className="font-semibold text-gray-500">Routing Code</span> 
-            <span className="font-medium text-gray-900">{invoice.client?.company?.routingNumber || 'Not specified'}</span>
+            <span className="font-medium text-gray-900">{company?.routingNumber || 'Not specified'}</span>
           </div>
           <div className="flex justify-between border-b border-gray-100 pb-1">
             <span className="font-semibold text-gray-500">SWIFT Code</span> 
-            <span className="font-medium text-gray-900">{invoice.client?.company?.swiftCode || 'Not specified'}</span>
+            <span className="font-medium text-gray-900">{company?.swiftCode || 'Not specified'}</span>
           </div>
         </div>
       </div>

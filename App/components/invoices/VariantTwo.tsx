@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Building2, User, FileText, Globe } from 'lucide-react';
 
-export default function VariantTwo({ invoice }: { invoice: any }) {
+export default function VariantTwo({ invoice, company }: { invoice: any, company?: any }) {
   const totalAmount = invoice.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
   const taxAmount = totalAmount * ((invoice.taxRate || 0) / 100);
   const formattedTotal = totalAmount + taxAmount;
@@ -25,7 +25,19 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
         <div className="text-gray-300 text-xs space-y-2 z-10 font-medium">
           {invoice.client?.company?.companyPhone && <div className="flex items-center justify-end gap-3"><Phone size={14} className="text-gray-400"/> {invoice.client.company.companyPhone}</div>}
           {invoice.client?.company?.companyEmail && <div className="flex items-center justify-end gap-3"><Mail size={14} className="text-gray-400"/> {invoice.client.company.companyEmail}</div>}
-          <div className="flex items-center justify-end gap-3"><Globe size={14} className="text-gray-400"/> www.faibah.com</div>
+          <div className="flex items-center justify-end gap-3">
+            {company?.website ? (
+              <>
+                <Globe size={14} className="text-gray-400"/> 
+                {company.website.replace(/^https?:\/\//, '')}
+              </>
+            ) : (
+              <>
+                <Globe size={14} className="text-gray-400"/> 
+                www.faibah.com
+              </>
+            )}
+          </div>
           <div className="flex items-start justify-end gap-3 pt-1">
             <MapPin size={14} className="text-gray-400 mt-0.5"/> 
             <div className="text-right">
@@ -42,12 +54,20 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
         <div className="flex justify-between items-start mb-14 print:!mb-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-[#346E3A] rounded-xl flex items-center justify-center">
-                <span className="text-[#FBDF4B] font-bold text-2xl tracking-tighter">F</span>
-              </div>
+              {company?.logoUrl ? (
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden">
+                  <img src={company.logoUrl} alt={company.name || 'Agency Logo'} className="w-full h-full object-contain" />
+                </div>
+              ) : (
+                <div className="w-12 h-12 bg-[#346E3A] rounded-xl flex items-center justify-center">
+                  <span className="text-[#FBDF4B] font-bold text-2xl tracking-tighter">
+                    {company?.name ? company.name.charAt(0).toUpperCase() : 'F'}
+                  </span>
+                </div>
+              )}
               <div className="flex flex-col">
-                <span className="font-bold text-2xl text-gray-900 leading-none">{invoice.client?.company?.name || 'Faibah Agency'}</span>
-                <span className="text-xs text-gray-500 font-medium tracking-widest uppercase">Digital Agency</span>
+                <span className="font-bold text-2xl text-gray-900 leading-none">{company?.name || 'Faibah Agency'}</span>
+                <span className="text-xs text-gray-500 font-medium tracking-widest uppercase">{company?.workType || 'Digital Agency'}</span>
               </div>
             </div>
             
@@ -102,13 +122,13 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-gray-400 mb-2 tracking-wider">FROM</span>
-              <span className="font-bold text-gray-900 text-lg mb-1">{invoice.client?.company?.name || 'Faibah Agency'}</span>
+              <span className="font-bold text-gray-900 text-lg mb-1">{company?.name || 'Faibah Agency'}</span>
               <div className="text-sm text-gray-600 space-y-1">
-                {invoice.client?.company?.address && <p>{invoice.client.company.address}</p>}
-                {(invoice.client?.company?.city || invoice.client?.company?.country) && <p>{[invoice.client?.company?.city, invoice.client?.company?.country].filter(Boolean).join(', ')}</p>}
-                {invoice.client?.company?.companyEmail && <p className="mt-2 text-gray-800">{invoice.client.company.companyEmail}</p>}
-                {invoice.client?.company?.companyPhone && <p className="text-gray-800">{invoice.client.company.companyPhone}</p>}
-                {invoice.client?.company?.taxRegistered && <p className="text-xs text-gray-400 mt-1">VAT Reg No: {invoice.client.company.taxRate}%</p>}
+                {company?.address && <p>{company.address}</p>}
+                {(company?.city || company?.country) && <p>{[company?.city, company?.country].filter(Boolean).join(', ')}</p>}
+                {company?.companyEmail && <p className="mt-2 text-gray-800">{company.companyEmail}</p>}
+                {company?.companyPhone && <p className="text-gray-800">{company.companyPhone}</p>}
+                {company?.taxRate > 0 && <p className="text-xs text-gray-400 mt-1">VAT Reg No: {company.taxRate}%</p>}
               </div>
             </div>
           </div>
@@ -223,11 +243,11 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
         <div className="flex-1 bg-gray-50/50 p-6 print:!p-3 rounded-2xl border border-gray-100">
           <span className="font-bold text-[#111827] mb-3 block text-sm tracking-wider">BANK DETAILS</span>
           <div className="grid grid-cols-2 gap-y-3 gap-x-8 text-gray-600">
-            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Bank Name</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.bankName || 'Not specified'}</span></div>
-            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Account Name</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.accountName || 'Not specified'}</span></div>
-            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Account Number</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.accountNumber || 'Not specified'}</span></div>
-            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Routing / Sort Code</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.routingNumber || 'Not specified'}</span></div>
-            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">SWIFT Code</span> <span className="text-sm font-medium text-gray-900">{invoice.client?.company?.swiftCode || 'Not specified'}</span></div>
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Bank Name</span> <span className="text-sm font-medium text-gray-900">{company?.bankName || 'Not specified'}</span></div>
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Account Name</span> <span className="text-sm font-medium text-gray-900">{company?.accountName || 'Not specified'}</span></div>
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Account Number</span> <span className="text-sm font-medium text-gray-900">{company?.accountNumber || 'Not specified'}</span></div>
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">Routing / Sort Code</span> <span className="text-sm font-medium text-gray-900">{company?.routingNumber || 'Not specified'}</span></div>
+            <div><span className="font-semibold block text-gray-400 text-[10px] uppercase mb-0.5">SWIFT Code</span> <span className="text-sm font-medium text-gray-900">{company?.swiftCode || 'Not specified'}</span></div>
           </div>
         </div>
       </div>

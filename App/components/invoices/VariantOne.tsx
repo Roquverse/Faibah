@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Building2, User, FileText, CheckCircle2 } from 'lucide-react';
 
-export default function VariantOne({ invoice }: { invoice: any }) {
+export default function VariantOne({ invoice, company }: { invoice: any, company?: any }) {
   const totalAmount = invoice.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
   const taxAmount = totalAmount * ((invoice.taxRate || 0) / 100);
   const formattedTotal = totalAmount + taxAmount;
@@ -20,12 +20,20 @@ export default function VariantOne({ invoice }: { invoice: any }) {
       <div className="flex justify-between items-start mb-12">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 bg-[#346E3A] rounded-lg flex items-center justify-center">
-              <span className="text-[#FBDF4B] font-bold text-xl tracking-tighter">F</span>
-            </div>
+            {company?.logoUrl ? (
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+                <img src={company.logoUrl} alt={company.name || 'Agency Logo'} className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <div className="w-10 h-10 bg-[#346E3A] rounded-lg flex items-center justify-center">
+                <span className="text-[#FBDF4B] font-bold text-xl tracking-tighter">
+                  {company?.name ? company.name.charAt(0).toUpperCase() : 'F'}
+                </span>
+              </div>
+            )}
             <div className="flex flex-col">
-              <span className="font-bold text-xl text-gray-900 leading-tight">Faibah</span>
-              <span className="text-[10px] text-gray-500 font-medium tracking-widest uppercase">Digital Agency</span>
+              <span className="font-bold text-xl text-gray-900 leading-tight">{company?.name || 'Faibah'}</span>
+              <span className="text-[10px] text-gray-500 font-medium tracking-widest uppercase">{company?.workType || 'Digital Agency'}</span>
             </div>
           </div>
           <h1 className="text-5xl font-black text-[#0B2110] tracking-tight mt-6">INVOICE</h1>
@@ -78,13 +86,13 @@ export default function VariantOne({ invoice }: { invoice: any }) {
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-bold text-gray-400 mb-1 tracking-wider">FROM</span>
-            <span className="font-bold text-gray-900 text-lg mb-2">{invoice.client?.company?.name || 'Faibah Agency'}</span>
+            <span className="font-bold text-gray-900 text-lg mb-2">{company?.name || 'Faibah Agency'}</span>
             <div className="text-sm text-gray-600 space-y-1">
-              {invoice.client?.company?.address && <p>{invoice.client.company.address}</p>}
-              {(invoice.client?.company?.city || invoice.client?.company?.country) && <p>{[invoice.client?.company?.city, invoice.client?.company?.country].filter(Boolean).join(', ')}</p>}
-              {invoice.client?.company?.companyEmail && <p className="mt-2 text-gray-800">{invoice.client.company.companyEmail}</p>}
-              {invoice.client?.company?.companyPhone && <p className="text-gray-800">{invoice.client.company.companyPhone}</p>}
-              {invoice.client?.company?.taxRegistered && <p className="text-xs text-gray-400 mt-1">VAT Reg No: {invoice.client.company.taxRate}%</p>}
+              {company?.address && <p>{company.address}</p>}
+              {(company?.city || company?.country) && <p>{[company?.city, company?.country].filter(Boolean).join(', ')}</p>}
+              {company?.companyEmail && <p className="mt-2 text-gray-800">{company.companyEmail}</p>}
+              {company?.companyPhone && <p className="text-gray-800">{company.companyPhone}</p>}
+              {company?.taxRate > 0 && <p className="text-xs text-gray-400 mt-1">VAT Reg No: {company.taxRate}%</p>}
             </div>
           </div>
         </div>
@@ -206,11 +214,11 @@ export default function VariantOne({ invoice }: { invoice: any }) {
         <div className="flex-1">
           <span className="font-bold text-gray-900 mb-3 block">BANK DETAILS</span>
           <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-gray-600">
-            <div><span className="font-semibold">Bank Name:</span> {invoice.client?.company?.bankName || 'Not specified'}</div>
-            <div><span className="font-semibold">Account Name:</span> {invoice.client?.company?.accountName || 'Not specified'}</div>
-            <div><span className="font-semibold">Account Number:</span> {invoice.client?.company?.accountNumber || 'Not specified'}</div>
-            <div><span className="font-semibold">Routing:</span> {invoice.client?.company?.routingNumber || 'Not specified'}</div>
-            <div><span className="font-semibold">SWIFT Code:</span> {invoice.client?.company?.swiftCode || 'Not specified'}</div>
+            <div><span className="font-semibold">Bank Name:</span> {company?.bankName || 'Not specified'}</div>
+            <div><span className="font-semibold">Account Name:</span> {company?.accountName || 'Not specified'}</div>
+            <div><span className="font-semibold">Account Number:</span> {company?.accountNumber || 'Not specified'}</div>
+            <div><span className="font-semibold">Routing:</span> {company?.routingNumber || 'Not specified'}</div>
+            <div><span className="font-semibold">SWIFT Code:</span> {company?.swiftCode || 'Not specified'}</div>
           </div>
         </div>
       </div>
