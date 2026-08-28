@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const fetchUser = async () => {
       try {
         const profile = await AdminApi.getProfile();
-        if (profile?.userType !== 'SUPER_ADMIN') {
+        if (!profile?.isSuperAdmin) {
           router.push('/login');
         } else {
           setUser(profile);
