@@ -29,6 +29,10 @@ export class AdminApi {
     return this.fetchWithAuth('/admin/overview');
   }
 
+  static getProfile() {
+    return this.fetchWithAuth('/users/profile');
+  }
+
   static getBusinesses() {
     return this.fetchWithAuth('/admin/businesses');
   }

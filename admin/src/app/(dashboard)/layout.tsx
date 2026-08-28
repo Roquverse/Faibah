@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -21,6 +21,7 @@ import {
   Search
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { AdminApi } from '@/lib/api';
 
 const MAIN_NAV = [
   { label: 'Overview', href: '/', icon: BarChart },
@@ -44,6 +45,26 @@ const SETTINGS_NAV = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const profile = await AdminApi.getProfile();
+        if (profile?.userType !== 'SUPER_ADMIN') {
+          router.push('/login');
+        } else {
+          setUser(profile);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Failed to load profile or unauthorized', err);
+        router.push('/login');
+      }
+    };
+    fetchUser();
+  }, [router]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -102,10 +123,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-4 border-t border-hairline shrink-0 mt-auto">
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
-              <img src="https://ui-avatars.com/api/?name=Admin+User&background=16A34A&color=fff" alt="Profile" className="w-full h-full object-cover" />
+              <img src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.firstName || 'Admin')}+${encodeURIComponent(user?.lastName || '')}&background=16A34A&color=fff`} alt="Profile" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col flex-1 overflow-hidden">
-              <span className="text-sm font-bold text-foreground truncate">Admin User</span>
+              <span className="text-sm font-bold text-foreground truncate">{user?.firstName} {user?.lastName}</span>
               <span className="text-xs text-muted truncate">Super Admin</span>
             </div>
             <button onClick={handleLogout} className="text-muted hover:text-danger p-1 rounded-md transition-colors">
@@ -145,15 +166,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             <div className="h-6 w-[1px] bg-hairline mx-2"></div>
             <div className="flex items-center gap-3 cursor-pointer">
-              <span className="text-sm font-semibold text-foreground">Admin User</span>
-              <img src="https://ui-avatars.com/api/?name=Admin+User&background=16A34A&color=fff" alt="Profile" className="w-8 h-8 rounded-full border border-hairline" />
+              <span className="text-sm font-semibold text-foreground">{user?.firstName} {user?.lastName}</span>
+              <img src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.firstName || 'Admin')}+${encodeURIComponent(user?.lastName || '')}&background=16A34A&color=fff`} alt="Profile" className="w-8 h-8 rounded-full border border-hairline" />
             </div>
           </div>
         </header>
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto">
-          {children}
+          {loading ? <div className="p-8 text-muted">Authenticating...</div> : children}
         </main>
       </div>
     </div>

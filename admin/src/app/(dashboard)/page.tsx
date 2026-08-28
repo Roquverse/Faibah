@@ -60,7 +60,7 @@ export default function DashboardOverview() {
           </div>
           <div className="relative z-10">
             <div className="text-3xl font-bold text-foreground mono-num flex items-baseline gap-3">
-              ${(data?.platformMrr || 24780).toLocaleString()}
+              ${(data?.mrr || 0).toLocaleString()}
               <span className="text-xs font-semibold text-success flex items-center">
                 <ArrowUpRight size={14} className="mr-0.5" /> 12.5%
               </span>
@@ -82,7 +82,7 @@ export default function DashboardOverview() {
           </div>
           <div className="relative z-10">
             <div className="text-3xl font-bold text-foreground mono-num flex items-baseline gap-3">
-              {(data?.totalBusinesses || 1248).toLocaleString()}
+              {(data?.totalBusinesses || 0).toLocaleString()}
               <span className="text-xs font-semibold text-success flex items-center">
                 <ArrowUpRight size={14} className="mr-0.5" /> 8.3%
               </span>
@@ -94,17 +94,17 @@ export default function DashboardOverview() {
           </svg>
         </div>
 
-        {/* Card 3: Total Orders */}
+        {/* Card 3: Transaction Volume */}
         <div className="bg-surface rounded-2xl p-6 border border-hairline card-shadow flex flex-col gap-4 relative overflow-hidden group">
           <div className="flex items-start justify-between relative z-10">
-            <span className="text-sm font-semibold text-foreground">Total Invoices</span>
+            <span className="text-sm font-semibold text-foreground">Transaction Volume</span>
             <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
               <ShoppingCart size={20} className="text-accent" />
             </div>
           </div>
           <div className="relative z-10">
             <div className="text-3xl font-bold text-foreground mono-num flex items-baseline gap-3">
-              {2760}
+              ${(data?.transactionVolume || 0).toLocaleString()}
               <span className="text-xs font-semibold text-success flex items-center">
                 <ArrowUpRight size={14} className="mr-0.5" /> 15.2%
               </span>
@@ -116,18 +116,18 @@ export default function DashboardOverview() {
           </svg>
         </div>
 
-        {/* Card 4: Conversion Rate */}
+        {/* Card 4: Active Users */}
         <div className="bg-surface rounded-2xl p-6 border border-hairline card-shadow flex flex-col gap-4 relative overflow-hidden group">
           <div className="flex items-start justify-between relative z-10">
-            <span className="text-sm font-semibold text-foreground">Conversion Rate</span>
+            <span className="text-sm font-semibold text-foreground">Active Users</span>
             <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center">
-              <Percent size={20} className="text-[#F59E0B]" />
+              <Users size={20} className="text-[#F59E0B]" />
             </div>
           </div>
           <div className="relative z-10">
             <div className="text-3xl font-bold text-foreground mono-num flex items-baseline gap-3">
-              4.32%
-              <span className="text-xs font-semibold text-danger flex items-center">
+              {(data?.activeUsers || 0).toLocaleString()}
+              <span className="text-xs font-semibold text-success flex items-center">
                 <ArrowDownRight size={14} className="mr-0.5" /> 3.4%
               </span>
             </div>
@@ -263,35 +263,33 @@ export default function DashboardOverview() {
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-12">
         
-        {/* Recent Orders Table */}
+        {/* Recent Signups Table */}
         <div className="lg:col-span-2 bg-surface rounded-2xl border border-hairline card-shadow overflow-hidden">
           <div className="flex items-center justify-between p-6 border-b border-hairline">
-            <h2 className="font-bold text-foreground">Recent Orders</h2>
+            <h2 className="font-bold text-foreground">Recent Signups</h2>
             <button className="text-accent text-sm font-medium hover:underline">View all</button>
           </div>
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-background/50">
               <tr>
-                <th className="px-6 py-4 font-semibold text-muted text-xs uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-4 font-semibold text-muted text-xs uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-4 font-semibold text-muted text-xs uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 font-semibold text-muted text-xs uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-4 font-semibold text-muted text-xs uppercase tracking-wider">Tenant Name</th>
+                <th className="px-6 py-4 font-semibold text-muted text-xs uppercase tracking-wider">Owner</th>
+                <th className="px-6 py-4 font-semibold text-muted text-xs uppercase tracking-wider">Plan</th>
                 <th className="px-6 py-4 font-semibold text-muted text-xs uppercase tracking-wider">Date</th>
                 <th className="px-6 py-4"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
-              {data?.recentSignups.slice(0,5).map((t: any, i: number) => (
+              {data?.recentSignups?.slice(0,5).map((t: any, i: number) => (
                 <tr key={i} className="hover:bg-background/80 transition-colors">
-                  <td className="px-6 py-4 font-medium text-foreground mono-num">#ORD-174{5-i}</td>
-                  <td className="px-6 py-4 text-foreground">{t.name}</td>
+                  <td className="px-6 py-4 font-medium text-foreground">{t.name}</td>
+                  <td className="px-6 py-4 text-foreground">{t.owner}</td>
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-success/10 text-success">
-                      Completed
+                      {t.plan}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-semibold text-foreground mono-num">$299.00</td>
-                  <td className="px-6 py-4 text-muted mono-num">Jun 12, 2024</td>
+                  <td className="px-6 py-4 text-muted mono-num">{new Date(t.date).toLocaleDateString()}</td>
                   <td className="px-6 py-4 text-right">
                     <button className="text-muted hover:text-foreground"><MoreVertical size={16}/></button>
                   </td>
