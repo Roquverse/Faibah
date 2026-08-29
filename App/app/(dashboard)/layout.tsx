@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="print:hidden relative z-50">
               <Header />
             </div>
-            <main className="flex-1 overflow-x-hidden overflow-y-auto print:overflow-visible print:h-auto w-full relative z-0">
+            <main className="flex-1 overflow-x-hidden overflow-y-auto print:overflow-visible print:h-auto w-full relative">
               {children}
             </main>
           </div>

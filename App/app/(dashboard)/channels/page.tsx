@@ -1247,7 +1247,7 @@ export default function ChannelsPage() {
 
       {/* Pane 3: Right Sidebar (Info/Media/Links) */}
       {showRightPane && activeChannelData && (
-        <div className="fixed inset-y-0 right-0 z-50 w-80 bg-[#F9FAFB] dark:bg-slate-800 border-l border-gray-100 dark:border-slate-800 flex flex-col shrink-0 overflow-y-auto shadow-2xl md:static md:w-72 md:shadow-none animate-in slide-in-from-right-8 duration-200">
+        <div className="fixed inset-y-0 right-0 z-50 w-[85vw] sm:w-80 bg-[#F9FAFB] dark:bg-slate-800 border-l border-gray-100 dark:border-slate-800 flex flex-col shrink-0 overflow-y-auto shadow-2xl md:static md:w-72 md:shadow-none animate-in slide-in-from-right-8 duration-200">
           <div className="flex items-center justify-between px-4 pt-3 md:hidden border-b border-gray-100 dark:border-slate-700/50 pb-2">
             <span className="font-bold text-gray-900 dark:text-white text-sm">Channel Info</span>
             <button onClick={() => setShowRightPane(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1">

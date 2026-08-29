@@ -210,7 +210,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
               Today
             </button>
             <button onClick={nextMonth} className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-colors">
-              ChevronRight <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -222,7 +222,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#0C3B2E]"
+              className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#0C3B2E] max-w-[200px] sm:max-w-xs text-ellipsis"
             >
               <option value="all">All Projects (Roll-up View)</option>
               {projects.map((p) => (
