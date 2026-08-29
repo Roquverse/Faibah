@@ -184,14 +184,14 @@ export default function NewProjectProposal() {
  <div className="min-h-full font-sans pb-24 relative">
  
  {/* Floating Action Bar */}
- <div className="sticky top-0 z-40 bg-[#F8F9FA]/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-8 py-4 flex items-center justify-between">
- <Link href="/projects" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors text-sm font-semibold w-1/4">
+ <div className="sticky top-0 z-40 bg-[#F8F9FA]/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+ <Link href="/projects" className="flex items-center justify-center md:justify-start gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors text-sm font-semibold w-full md:w-1/4">
  <ArrowLeft className="w-4 h-4" />
  Back to Projects
  </Link>
  
  {/* Tab Navigation */}
- <div className="flex items-center bg-gray-100 dark:bg-slate-800/60 p-1 rounded-xl w-1/2 justify-center">
+ <div className="flex items-center bg-gray-100 dark:bg-slate-800/60 p-1 rounded-xl w-full md:w-1/2 justify-center overflow-x-auto">
  <button 
  onClick={() => setActiveTab('proposal')}
  className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'proposal' ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
@@ -215,7 +215,7 @@ export default function NewProjectProposal() {
  </button>
  </div>
 
- <div className="flex items-center gap-3 w-1/4 justify-end">
+ <div className="flex items-center justify-center md:justify-end gap-3 w-full md:w-1/4">
  <button 
  onClick={() => setIsAiModalOpen(true)}
  className="flex items-center justify-center whitespace-nowrap gap-2 px-4 h-10 rounded-xl text-sm font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors"
@@ -305,17 +305,17 @@ export default function NewProjectProposal() {
  
  {/* Document Header (Always visible in edit modes, styled differently in preview) */}
  {activeTab !== 'preview' && (
- <div className="flex justify-between items-start mb-16 pb-12 border-b border-gray-100">
+ <div className="flex flex-col sm:flex-row justify-between items-start gap-8 sm:gap-4 mb-16 pb-12 border-b border-gray-100">
  <div>
- <h2 className="text-2xl font-bold text-gray-900 tracking-tight mb-4">{company?.name || 'Loading Company...'}</h2>
+ <h2 className="text-2xl font-bold text-gray-900 tracking-tight mb-4 break-words">{company?.name || 'Loading Company...'}</h2>
  <div className="text-sm text-gray-500 space-y-1">
- <p>123 Innovation Drive</p>
- <p>Lekki Phase 1, Lagos</p>
+ <p>{company?.companyEmail || 'hello@company.com'}</p>
+ <p>{company?.companyPhone || '+234 000 000 0000'}</p>
  </div>
  </div>
- <div className="text-right">
+ <div className="text-left sm:text-right w-full sm:w-auto">
  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Proposal / Estimate</div>
- <h1 className="text-4xl font-bold text-gray-900 tracking-tighter mb-6">#PRJ-092</h1>
+ <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tighter mb-6 break-words">#PRJ-092</h1>
  <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-left w-64">
  <select 
  className="w-full bg-transparent text-sm font-bold text-gray-900 focus:outline-none mb-1 cursor-pointer"
@@ -423,7 +423,7 @@ export default function NewProjectProposal() {
  type="text"
  value={proposalTitle}
  onChange={(e) => setProposalTitle(e.target.value)}
- className="w-full text-5xl md:text-[3.5rem] font-extrabold text-gray-900 tracking-tighter leading-tight bg-transparent focus:outline-none mb-8 placeholder:text-gray-300"
+ className="w-full text-3xl sm:text-4xl md:text-[3.5rem] font-extrabold text-gray-900 tracking-tighter leading-tight bg-transparent focus:outline-none mb-8 placeholder:text-gray-300"
  placeholder="Enter Proposal Title..."
  />
  
@@ -558,19 +558,19 @@ export default function NewProjectProposal() {
  <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32">
  
  {/* Read-Only Document Header */}
- <div className="flex justify-between items-start mb-16 pb-12 border-b border-gray-100">
+ <div className="flex flex-col sm:flex-row justify-between items-start gap-8 sm:gap-4 mb-16 pb-12 border-b border-gray-100">
  <div>
- <h2 className="text-2xl font-bold text-gray-900 tracking-tight mb-4">{company?.name || 'Loading Company...'}</h2>
+ <h2 className="text-2xl font-bold text-gray-900 tracking-tight mb-4 break-words">{company?.name || 'Loading Company...'}</h2>
  <div className="text-sm text-gray-500 space-y-1">
- <p>123 Innovation Drive</p>
- <p>Lekki Phase 1, Lagos</p>
+ <p>{company?.companyEmail || 'hello@company.com'}</p>
+ <p>{company?.companyPhone || '+234 000 000 0000'}</p>
  </div>
  </div>
- <div className="text-right">
+ <div className="text-left sm:text-right w-full sm:w-auto">
  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Proposal / Estimate</div>
- <h1 className="text-4xl font-bold text-gray-900 tracking-tighter mb-6">#PRJ-092</h1>
- <div className="text-right">
- <div className="text-sm font-bold text-gray-900 mb-1">
+ <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tighter mb-6 break-words">#PRJ-092</h1>
+ <div className="text-left sm:text-right">
+ <div className="text-sm font-bold text-gray-900 mb-1 break-words">
  {clients.find(c => c.id === selectedClientId)?.name || 'Client Name'}
  </div>
  <div className="text-xs text-gray-500 mt-1">Client Recipient</div>
@@ -641,7 +641,7 @@ export default function NewProjectProposal() {
 
  {/* Sticky Accept Footer (Client View) */}
  <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-white via-white to-transparent pointer-events-none z-10" />
- <div className="absolute bottom-8 left-0 w-full flex justify-end px-12 z-20 pointer-events-auto">
+ <div className="absolute bottom-8 left-0 w-full flex justify-center sm:justify-end px-6 sm:px-12 z-20 pointer-events-auto">
  <button 
    onClick={handleSend}
    disabled={isSending}
