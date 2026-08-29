@@ -26,6 +26,7 @@ import { BullConfigModule } from './bull/bull-config.module';
 import { REDIS_CLIENT } from './redis/redis.constants';
 import { MailModule } from './mail/mail.module';
 import { PaymentsModule } from './payments/payments.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { PaymentsModule } from './payments/payments.module';
     ReceiptsModule,
     PaymentsModule,
     AdminModule,
+    SubscriptionsModule,
   ],
   controllers: [AppController],
   providers: [

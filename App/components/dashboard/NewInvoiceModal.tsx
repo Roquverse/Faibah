@@ -14,7 +14,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
   const [currency, setCurrency] = useState('NGN');
   const [taxRate, setTaxRate] = useState<number | string>('');
   const [dueDate, setDueDate] = useState('');
-  const [items, setItems] = useState<any[]>([{ itemName: '', details: '', quantity: 1, unitPrice: '', amount: 0 }]);
+  const [items, setItems] = useState<any[]>([{ itemName: '', details: '', quantity: 1, unitPrice: '', amount: 0, isSubscription: false, subscriptionFrequency: 'MONTHLY', subscriptionDate: '' }]);
 
   useEffect(() => {
     if (isOpen) {
@@ -33,7 +33,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
 
   if (!isOpen) return null;
 
-  const handleItemChange = (index: number, field: string, value: string | number) => {
+  const handleItemChange = (index: number, field: string, value: string | number | boolean) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     // Recalculate amount
@@ -46,7 +46,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
   };
 
   const addItem = () => {
-    setItems([...items, { itemName: '', details: '', quantity: 1, unitPrice: '', amount: 0 }]);
+    setItems([...items, { itemName: '', details: '', quantity: 1, unitPrice: '', amount: 0, isSubscription: false, subscriptionFrequency: 'MONTHLY', subscriptionDate: '' }]);
   };
 
   const removeItem = (index: number) => {
@@ -74,7 +74,10 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
         description: `${item.itemName}|||${item.details}`,
         quantity: item.quantity === '' ? 0 : Number(item.quantity),
         unitPrice: item.unitPrice === '' ? 0 : Number(item.unitPrice),
-        amount: item.amount
+        amount: item.amount,
+        isSubscription: item.isSubscription,
+        subscriptionFrequency: item.subscriptionFrequency,
+        subscriptionDate: item.subscriptionDate ? new Date(item.subscriptionDate).toISOString() : undefined,
       }));
 
       await InvoicesApi.create({
@@ -239,6 +242,45 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
                           {item.amount.toLocaleString()}
                         </div>
                       </div>
+                    </div>
+
+                    {/* Subscription Checkbox */}
+                    <div className="w-full sm:w-full mt-2 pt-2 border-t border-gray-200/60">
+                      <label className="flex items-center gap-2 cursor-pointer mb-2">
+                        <input
+                          type="checkbox"
+                          checked={item.isSubscription}
+                          onChange={e => handleItemChange(index, 'isSubscription', e.target.checked)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-semibold text-gray-700">Make this a Subscription</span>
+                      </label>
+                      {item.isSubscription && (
+                        <div className="flex items-center gap-4 mt-2 mb-2">
+                          <div className="flex-1">
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Frequency</label>
+                            <select
+                              value={item.subscriptionFrequency}
+                              onChange={e => handleItemChange(index, 'subscriptionFrequency', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white"
+                            >
+                              <option value="WEEKLY">Weekly</option>
+                              <option value="MONTHLY">Monthly</option>
+                              <option value="YEARLY">Yearly</option>
+                            </select>
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Start Date</label>
+                            <input
+                              type="date"
+                              value={item.subscriptionDate}
+                              onChange={e => handleItemChange(index, 'subscriptionDate', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white"
+                              required={item.isSubscription}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     <button 

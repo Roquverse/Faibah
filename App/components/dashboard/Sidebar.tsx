@@ -12,7 +12,8 @@ import {
   Building2,
   ListTodo,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  Repeat
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -28,6 +29,7 @@ const MAIN_MENU = [
 
 const CRM_MENU = [
   { name: 'Clients', icon: Building2, path: '/clients' },
+  { name: 'Subscriptions', icon: Repeat, path: '/subscriptions' },
   { name: 'Invoices', icon: ListTodo, path: '/invoices' },
   { name: 'Receipts', icon: FileText, path: '/receipts' },
   { name: 'Payments', icon: CreditCard, path: '/payments' },

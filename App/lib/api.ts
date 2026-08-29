@@ -191,3 +191,8 @@ export const InvoicesApi = {
   delete: (id: string) => fetchApi(`/invoices/${id}`, { method: 'DELETE' }),
 };
 
+export const SubscriptionsApi = {
+  getAll: () => fetchApi('/subscriptions'),
+  getUpcoming: () => fetchApi('/subscriptions/upcoming'),
+};
+
