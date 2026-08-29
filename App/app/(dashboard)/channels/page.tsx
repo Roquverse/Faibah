@@ -324,7 +324,7 @@ export default function ChannelsPage() {
             href={href}
             target="_blank"
             rel="noreferrer"
-            className="text-blue-600 dark:text-blue-400 underline font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors break-all cursor-pointer inline-flex items-center gap-1 mx-0.5"
+            className="text-blue-600 dark:text-blue-400 underline font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors break-all inline mx-0.5"
           >
             {part}
           </a>
@@ -1021,7 +1021,7 @@ export default function ChannelsPage() {
                           </div>
 
                           {/* Content */}
-                          <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap">
+                          <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap break-words">
                             {renderFormattedContent(msg.content, activeProjectMembers)}
                           </div>
 
@@ -1087,7 +1087,7 @@ export default function ChannelsPage() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap">
+                        <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap break-words">
                           {renderFormattedContent(msg.content, activeProjectMembers)}
                         </div>
 
