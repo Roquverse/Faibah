@@ -49,7 +49,7 @@ export default function ProjectDetailPage() {
           <div>
             <div className="text-sm text-gray-500 mb-1">Client</div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-[#A5D149]/20 text-[#346E3A] flex items-center justify-center text-xs font-bold">
+              <div className="w-6 h-6 rounded-full bg-[#6D9773]/20 text-[#0C3B2E] flex items-center justify-center text-xs font-bold">
                 {project.client.avatar}
               </div>
               <span className="font-medium text-gray-900">{project.client.name}</span>
@@ -60,7 +60,7 @@ export default function ProjectDetailPage() {
             <select 
               value={projectStatus} 
               onChange={(e) => setProjectStatus(e.target.value)}
-              className="text-sm font-medium bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#A5D149]"
+              className="text-sm font-medium bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#6D9773]"
             >
               <option value="DRAFT">Draft</option>
               <option value="ONGOING">Ongoing</option>
@@ -87,14 +87,14 @@ export default function ProjectDetailPage() {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
           <div className="font-medium text-gray-900">Project Proposal</div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#FBDF4B] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#F3D53C] transition-colors shadow-sm">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#FFBA00] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#E6A700] transition-colors shadow-sm">
             <Sparkles className="w-4 h-4" />
             Generate Quotation
           </button>
         </div>
         <div className="p-6">
           <textarea 
-            className="w-full h-64 p-4 border border-gray-200 rounded-lg focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] resize-none"
+            className="w-full h-64 p-4 border border-gray-200 rounded-lg focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773] resize-none"
             placeholder="Type your raw proposal or notes here..."
             defaultValue={`We will redesign the Acme Corp website over 4 weeks.
 Phase 1: Discovery & Design (₦150,000)
@@ -123,7 +123,7 @@ Total: ₦450,000`}
               <Download className="w-4 h-4" />
               PDF
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#FBDF4B] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#F3D53C] transition-colors shadow-sm">
+            <button className="flex items-center gap-2 px-4 py-2 bg-[#FFBA00] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#E6A700] transition-colors shadow-sm">
               <Send className="w-4 h-4" />
               Send
             </button>
@@ -168,7 +168,7 @@ Total: ₦450,000`}
           </table>
         </div>
         <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end">
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#FBDF4B] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#F3D53C] transition-colors shadow-sm">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#FFBA00] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#E6A700] transition-colors shadow-sm">
             <CheckCircle2 className="w-4 h-4" />
             Convert to Invoice
           </button>
@@ -185,7 +185,7 @@ Total: ₦450,000`}
         <p className="text-sm text-gray-500 max-w-sm mb-6">
           Convert an accepted quotation to an invoice, or create a new invoice directly for this project.
         </p>
-        <button className="flex items-center gap-2 px-4 py-2 bg-[#FBDF4B] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#F3D53C] transition-colors shadow-sm">
+        <button className="flex items-center gap-2 px-4 py-2 bg-[#FFBA00] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#E6A700] transition-colors shadow-sm">
           <Plus className="w-4 h-4" />
           Create Invoice
         </button>
@@ -264,7 +264,7 @@ Total: ₦450,000`}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 py-4 px-1 border-b-2 text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === tab.id 
-                ? 'border-[#346E3A] text-[#346E3A]' 
+                ? 'border-[#0C3B2E] text-[#0C3B2E]' 
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >

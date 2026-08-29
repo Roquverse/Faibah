@@ -29,9 +29,9 @@ interface Project {
 
 const COLUMNS: { id: ProjectStatus; label: string; dotColor: string }[] = [
   { id: 'DRAFT', label: 'Draft', dotColor: 'text-gray-400' },
-  { id: 'ONGOING', label: 'Ongoing', dotColor: 'text-[#FBDF4B]' },
+  { id: 'ONGOING', label: 'Ongoing', dotColor: 'text-[#FFBA00]' },
   { id: 'AWAITING_PAYMENT', label: 'Awaiting Payment', dotColor: 'text-orange-400' },
-  { id: 'COMPLETED', label: 'Completed', dotColor: 'text-[#346E3A]' },
+  { id: 'COMPLETED', label: 'Completed', dotColor: 'text-[#0C3B2E]' },
   { id: 'CANCELLED', label: 'Cancelled', dotColor: 'text-gray-900' },
 ];
 
@@ -204,7 +204,7 @@ export default function ProjectsPage() {
                     className="bg-white p-4 rounded-xl border border-gray-200 hover:border-gray-300 transition-all cursor-pointer group mb-4 block"
                   >
                     <div className="flex items-start justify-between mb-1">
-                      <h4 className="font-bold text-gray-900 text-[13px] group-hover:text-[#346E3A] transition-colors leading-snug">
+                      <h4 className="font-bold text-gray-900 text-[13px] group-hover:text-[#0C3B2E] transition-colors leading-snug">
                         {project.title}
                       </h4>
                       <button onClick={(e) => { e.stopPropagation(); }} className="text-gray-400 hover:text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -288,7 +288,7 @@ export default function ProjectsPage() {
               {projects.map(project => (
                 <tr key={project.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-6 py-4">
-                    <button onClick={() => openProjectDrawer(project.id)} className="font-bold text-gray-900 group-hover:text-[#346E3A] transition-colors text-left cursor-pointer">
+                    <button onClick={() => openProjectDrawer(project.id)} className="font-bold text-gray-900 group-hover:text-[#0C3B2E] transition-colors text-left cursor-pointer">
                       {project.title}
                     </button>
                   </td>

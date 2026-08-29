@@ -103,7 +103,7 @@ export default function BusinessDetailPage() {
                     <td className="px-4 py-3">{h.plan}</td>
                     <td className="px-4 py-3 text-right mono-num font-medium">${h.amount}</td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`text-xs font-bold ${h.status === 'ACTIVE' ? 'text-[#16A34A]' : 'text-muted'}`}>{h.status}</span>
+                      <span className={`text-xs font-bold ${h.status === 'ACTIVE' ? 'text-[#6D9773]' : 'text-muted'}`}>{h.status}</span>
                     </td>
                   </tr>
                 )) : (
@@ -135,8 +135,8 @@ function StatusPill({ status }: { status: string }) {
   let text = 'text-gray-500';
   
   if (status === 'Active') {
-    bg = 'bg-[#16A34A]/10';
-    text = 'text-[#16A34A]';
+    bg = 'bg-[#6D9773]/10';
+    text = 'text-[#6D9773]';
   } else if (status === 'Trial') {
     bg = 'bg-[#F59E0B]/10';
     text = 'text-[#F59E0B]';

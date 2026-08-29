@@ -108,8 +108,8 @@ function StatusPill({ status }: { status: string }) {
   let text = 'text-gray-500';
   
   if (status === 'Active') {
-    bg = 'bg-[#16A34A]/10'; // Success green
-    text = 'text-[#16A34A]';
+    bg = 'bg-[#6D9773]/10'; // Success green
+    text = 'text-[#6D9773]';
   } else if (status === 'Trial') {
     bg = 'bg-[#F59E0B]/10'; // Warning amber
     text = 'text-[#F59E0B]';

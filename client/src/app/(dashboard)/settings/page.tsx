@@ -656,7 +656,7 @@ export default function SettingsPage() {
                         type="checkbox"
                         checked={company?.requireDeposit || false}
                         onChange={(e) => setCompany({ ...company, requireDeposit: e.target.checked })}
-                        className="peer appearance-none w-5 h-5 border border-gray-200 rounded bg-white checked:bg-[#346E3A] checked:border-[#346E3A] transition-colors"
+                        className="peer appearance-none w-5 h-5 border border-gray-200 rounded bg-white checked:bg-[#0C3B2E] checked:border-[#0C3B2E] transition-colors"
                       />
                       <div className="absolute pointer-events-none opacity-0 peer-checked:opacity-100 text-white">
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>

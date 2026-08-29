@@ -75,7 +75,7 @@ export default function SubscriptionsPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${
-                    s.status === 'ACTIVE' ? 'bg-[#16A34A]/10 text-[#16A34A]' : 'bg-danger/10 text-danger'
+                    s.status === 'ACTIVE' ? 'bg-[#6D9773]/10 text-[#6D9773]' : 'bg-danger/10 text-danger'
                   }`}>
                     {s.status}
                   </span>

@@ -58,7 +58,7 @@ export default function FeatureFlagsPage() {
               
               {/* Toggle Mock */}
               <button 
-                className={`w-10 h-5 rounded-full p-0.5 transition-colors ${flag.enabled ? 'bg-[#16A34A]' : 'bg-gray-700'}`}
+                className={`w-10 h-5 rounded-full p-0.5 transition-colors ${flag.enabled ? 'bg-[#6D9773]' : 'bg-gray-700'}`}
               >
                 <div className={`w-4 h-4 rounded-full bg-white transition-transform ${flag.enabled ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
@@ -69,7 +69,7 @@ export default function FeatureFlagsPage() {
             </p>
             
             <div className="pt-4 border-t border-hairline flex items-center justify-between">
-              <span className={`text-xs font-bold uppercase tracking-wider ${flag.enabled ? 'text-[#16A34A]' : 'text-muted'}`}>
+              <span className={`text-xs font-bold uppercase tracking-wider ${flag.enabled ? 'text-[#6D9773]' : 'text-muted'}`}>
                 {flag.enabled ? 'Enabled' : 'Disabled'}
               </span>
               <button className="text-xs font-semibold text-accent hover:underline">Edit Rules</button>

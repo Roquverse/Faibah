@@ -230,7 +230,7 @@ export default function ChannelsPage() {
           <button
             onClick={() => handleDownloadAttachment(url, fileNameDisplay)}
             title="Download file"
-            className="px-2.5 py-1.5 bg-[#346E3A]/10 text-[#346E3A] dark:bg-green-900/30 dark:text-green-400 hover:bg-[#346E3A]/20 text-xs font-semibold rounded-lg border border-[#346E3A]/20 transition-colors flex items-center gap-1 cursor-pointer"
+            className="px-2.5 py-1.5 bg-[#0C3B2E]/10 text-[#0C3B2E] dark:bg-green-900/30 dark:text-green-400 hover:bg-[#0C3B2E]/20 text-xs font-semibold rounded-lg border border-[#0C3B2E]/20 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" /> Download
           </button>
@@ -721,7 +721,7 @@ export default function ChannelsPage() {
                 setNewChannel({ name: '', projectId: projects[0]?.id || '' });
                 setShowCreateModal(true);
               }}
-              className="p-1 text-[#346E3A] dark:text-green-400 hover:bg-[#346E3A]/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
+              className="p-1 text-[#0C3B2E] dark:text-green-400 hover:bg-[#0C3B2E]/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
               title="Create New Channel"
             >
               <Plus className="w-4 h-4" />
@@ -749,7 +749,7 @@ export default function ChannelsPage() {
                     setActiveChannelId(favChannel.id);
                     setShowMobileSidebar(false);
                   }}
-                  className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors group ${activeChannelId === favChannel.id ? 'bg-[#346E3A]/10 text-[#346E3A] font-bold' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-slate-700/50'}`}
+                  className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors group ${activeChannelId === favChannel.id ? 'bg-[#0C3B2E]/10 text-[#0C3B2E] font-bold' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-slate-700/50'}`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
@@ -776,7 +776,7 @@ export default function ChannelsPage() {
                   setNewChannel({ name: '', projectId: projects[0]?.id || '' });
                   setShowCreateModal(true);
                 }}
-                className="text-gray-400 hover:text-[#346E3A] dark:hover:text-green-400 p-0.5 rounded hover:bg-gray-200/50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-semibold"
+                className="text-gray-400 hover:text-[#0C3B2E] dark:hover:text-green-400 p-0.5 rounded hover:bg-gray-200/50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-semibold"
                 title="Create New Channel"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -803,7 +803,7 @@ export default function ChannelsPage() {
                       setNewChannel({ name: '', projectId: project.id });
                       setShowCreateModal(true);
                     }}
-                    className="p-1 mr-1 text-gray-400 hover:text-[#346E3A] dark:hover:text-green-400 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    className="p-1 mr-1 text-gray-400 hover:text-[#0C3B2E] dark:hover:text-green-400 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                     title={`Create Channel in ${project.name}`}
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -819,7 +819,7 @@ export default function ChannelsPage() {
                           setActiveChannelId(channel.id);
                           setShowMobileSidebar(false);
                         }}
-                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-md transition-colors group ${activeChannelId === channel.id ? 'bg-[#346E3A]/10 text-[#346E3A] font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-slate-700/50 font-medium'}`}
+                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-md transition-colors group ${activeChannelId === channel.id ? 'bg-[#0C3B2E]/10 text-[#0C3B2E] font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-slate-700/50 font-medium'}`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <Hash className="w-3.5 h-3.5 opacity-50 shrink-0" />
@@ -866,7 +866,7 @@ export default function ChannelsPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleAcceptInvitation(pendingInvitations[0].id)}
-                className="px-4 py-2 bg-[#346E3A] text-white rounded-lg text-xs font-bold hover:bg-[#2c5c31] transition-colors cursor-pointer"
+                className="px-4 py-2 bg-[#0C3B2E] text-white rounded-lg text-xs font-bold hover:bg-[#2c5c31] transition-colors cursor-pointer"
               >
                 Accept & Join
               </button>
@@ -930,7 +930,7 @@ export default function ChannelsPage() {
             <div className="flex-1 overflow-y-auto p-4 md:px-6 space-y-0.5">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center max-w-sm mx-auto">
-                  <div className="w-16 h-16 bg-[#346E3A]/10 text-[#346E3A] rounded-full flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 bg-[#0C3B2E]/10 text-[#0C3B2E] rounded-full flex items-center justify-center mb-4">
                     <Hash className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Welcome to #{activeChannelData.name}</h3>
@@ -1126,7 +1126,7 @@ export default function ChannelsPage() {
 
             {/* Input Area */}
             <div className="p-4 bg-white dark:bg-slate-900 shrink-0">
-              <div className="border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 shadow-sm focus-within:border-[#346E3A] focus-within:ring-1 focus-within:ring-[#346E3A] transition-all flex flex-col">
+              <div className="border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 shadow-sm focus-within:border-[#0C3B2E] focus-within:ring-1 focus-within:ring-[#0C3B2E] transition-all flex flex-col">
                 <textarea 
                   rows={2}
                   value={messageInput}
@@ -1156,7 +1156,7 @@ export default function ChannelsPage() {
                               onClick={() => handleMentionSelect(member)}
                               className="w-full text-left flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
                             >
-                              <div className="w-6 h-6 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center text-[10px] font-bold shrink-0">
+                              <div className="w-6 h-6 rounded-full bg-[#0C3B2E]/10 text-[#0C3B2E] flex items-center justify-center text-[10px] font-bold shrink-0">
                                 {member.user?.firstName?.charAt(0) || member.client?.name?.charAt(0) || '?'}
                               </div>
                               <span className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -1183,8 +1183,8 @@ export default function ChannelsPage() {
                   )}
 
                   <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                    <button onClick={() => setShowMentions(!showMentions)} className={`p-1.5 rounded transition-colors ${showMentions ? 'bg-[#346E3A]/10 text-[#346E3A]' : 'hover:bg-gray-200 dark:hover:bg-slate-600'}`} title="Mention"><AtSign className="w-4 h-4" /></button>
-                    <button onClick={() => setShowEmojis(!showEmojis)} className={`p-1.5 rounded transition-colors ${showEmojis ? 'bg-[#346E3A]/10 text-[#346E3A]' : 'hover:bg-gray-200 dark:hover:bg-slate-600'}`} title="Emoji"><Smile className="w-4 h-4" /></button>
+                    <button onClick={() => setShowMentions(!showMentions)} className={`p-1.5 rounded transition-colors ${showMentions ? 'bg-[#0C3B2E]/10 text-[#0C3B2E]' : 'hover:bg-gray-200 dark:hover:bg-slate-600'}`} title="Mention"><AtSign className="w-4 h-4" /></button>
+                    <button onClick={() => setShowEmojis(!showEmojis)} className={`p-1.5 rounded transition-colors ${showEmojis ? 'bg-[#0C3B2E]/10 text-[#0C3B2E]' : 'hover:bg-gray-200 dark:hover:bg-slate-600'}`} title="Emoji"><Smile className="w-4 h-4" /></button>
                     <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept="image/*,application/pdf" />
                     <button 
                       onClick={() => fileInputRef.current?.click()} 
@@ -1295,7 +1295,7 @@ export default function ChannelsPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500 flex items-center gap-2"><Zap className="w-4 h-4" /> Status</span>
-                      <span className="px-2 py-0.5 bg-[#A5D149]/20 text-[#346E3A] rounded text-xs font-bold uppercase tracking-wider">Active</span>
+                      <span className="px-2 py-0.5 bg-[#6D9773]/20 text-[#0C3B2E] rounded text-xs font-bold uppercase tracking-wider">Active</span>
                     </div>
                   </div>
                 </div>
@@ -1334,7 +1334,7 @@ export default function ChannelsPage() {
                                 {member.user?.id === currentUser?.id && ' (You)'}
                               </div>
                               <div className="mt-1">
-                                <span className="px-2 py-0.5 bg-[#346E3A]/10 text-[#346E3A] rounded text-[10px] font-bold uppercase tracking-wider inline-block">
+                                <span className="px-2 py-0.5 bg-[#0C3B2E]/10 text-[#0C3B2E] rounded text-[10px] font-bold uppercase tracking-wider inline-block">
                                   {member.role || 'Member'}
                                 </span>
                               </div>
@@ -1463,7 +1463,7 @@ export default function ChannelsPage() {
                     placeholder="e.g. design-feedback"
                     value={newChannel.name}
                     onChange={(e) => setNewChannel({ ...newChannel, name: e.target.value })}
-                    className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#346E3A] focus:ring-1 focus:ring-[#346E3A] placeholder:text-gray-400"
+                    className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0C3B2E] focus:ring-1 focus:ring-[#0C3B2E] placeholder:text-gray-400"
                   />
                 </div>
               </div>
@@ -1474,7 +1474,7 @@ export default function ChannelsPage() {
                   required
                   value={newChannel.projectId}
                   onChange={(e) => setNewChannel({ ...newChannel, projectId: e.target.value })}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#346E3A] focus:ring-1 focus:ring-[#346E3A]"
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0C3B2E] focus:ring-1 focus:ring-[#0C3B2E]"
                 >
                   <option value="">-- Select Project --</option>
                   {projects.map(p => (
@@ -1486,7 +1486,7 @@ export default function ChannelsPage() {
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="w-full py-2.5 bg-[#346E3A] text-white rounded-lg text-sm font-bold hover:bg-[#2b592f] transition-colors disabled:opacity-50 mt-2"
+                className="w-full py-2.5 bg-[#0C3B2E] text-white rounded-lg text-sm font-bold hover:bg-[#2b592f] transition-colors disabled:opacity-50 mt-2"
               >
                 {isSubmitting ? 'Creating...' : 'Create Channel'}
               </button>
@@ -1524,7 +1524,7 @@ export default function ChannelsPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="e.g. colleague@company.com"
-                  className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:border-[#0C3B2E]"
                 />
               </div>
               <div>
@@ -1532,7 +1532,7 @@ export default function ChannelsPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
-                  className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:border-[#0C3B2E]"
                 >
                   <option value="CONTRACTOR">Contractor / Member</option>
                   <option value="PROJECT_MANAGER">Project Manager</option>
@@ -1551,7 +1551,7 @@ export default function ChannelsPage() {
                 <button
                   type="submit"
                   disabled={isInviting}
-                  className="px-5 py-2 text-sm font-bold text-gray-900 bg-[#FBDF4B] hover:bg-[#F3D53C] rounded-xl flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 text-sm font-bold text-gray-900 bg-[#FFBA00] hover:bg-[#E6A700] rounded-xl flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {isInviting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   {isInviting ? 'Sending...' : 'Send Invitation'}
@@ -1588,7 +1588,7 @@ export default function ChannelsPage() {
               </a>
               <button
                 onClick={() => handleDownloadAttachment(previewAttachment.url, previewAttachment.name)}
-                className="px-3 py-1.5 bg-[#346E3A] hover:bg-[#2c5d31] text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-1.5 bg-[#0C3B2E] hover:bg-[#2c5d31] text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" /> Download
               </button>

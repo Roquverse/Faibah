@@ -125,7 +125,7 @@ export default function InvoicesPage() {
               className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full sm:w-64"
             />
           </div>
-          <button onClick={() => setIsNewInvoiceOpen(true)} className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
+          <button onClick={() => setIsNewInvoiceOpen(true)} className="flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#E6A700] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
             <Plus className="w-4 h-4" />
             New Invoice
           </button>

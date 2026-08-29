@@ -211,12 +211,12 @@ export default function Header({ toggleSidebar }: { toggleSidebar?: () => void }
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">Notifications</span>
                   {notifications.length > 0 && (
-                    <span className="px-2 py-0.5 bg-[#346E3A]/10 text-[#346E3A] dark:bg-green-900/40 dark:text-green-400 rounded-full text-[10px] font-bold">
+                    <span className="px-2 py-0.5 bg-[#0C3B2E]/10 text-[#0C3B2E] dark:bg-green-900/40 dark:text-green-400 rounded-full text-[10px] font-bold">
                       {notifications.length}
                     </span>
                   )}
                 </div>
-                <button onClick={() => setNotifications([])} className="text-xs font-medium text-[#346E3A] dark:text-green-400 hover:underline">
+                <button onClick={() => setNotifications([])} className="text-xs font-medium text-[#0C3B2E] dark:text-green-400 hover:underline">
                   Mark all read
                 </button>
               </div>
@@ -240,7 +240,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar?: () => void }
                             <MessageSquare size={15} />
                           </div>
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-green-50 text-[#346E3A] dark:bg-green-900/40 dark:text-green-400 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-green-50 text-[#0C3B2E] dark:bg-green-900/40 dark:text-green-400 flex items-center justify-center">
                             <CheckCircle2 size={15} />
                           </div>
                         )}

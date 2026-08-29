@@ -20,8 +20,8 @@ export default function VariantOne({ invoice }: { invoice: any }) {
       <div className="flex justify-between items-start mb-12">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 bg-[#346E3A] rounded-lg flex items-center justify-center">
-              <span className="text-[#FBDF4B] font-bold text-xl tracking-tighter">F</span>
+            <div className="w-10 h-10 bg-[#0C3B2E] rounded-lg flex items-center justify-center">
+              <span className="text-[#FFBA00] font-bold text-xl tracking-tighter">F</span>
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-xl text-gray-900 leading-tight">Faibah</span>
@@ -32,7 +32,7 @@ export default function VariantOne({ invoice }: { invoice: any }) {
           <p className="text-gray-500 text-sm mt-1">Solutions that drive success.</p>
         </div>
 
-        <div className="bg-[#346E3A] text-white p-6 rounded-2xl w-72 shadow-lg">
+        <div className="bg-[#0C3B2E] text-white p-6 rounded-2xl w-72 shadow-lg">
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm text-green-100">Invoice No.</span>
             <span className="font-bold">{invoice.invoiceRef || invoice.id.slice(0,8).toUpperCase()}</span>
@@ -47,7 +47,7 @@ export default function VariantOne({ invoice }: { invoice: any }) {
           </div>
           <div className="flex justify-between items-center pt-3 border-t border-green-700/50 mt-1">
             <span className="text-sm text-green-100">Payment Status</span>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold ${isPaid ? 'bg-green-400 text-green-900' : 'bg-[#FBDF4B] text-yellow-900'}`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold ${isPaid ? 'bg-green-400 text-green-900' : 'bg-[#FFBA00] text-yellow-900'}`}>
               {invoice.status}
             </span>
           </div>
@@ -57,7 +57,7 @@ export default function VariantOne({ invoice }: { invoice: any }) {
       {/* Addresses Section */}
       <div className="flex gap-6 mb-10">
         <div className="flex-1 bg-gray-50/50 border border-gray-100 p-6 rounded-2xl flex items-start gap-4">
-          <div className="w-10 h-10 bg-[#346E3A]/10 text-[#346E3A] rounded-xl flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 bg-[#0C3B2E]/10 text-[#0C3B2E] rounded-xl flex items-center justify-center shrink-0">
             <User size={20} />
           </div>
           <div className="flex flex-col">
@@ -73,7 +73,7 @@ export default function VariantOne({ invoice }: { invoice: any }) {
         </div>
 
         <div className="flex-1 bg-gray-50/50 border border-gray-100 p-6 rounded-2xl flex items-start gap-4">
-          <div className="w-10 h-10 bg-[#346E3A]/10 text-[#346E3A] rounded-xl flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 bg-[#0C3B2E]/10 text-[#0C3B2E] rounded-xl flex items-center justify-center shrink-0">
             <Building2 size={20} />
           </div>
           <div className="flex flex-col">
@@ -93,7 +93,7 @@ export default function VariantOne({ invoice }: { invoice: any }) {
       {/* Table Section */}
       <div className="mb-10 rounded-2xl overflow-hidden border border-gray-100">
         <table className="w-full text-left text-sm">
-          <thead className="bg-[#346E3A] text-white">
+          <thead className="bg-[#0C3B2E] text-white">
             <tr>
               <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider w-16">#</th>
               <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Item & Description</th>
@@ -124,7 +124,7 @@ export default function VariantOne({ invoice }: { invoice: any }) {
                   </td>
                   <td className="px-6 py-5 text-center font-medium text-gray-700">{item.quantity}</td>
                   <td className="px-6 py-5 text-right font-medium text-gray-700">{formatCurrency(item.unitPrice)}</td>
-                  <td className="px-6 py-5 text-right font-bold text-[#346E3A]">{formatCurrency(item.amount)}</td>
+                  <td className="px-6 py-5 text-right font-bold text-[#0C3B2E]">{formatCurrency(item.amount)}</td>
                 </tr>
               );
             })}
@@ -149,18 +149,18 @@ export default function VariantOne({ invoice }: { invoice: any }) {
               <div 
                 className="w-20 h-20 rounded-full flex items-center justify-center shadow-inner relative"
                 style={{
-                  background: `conic-gradient(#346E3A ${progressPercent}%, #e5e7eb ${progressPercent}%)`
+                  background: `conic-gradient(#0C3B2E ${progressPercent}%, #e5e7eb ${progressPercent}%)`
                 }}
               >
                 <div className="w-14 h-14 bg-gray-50 rounded-full flex flex-col items-center justify-center">
-                  <span className="font-bold text-[#346E3A] text-lg leading-none">{progressPercent}%</span>
+                  <span className="font-bold text-[#0C3B2E] text-lg leading-none">{progressPercent}%</span>
                   <span className="text-[9px] font-semibold text-gray-500">{isPaid ? 'Paid' : 'Pending'}</span>
                 </div>
               </div>
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#346E3A]"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#0C3B2E]"></div>
                   <span className="text-gray-600 font-medium w-12">Paid</span>
                   <span className="font-bold text-gray-900">{isPaid ? '100%' : '0%'}</span>
                 </div>
@@ -187,11 +187,11 @@ export default function VariantOne({ invoice }: { invoice: any }) {
             </div>
             <div className="flex justify-between items-center text-base pt-3 border-t border-gray-200">
               <span className="font-bold text-gray-900">Total Amount</span>
-              <span className="font-bold text-[#346E3A]">{formatCurrency(formattedTotal)}</span>
+              <span className="font-bold text-[#0C3B2E]">{formatCurrency(formattedTotal)}</span>
             </div>
           </div>
           
-          <div className="bg-[#346E3A] text-white p-6 rounded-xl flex justify-between items-center shadow-md">
+          <div className="bg-[#0C3B2E] text-white p-6 rounded-xl flex justify-between items-center shadow-md">
             <span className="font-medium text-green-100">Amount Due</span>
             <span className="text-2xl font-bold">{isPaid ? formatCurrency(0) : formatCurrency(formattedTotal)}</span>
           </div>

@@ -145,7 +145,7 @@ export default function OverviewPage() {
            
            <div className="h-28 bg-gray-50 border border-gray-100 rounded-lg mb-4 flex flex-col justify-center px-4 relative">
              <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 text-[10px] font-medium">
-               <Clock className="w-3 h-3 text-[#FBDF4B]" /> {daysLeft} Days Left
+               <Clock className="w-3 h-3 text-[#FFBA00]" /> {daysLeft} Days Left
              </div>
              <div className="text-xs font-medium text-gray-500 mb-1">Upcoming Charge</div>
              <div className="text-2xl font-semibold text-gray-900 tracking-tight">₦{closest.amount.toLocaleString()}</div>
@@ -154,7 +154,7 @@ export default function OverviewPage() {
            <div className="flex justify-between text-center px-1">
              <div><div className="text-sm font-semibold text-gray-900 tracking-tight capitalize">{closest.frequency.toLowerCase()}</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Frequency</div></div>
              <div><div className="text-sm font-semibold text-gray-900 tracking-tight">{format(new Date(closest.nextBillingDate), 'MMM d')}</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Due Date</div></div>
-             <div><div className="text-sm font-semibold text-[#346E3A] tracking-tight">Active</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Status</div></div>
+             <div><div className="text-sm font-semibold text-[#0C3B2E] tracking-tight">Active</div><div className="text-[10px] font-medium text-gray-500 mt-0.5">Status</div></div>
            </div>
          </div>
        );
@@ -173,7 +173,7 @@ export default function OverviewPage() {
                    <div className="text-[11px] text-gray-500 font-medium">₦{sub.amount.toLocaleString()} • {sub.frequency.charAt(0) + sub.frequency.slice(1).toLowerCase()}</div>
                  </div>
                  <div className="text-right">
-                   <div className="text-xs font-semibold text-gray-900 mb-0.5 group-hover:text-[#346E3A] transition-colors">{daysLeft} Days</div>
+                   <div className="text-xs font-semibold text-gray-900 mb-0.5 group-hover:text-[#0C3B2E] transition-colors">{daysLeft} Days</div>
                    <div className="text-[10px] text-gray-400 font-medium">{format(new Date(sub.nextBillingDate), 'MMM d')}</div>
                  </div>
                </div>
@@ -250,7 +250,7 @@ export default function OverviewPage() {
        </div>
        </td>
        <td className="px-6 py-4 text-right">
-       <span className="text-[11px] font-medium text-[#346E3A]">{project.status}</span>
+       <span className="text-[11px] font-medium text-[#0C3B2E]">{project.status}</span>
        </td>
        </tr>
      );
@@ -314,12 +314,12 @@ export default function OverviewPage() {
  return (
  <div key={i} className="py-1 relative flex justify-center group">
  <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
- isTodayDate ? 'bg-[#346E3A] text-white font-semibold' : 
+ isTodayDate ? 'bg-[#0C3B2E] text-white font-semibold' : 
  !isCurrentMonth ? 'text-gray-300' : 'text-gray-700'
  }`}>
  {format(day, 'd')}
  </div>
- {hasEvent && !isTodayDate && <div className="absolute bottom-1 w-1 h-1 bg-[#FBDF4B] rounded-full"></div>}
+ {hasEvent && !isTodayDate && <div className="absolute bottom-1 w-1 h-1 bg-[#FFBA00] rounded-full"></div>}
  
  {/* Tooltip on Hover */}
  {hasEvent && (
@@ -382,7 +382,7 @@ function StatCard({ title, value, icon, change, isPositive }: any) {
  </div>
  <div className="flex items-baseline gap-2">
  <span className="text-2xl font-semibold text-gray-900 tracking-tight leading-none">{value}</span>
- <span className={`text-[11px] font-medium ${isPositive ? 'text-[#346E3A]' : 'text-gray-500'}`}>
+ <span className={`text-[11px] font-medium ${isPositive ? 'text-[#0C3B2E]' : 'text-gray-500'}`}>
  {change}
  </span>
  </div>

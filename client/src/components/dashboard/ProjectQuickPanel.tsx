@@ -305,7 +305,7 @@ export default function ProjectQuickPanel() {
         {/* Loading Spinner */}
         {isLoading && !project && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-gray-400">
-            <div className="w-8 h-8 border-3 border-[#346E3A] border-t-transparent rounded-full animate-spin mb-3" />
+            <div className="w-8 h-8 border-3 border-[#0C3B2E] border-t-transparent rounded-full animate-spin mb-3" />
             <span className="text-xs font-semibold">Loading project details...</span>
           </div>
         )}
@@ -324,12 +324,12 @@ export default function ProjectQuickPanel() {
                         type="text"
                         value={titleInput}
                         onChange={(e) => setTitleInput(e.target.value)}
-                        className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-[#346E3A] rounded-lg text-lg font-bold text-gray-900 dark:text-white w-full focus:outline-none"
+                        className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-[#0C3B2E] rounded-lg text-lg font-bold text-gray-900 dark:text-white w-full focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={handleSaveTitle}
-                        className="p-1.5 bg-[#346E3A] text-white rounded-lg hover:bg-[#2b592f] transition-colors"
+                        className="p-1.5 bg-[#0C3B2E] text-white rounded-lg hover:bg-[#2b592f] transition-colors"
                       >
                         <Check className="w-4 h-4" />
                       </button>
@@ -345,7 +345,7 @@ export default function ProjectQuickPanel() {
 
                   {/* Client Info */}
                   <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
-                    <div className="w-5 h-5 rounded-full bg-[#346E3A]/10 text-[#346E3A] font-bold flex items-center justify-center text-[10px] shrink-0">
+                    <div className="w-5 h-5 rounded-full bg-[#0C3B2E]/10 text-[#0C3B2E] font-bold flex items-center justify-center text-[10px] shrink-0">
                       {project.client?.name?.charAt(0) || 'C'}
                     </div>
                     <span className="truncate">{project.client?.name || 'Unassigned Client'}</span>
@@ -372,7 +372,7 @@ export default function ProjectQuickPanel() {
                           <button
                             key={statusKey}
                             onClick={() => handleUpdateStatus(statusKey)}
-                            className={`w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/50 ${project.status === statusKey ? 'text-[#346E3A] font-bold' : 'text-gray-700 dark:text-gray-200'}`}
+                            className={`w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/50 ${project.status === statusKey ? 'text-[#0C3B2E] font-bold' : 'text-gray-700 dark:text-gray-200'}`}
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${STATUS_COLORS[statusKey]?.split(' ')[0] || 'bg-gray-400'}`} />
                             {STATUS_LABELS[statusKey]}
@@ -396,9 +396,9 @@ export default function ProjectQuickPanel() {
               <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100 dark:border-slate-700/50">
                 <button
                   onClick={handleOpenOrCreateChannel}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#346E3A]/5 dark:hover:bg-[#346E3A]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#346E3A] dark:hover:text-green-400 transition-colors cursor-pointer group"
+                  className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#0C3B2E]/5 dark:hover:bg-[#0C3B2E]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#0C3B2E] dark:hover:text-green-400 transition-colors cursor-pointer group"
                 >
-                  <MessageSquare className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#346E3A]" />
+                  <MessageSquare className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#0C3B2E]" />
                   <span className="text-[11px] truncate w-full text-center">
                     {project.channels && project.channels.length > 0 ? 'Open Channel' : 'Create Channel'}
                   </span>
@@ -406,17 +406,17 @@ export default function ProjectQuickPanel() {
 
                 <button
                   onClick={() => setShowAddTask(true)}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#346E3A]/5 dark:hover:bg-[#346E3A]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#346E3A] dark:hover:text-green-400 transition-colors cursor-pointer group"
+                  className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#0C3B2E]/5 dark:hover:bg-[#0C3B2E]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#0C3B2E] dark:hover:text-green-400 transition-colors cursor-pointer group"
                 >
-                  <Plus className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#346E3A]" />
+                  <Plus className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#0C3B2E]" />
                   <span className="text-[11px] truncate w-full text-center">New Task</span>
                 </button>
 
                 <button
                   onClick={() => setShowInviteModal(true)}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#346E3A]/5 dark:hover:bg-[#346E3A]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#346E3A] dark:hover:text-green-400 transition-colors cursor-pointer group"
+                  className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#0C3B2E]/5 dark:hover:bg-[#0C3B2E]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#0C3B2E] dark:hover:text-green-400 transition-colors cursor-pointer group"
                 >
-                  <UserPlus className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#346E3A]" />
+                  <UserPlus className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#0C3B2E]" />
                   <span className="text-[11px] truncate w-full text-center">Collaborator</span>
                 </button>
 
@@ -425,9 +425,9 @@ export default function ProjectQuickPanel() {
                     closeProjectDrawer();
                     router.push('/invoices');
                   }}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#346E3A]/5 dark:hover:bg-[#346E3A]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#346E3A] dark:hover:text-green-400 transition-colors cursor-pointer group"
+                  className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#0C3B2E]/5 dark:hover:bg-[#0C3B2E]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#0C3B2E] dark:hover:text-green-400 transition-colors cursor-pointer group"
                 >
-                  <FileText className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#346E3A]" />
+                  <FileText className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#0C3B2E]" />
                   <span className="text-[11px] truncate w-full text-center">New Invoice</span>
                 </button>
               </div>
@@ -441,13 +441,13 @@ export default function ProjectQuickPanel() {
                   placeholder="Task title..."
                   value={taskTitle}
                   onChange={(e) => setTaskTitle(e.target.value)}
-                  className="flex-1 px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#346E3A]"
+                  className="flex-1 px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#0C3B2E]"
                   autoFocus
                 />
                 <button
                   type="submit"
                   disabled={isCreatingTask}
-                  className="px-3 py-1.5 bg-[#346E3A] text-white text-xs font-bold rounded-lg hover:bg-[#2b592f] transition-colors disabled:opacity-50"
+                  className="px-3 py-1.5 bg-[#0C3B2E] text-white text-xs font-bold rounded-lg hover:bg-[#2b592f] transition-colors disabled:opacity-50"
                 >
                   {isCreatingTask ? 'Adding...' : 'Add'}
                 </button>
@@ -477,7 +477,7 @@ export default function ProjectQuickPanel() {
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
                       <div 
-                        className="bg-[#346E3A] h-full rounded-full transition-all duration-500" 
+                        className="bg-[#0C3B2E] h-full rounded-full transition-all duration-500" 
                         style={{ width: `${progressPercent}%` }}
                       />
                     </div>
@@ -512,7 +512,7 @@ export default function ProjectQuickPanel() {
                       closeProjectDrawer();
                       router.push(`/projects/${project.id}?tab=schedule`);
                     }}
-                    className="text-xs font-bold text-[#346E3A] hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-[#0C3B2E] hover:underline flex items-center gap-1"
                   >
                     View Full Schedule <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -553,7 +553,7 @@ export default function ProjectQuickPanel() {
                       closeProjectDrawer();
                       router.push(`/projects/${project.id}?tab=invoice`);
                     }}
-                    className="text-xs font-bold text-[#346E3A] hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-[#0C3B2E] hover:underline flex items-center gap-1"
                   >
                     View All Invoices <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -609,7 +609,7 @@ export default function ProjectQuickPanel() {
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Project Links & Resources</h3>
                   <button
                     onClick={() => setShowAddUrl(!showAddUrl)}
-                    className="text-xs font-bold text-[#346E3A] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-bold text-[#0C3B2E] hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add Link
                   </button>
@@ -623,7 +623,7 @@ export default function ProjectQuickPanel() {
                       placeholder="Label (e.g. Figma Design, Live Staging)"
                       value={urlLabel}
                       onChange={(e) => setUrlLabel(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#346E3A]"
+                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#0C3B2E]"
                       required
                     />
                     <input
@@ -631,7 +631,7 @@ export default function ProjectQuickPanel() {
                       placeholder="URL (https://...)"
                       value={urlAddress}
                       onChange={(e) => setUrlAddress(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#346E3A]"
+                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#0C3B2E]"
                       required
                     />
                     <div className="flex justify-end gap-2 pt-1">
@@ -645,7 +645,7 @@ export default function ProjectQuickPanel() {
                       <button
                         type="submit"
                         disabled={isAddingUrl}
-                        className="px-3 py-1 text-xs font-bold bg-[#346E3A] text-white rounded-lg hover:bg-[#2b592f] transition-colors disabled:opacity-50"
+                        className="px-3 py-1 text-xs font-bold bg-[#0C3B2E] text-white rounded-lg hover:bg-[#2b592f] transition-colors disabled:opacity-50"
                       >
                         {isAddingUrl ? 'Saving...' : 'Save Link'}
                       </button>
@@ -662,7 +662,7 @@ export default function ProjectQuickPanel() {
                           href={linkItem.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center gap-2.5 text-xs font-bold text-gray-800 dark:text-gray-200 hover:text-[#346E3A] transition-colors truncate flex-1 min-w-0"
+                          className="flex items-center gap-2.5 text-xs font-bold text-gray-800 dark:text-gray-200 hover:text-[#0C3B2E] transition-colors truncate flex-1 min-w-0"
                         >
                           <ExternalLink className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                           <span className="truncate">{linkItem.label}</span>
@@ -691,7 +691,7 @@ export default function ProjectQuickPanel() {
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Collaborators</h3>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="text-xs font-bold text-[#346E3A] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-bold text-[#0C3B2E] hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <UserPlus className="w-3.5 h-3.5" /> Add Member
                   </button>
@@ -706,13 +706,13 @@ export default function ProjectQuickPanel() {
                       placeholder="e.g. colleague@agency.com"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#346E3A]"
+                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#0C3B2E]"
                       required
                     />
                     <select
                       value={inviteRole}
                       onChange={(e) => setInviteRole(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#346E3A]"
+                      className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-[#0C3B2E]"
                     >
                       <option value="CONTRACTOR">Contractor / Member</option>
                       <option value="PROJECT_MANAGER">Project Manager</option>
@@ -730,7 +730,7 @@ export default function ProjectQuickPanel() {
                       <button
                         type="submit"
                         disabled={isInviting}
-                        className="px-3 py-1 text-xs font-bold bg-[#FBDF4B] text-gray-900 rounded-lg hover:bg-[#F3D53C] transition-colors disabled:opacity-50"
+                        className="px-3 py-1 text-xs font-bold bg-[#FFBA00] text-gray-900 rounded-lg hover:bg-[#E6A700] transition-colors disabled:opacity-50"
                       >
                         {isInviting ? 'Inviting...' : 'Send Invite'}
                       </button>
@@ -760,7 +760,7 @@ export default function ProjectQuickPanel() {
                               <div className="text-[10px] text-gray-400">{email}</div>
                             </div>
                           </div>
-                          <span className="px-2 py-0.5 bg-[#346E3A]/10 text-[#346E3A] dark:text-green-400 rounded text-[10px] font-bold uppercase tracking-wider">
+                          <span className="px-2 py-0.5 bg-[#0C3B2E]/10 text-[#0C3B2E] dark:text-green-400 rounded text-[10px] font-bold uppercase tracking-wider">
                             {role}
                           </span>
                         </div>

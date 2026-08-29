@@ -238,7 +238,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#346E3A]"
+              className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#0C3B2E]"
             >
               <option value="all">All Projects (Roll-up View)</option>
               {projects.map((p) => (
@@ -254,7 +254,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
             onClick={() => setMyTasksOnly(!myTasksOnly)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
               myTasksOnly
-                ? 'bg-[#346E3A]/10 text-[#346E3A] border-[#346E3A]/30'
+                ? 'bg-[#0C3B2E]/10 text-[#0C3B2E] border-[#0C3B2E]/30'
                 : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
             }`}
           >
@@ -283,7 +283,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
               }));
               setShowAddTaskModal(true);
             }} 
-            className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#F3D53C] transition-colors border border-transparent shrink-0"
+            className="flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#E6A700] transition-colors border border-transparent shrink-0"
           >
             <Plus className="w-4 h-4" /> Add Task
           </button>
@@ -321,7 +321,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                       <div 
                         key={task.id} 
                         onClick={() => setSelectedTask(task)}
-                        className="bg-white p-5 rounded-2xl border border-gray-200/70 shadow-xs hover:shadow-md hover:border-[#346E3A]/40 transition-all group cursor-pointer"
+                        className="bg-white p-5 rounded-2xl border border-gray-200/70 shadow-xs hover:shadow-md hover:border-[#0C3B2E]/40 transition-all group cursor-pointer"
                       >
                         
                         {/* Project Tag Badge (Global roll-up view indicator) */}
@@ -332,7 +332,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                                 e.stopPropagation();
                                 openProjectDrawer(task.projectId);
                               }}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#346E3A]/10 text-[#346E3A] hover:bg-[#346E3A]/20 text-[10px] font-bold rounded-full cursor-pointer transition-colors"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#0C3B2E]/10 text-[#0C3B2E] hover:bg-[#0C3B2E]/20 text-[10px] font-bold rounded-full cursor-pointer transition-colors"
                             >
                               <FolderGit2 className="w-3 h-3" />
                               {task.project?.name || projects.find(p => p.id === task.projectId)?.name}
@@ -353,7 +353,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                         </div>
 
                         {/* Title */}
-                        <h4 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-[#346E3A] transition-colors line-clamp-2">
+                        <h4 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-[#0C3B2E] transition-colors line-clamp-2">
                           {task.title}
                         </h4>
                         
@@ -373,7 +373,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                           </div>
                           <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                             <div 
-                              className="h-full bg-[#A5D149] rounded-full" 
+                              className="h-full bg-[#6D9773] rounded-full" 
                               style={{ width: `${task.progressPercent || 0}%` }}
                             />
                           </div>
@@ -443,13 +443,13 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                   <tr key={task.id} className="hover:bg-gray-50/80 cursor-pointer transition-colors" onClick={() => setSelectedTask(task)}>
                     <td className="px-6 py-4 font-bold text-gray-900">{task.title}</td>
                     {selectedProjectId === 'all' && (
-                      <td className="px-6 py-4 font-semibold text-[#346E3A]">
+                      <td className="px-6 py-4 font-semibold text-[#0C3B2E]">
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
                             openProjectDrawer(task.projectId);
                           }}
-                          className="font-bold text-[#346E3A] hover:underline cursor-pointer text-left"
+                          className="font-bold text-[#0C3B2E] hover:underline cursor-pointer text-left"
                         >
                           {task.project?.name || projects.find(p => p.id === task.projectId)?.name || '-'}
                         </button>
@@ -492,7 +492,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
             <div>
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Task Details</span>
               {selectedTask.project?.name && (
-                <div className="text-xs font-bold text-[#346E3A]">{selectedTask.project.name}</div>
+                <div className="text-xs font-bold text-[#0C3B2E]">{selectedTask.project.name}</div>
               )}
             </div>
             <button 
@@ -558,7 +558,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                         <span className="text-xs font-bold text-gray-900">{name}</span>
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                        isTeam ? 'bg-[#346E3A]/10 text-[#346E3A]' : 'bg-purple-100 text-purple-700'
+                        isTeam ? 'bg-[#0C3B2E]/10 text-[#0C3B2E]' : 'bg-purple-100 text-purple-700'
                       }`}>
                         {role}
                       </span>
@@ -571,7 +571,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
               <div className="mt-3 relative">
                 <button
                   onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                  className="text-xs font-bold text-[#346E3A] hover:underline flex items-center gap-1"
+                  className="text-xs font-bold text-[#0C3B2E] hover:underline flex items-center gap-1"
                 >
                   <Plus className="w-3.5 h-3.5" /> Assign Project Member
                 </button>
@@ -616,7 +616,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                   required
                   value={newTask.projectId}
                   onChange={(e) => setNewTask({ ...newTask, projectId: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#0C3B2E]"
                 >
                   <option value="">Select Project...</option>
                   {projects.map((p) => (
@@ -633,7 +633,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                   placeholder="Task title..."
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                 />
               </div>
 
@@ -644,7 +644,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                   placeholder="Optional details..."
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                 />
               </div>
 
@@ -654,7 +654,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                   <select
                     value={newTask.status}
                     onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
-                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                   >
                     <option value="TODO">To-do</option>
                     <option value="IN_PROGRESS">In Progress</option>
@@ -667,7 +667,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                   <select
                     value={newTask.priority}
                     onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -683,7 +683,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                   type="date"
                   value={newTask.dueDate}
                   onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                 />
               </div>
 
@@ -698,7 +698,7 @@ export default function KanbanBoard({ projectId: initialProjectId }: KanbanBoard
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-[#FBDF4B] text-gray-900 font-bold rounded-lg text-xs hover:bg-[#F3D53C] transition-colors"
+                  className="px-4 py-2 bg-[#FFBA00] text-gray-900 font-bold rounded-lg text-xs hover:bg-[#E6A700] transition-colors"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Task'}
                 </button>

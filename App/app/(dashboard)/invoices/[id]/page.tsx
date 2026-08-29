@@ -105,7 +105,7 @@ export default function InvoicePreviewPage() {
               <Download className="w-4 h-4" />
               Download PDF
             </button>
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap">
+            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#E6A700] transition-colors border border-transparent whitespace-nowrap">
               <Send className="w-4 h-4" />
               Send to Client
             </button>

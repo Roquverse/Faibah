@@ -2,9 +2,10 @@
 
 :root {
   /* Brand */
-  --primary: #FBDF4B;
-  --secondary: #A5D149;
-  --deep-green: #346E3A;
+  --primary: #FFBA00;
+  --secondary: #6D9773;
+  --deep-green: #0C3B2E;
+  --accent: #BB8A52;
 
   /* Surfaces */
   --background: #000000;
@@ -18,8 +19,8 @@
   --white: #FFFFFF;
 
   /* Semantic */
-  --success: #A5D149;
-  --warning: #FBDF4B;
+  --success: #6D9773;
+  --warning: #FFBA00;
   --danger: #FF6B5F;
   --muted: #777777;
 

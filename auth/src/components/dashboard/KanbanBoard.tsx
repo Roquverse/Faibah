@@ -170,7 +170,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
             <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
               <Filter className="w-4 h-4" /> Filter
             </button>
-            <button onClick={() => setShowAddTaskModal(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
+            <button onClick={() => setShowAddTaskModal(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#E6A700] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
               <Plus className="w-4 h-4" /> Add Tasks
             </button>
           </div>
@@ -221,7 +221,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     </div>
 
                     {/* Title */}
-                    <h4 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-[#346E3A] transition-colors">{task.title}</h4>
+                    <h4 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-[#0C3B2E] transition-colors">{task.title}</h4>
                     
                     {/* Date */}
                     {task.dueDate && (
@@ -239,7 +239,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                       </div>
                       <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-[#A5D149] rounded-full" 
+                          className="h-full bg-[#6D9773] rounded-full" 
                           style={{ width: `${task.progressPercent || 0}%` }}
                         />
                       </div>
@@ -308,7 +308,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-gray-500 w-8">{task.progressPercent || 0}%</span>
                         <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-[#A5D149] rounded-full" style={{ width: `${task.progressPercent || 0}%` }} />
+                          <div className="h-full bg-[#6D9773] rounded-full" style={{ width: `${task.progressPercent || 0}%` }} />
                         </div>
                       </div>
                     </td>
@@ -351,7 +351,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 {(selectedTask.labels || []).map((tag: string, idx: number) => (
-                  <span key={idx} className="px-2 py-1 bg-[#A5D149]/20 text-[#346E3A] text-xs font-bold rounded uppercase tracking-wider">
+                  <span key={idx} className="px-2 py-1 bg-[#6D9773]/20 text-[#0C3B2E] text-xs font-bold rounded uppercase tracking-wider">
                     {tag}
                   </span>
                 ))}
@@ -379,7 +379,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
               </div>
               <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-[#346E3A] rounded-full" 
+                  className="h-full bg-[#0C3B2E] rounded-full" 
                   style={{ width: `${selectedTask.progressPercent || 0}%` }}
                 />
               </div>
@@ -418,7 +418,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                               onClick={() => handleAssignUser(pm.id)}
                               className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
                             >
-                              <div className="w-6 h-6 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-xs shrink-0">
+                              <div className="w-6 h-6 rounded-full bg-[#0C3B2E]/10 text-[#0C3B2E] flex items-center justify-center font-bold text-xs shrink-0">
                                 {(pm.user?.firstName || pm.clientContact?.name || 'U').charAt(0).toUpperCase()}
                               </div>
                               <span className="truncate">{pm.user?.firstName || pm.clientContact?.name || 'Unknown'}</span>
@@ -446,7 +446,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                   console.error('Failed to mark task complete', error);
                 }
               }}
-              className="flex-1 py-2.5 bg-[#346E3A] text-white font-bold text-sm rounded-xl hover:bg-[#2b592f] shadow-sm transition-colors"
+              className="flex-1 py-2.5 bg-[#0C3B2E] text-white font-bold text-sm rounded-xl hover:bg-[#2b592f] shadow-sm transition-colors"
             >
               Mark Complete
             </button>
@@ -471,7 +471,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                   placeholder="Task title..."
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400"
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773] placeholder:text-gray-400"
                 />
               </div>
               
@@ -483,7 +483,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     onChange={(e) => {
                       setNewTask({ ...newTask, projectId: e.target.value, clientContactIds: [] });
                     }}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]"
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773]"
                   >
                     <option value="">-- Select Project --</option>
                     {projects.map(p => (
@@ -499,7 +499,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                   placeholder="Task description..."
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400 min-h-[80px]"
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773] placeholder:text-gray-400 min-h-[80px]"
                 />
               </div>
 
@@ -510,7 +510,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                   placeholder="e.g. contractor@example.com, alice@test.com"
                   value={newTask.collaboratorEmails}
                   onChange={(e) => setNewTask({ ...newTask, collaboratorEmails: e.target.value })}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400"
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773] placeholder:text-gray-400"
                 />
               </div>
 
@@ -534,7 +534,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                                 setNewTask({ ...newTask, clientContactIds: newTask.clientContactIds.filter(id => id !== c.id) });
                               }
                             }}
-                            className="w-4 h-4 text-[#A5D149] focus:ring-[#A5D149] rounded border-gray-300"
+                            className="w-4 h-4 text-[#6D9773] focus:ring-[#6D9773] rounded border-gray-300"
                           />
                           <span className="text-gray-800">{c.name} {c.email ? `(${c.email})` : ''}</span>
                         </label>
@@ -550,7 +550,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                   <select 
                     value={newTask.status}
                     onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]"
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773]"
                   >
                     <option value="TODO">To Do</option>
                     <option value="IN_PROGRESS">In Progress</option>
@@ -565,7 +565,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                     type="date"
                     value={newTask.dueDate}
                     onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]"
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773]"
                   />
                 </div>
               </div>
@@ -581,7 +581,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                 <button 
                   type="submit"
                   disabled={isSubmitting || !newTask.title.trim()}
-                  className="px-4 py-2 text-sm font-semibold bg-[#346E3A] text-white rounded-lg hover:bg-[#2b592f] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-semibold bg-[#0C3B2E] text-white rounded-lg hover:bg-[#2b592f] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Task'}
                 </button>

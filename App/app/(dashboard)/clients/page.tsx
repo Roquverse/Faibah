@@ -163,7 +163,7 @@ export default function ClientsPage() {
           </button>
           <button 
             onClick={() => setIsNewClientModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#F3D53C] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#E6A700] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             New Client
@@ -601,7 +601,7 @@ export default function ClientsPage() {
               <button 
                 onClick={handleSaveClient}
                 disabled={isSaving}
-                className="px-8 py-2.5 bg-[#FBDF4B] text-gray-900 text-sm font-bold rounded-xl hover:bg-[#F3D53C] transition-colors border border-transparent disabled:opacity-50"
+                className="px-8 py-2.5 bg-[#FFBA00] text-gray-900 text-sm font-bold rounded-xl hover:bg-[#E6A700] transition-colors border border-transparent disabled:opacity-50"
               >
                 {isSaving ? 'Saving...' : 'Save Client'}
               </button>

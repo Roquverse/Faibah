@@ -200,7 +200,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#346E3A]"
+              className="text-xs font-semibold text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#0C3B2E]"
             >
               <option value="all">All Projects (Roll-up View)</option>
               {projects.map((p) => (
@@ -218,7 +218,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
               }));
               setIsModalOpen(true);
             }}
-            className="flex items-center gap-2 bg-[#FBDF4B] text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#F3D53C] transition-colors border border-transparent shrink-0"
+            className="flex items-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#E6A700] transition-colors border border-transparent shrink-0"
           >
             <Plus className="w-4 h-4" /> Add Event
           </button>
@@ -264,7 +264,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
                 >
                   <div className="flex justify-between items-center mb-1">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                      isSelectedToday ? 'bg-[#346E3A] text-white' : 'text-gray-700'
+                      isSelectedToday ? 'bg-[#0C3B2E] text-white' : 'text-gray-700'
                     }`}>
                       {format(day, 'd')}
                     </span>
@@ -313,7 +313,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
 
             <h3 className="text-lg font-bold text-gray-900 mb-2">{viewEvent.title}</h3>
             {viewEvent.project?.name && (
-              <div className="text-xs font-bold text-[#346E3A] mb-4">
+              <div className="text-xs font-bold text-[#0C3B2E] mb-4">
                 <button
                   onClick={() => {
                     setViewEvent(null);
@@ -374,7 +374,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
                   required
                   value={formData.projectId}
                   onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#0C3B2E]"
                 >
                   <option value="">Select Project...</option>
                   {projects.map((p) => (
@@ -391,7 +391,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
                   placeholder="Meeting title or milestone..."
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                 />
               </div>
 
@@ -401,7 +401,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                   >
                     <option value="MEETING">Meeting</option>
                     <option value="CALL">Call</option>
@@ -416,7 +416,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
                     type="time"
                     value={formData.startTime}
                     onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                   />
                 </div>
               </div>
@@ -428,7 +428,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
                   placeholder="Optional details..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                 />
               </div>
 
@@ -438,7 +438,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
                   <select
                     value={formData.linkedTaskId}
                     onChange={(e) => setFormData({ ...formData, linkedTaskId: e.target.value })}
-                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                   >
                     <option value="">None</option>
                     {projectTasks.map((t) => (
@@ -458,7 +458,7 @@ export default function ProjectSchedule({ projectId: initialProjectId }: Project
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#FBDF4B] text-gray-900 font-bold rounded-lg text-xs hover:bg-[#F3D53C] transition-colors"
+                  className="px-4 py-2 bg-[#FFBA00] text-gray-900 font-bold rounded-lg text-xs hover:bg-[#E6A700] transition-colors"
                 >
                   Save Event
                 </button>

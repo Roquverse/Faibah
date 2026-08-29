@@ -155,13 +155,13 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
         <div className="flex border-b border-gray-100 px-6 pt-2">
           <button 
             onClick={() => setActiveTab('details')}
-            className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'details' ? 'border-[#A5D149] text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'details' ? 'border-[#6D9773] text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             Company Details
           </button>
           <button 
             onClick={() => setActiveTab('contacts')}
-            className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'contacts' ? 'border-[#A5D149] text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'contacts' ? 'border-[#6D9773] text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             Team / Contacts
           </button>
@@ -183,7 +183,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                     type="text" 
                     value={clientData.companyName || ''}
                     onChange={(e) => setClientData({...clientData, companyName: e.target.value})}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" 
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" 
                   />
                 </div>
               )}
@@ -194,7 +194,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                   type="text" 
                   value={clientData.name || ''}
                   onChange={(e) => setClientData({...clientData, name: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" 
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" 
                 />
               </div>
 
@@ -204,7 +204,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                   type="email" 
                   value={clientData.email || ''}
                   onChange={(e) => setClientData({...clientData, email: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" 
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" 
                 />
               </div>
               
@@ -214,7 +214,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                   type="tel" 
                   value={clientData.whatsappNumber || ''}
                   onChange={(e) => setClientData({...clientData, whatsappNumber: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" 
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" 
                 />
               </div>
 
@@ -225,7 +225,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                     type="text" 
                     value={clientData.country || ''}
                     onChange={(e) => setClientData({...clientData, country: e.target.value})}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" 
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" 
                   />
                 </div>
                 <div>
@@ -234,7 +234,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                     type="text" 
                     value={clientData.city || ''}
                     onChange={(e) => setClientData({...clientData, city: e.target.value})}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" 
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" 
                   />
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                   type="text" 
                   value={clientData.taxId || ''}
                   onChange={(e) => setClientData({...clientData, taxId: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" 
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" 
                 />
               </div>
 
@@ -255,7 +255,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                   value={clientData.notes || ''}
                   onChange={(e) => setClientData({...clientData, notes: e.target.value})}
                   rows={3}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" 
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" 
                 />
               </div>
 
@@ -263,7 +263,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                 <button 
                   onClick={handleUpdateClient}
                   disabled={isSaving}
-                  className="px-6 py-2 bg-[#FBDF4B] text-gray-900 text-sm font-bold rounded-lg hover:bg-[#F3D53C] flex items-center gap-2"
+                  className="px-6 py-2 bg-[#FFBA00] text-gray-900 text-sm font-bold rounded-lg hover:bg-[#E6A700] flex items-center gap-2"
                 >
                   <Save className="w-4 h-4" />
                   {isSaving ? 'Saving...' : 'Save Changes'}
@@ -286,7 +286,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                     type="text" 
                     value={contactForm.name}
                     onChange={e => setContactForm({...contactForm, name: e.target.value})}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]" 
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773]" 
                   />
                 </div>
                 <div>
@@ -295,7 +295,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                     type="email" 
                     value={contactForm.email}
                     onChange={e => setContactForm({...contactForm, email: e.target.value})}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]" 
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773]" 
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -305,7 +305,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                       type="tel" 
                       value={contactForm.phone}
                       onChange={e => setContactForm({...contactForm, phone: e.target.value})}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]" 
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773]" 
                     />
                   </div>
                   <div>
@@ -315,7 +315,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                       placeholder="e.g. Marketing Lead"
                       value={contactForm.role}
                       onChange={e => setContactForm({...contactForm, role: e.target.value})}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149]" 
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773]" 
                     />
                   </div>
                 </div>
@@ -325,7 +325,7 @@ export default function EditClientSlideOver({ isOpen, onClose, clientId, onClien
                     type="checkbox" 
                     checked={contactForm.isPrimary}
                     onChange={e => setContactForm({...contactForm, isPrimary: e.target.checked})}
-                    className="rounded border-gray-300 text-[#A5D149] focus:ring-[#A5D149]" 
+                    className="rounded border-gray-300 text-[#6D9773] focus:ring-[#6D9773]" 
                   />
                   <span className="text-sm font-semibold text-gray-700">Set as Primary Contact</span>
                 </label>

@@ -29,10 +29,10 @@ export default function SystemHealthPage() {
           <h1 className="text-xl font-semibold text-foreground tracking-tight">System Health</h1>
           <p className="text-sm text-muted mt-1">Platform stability, queue depth, and webhook delivery status.</p>
         </div>
-        <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-[#16A34A]/10 text-[#16A34A] border border-[#16A34A]/20">
+        <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-[#6D9773]/10 text-[#6D9773] border border-[#6D9773]/20">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#16A34A] opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#16A34A]"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6D9773] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#6D9773]"></span>
           </span>
           All Systems Operational
         </div>
@@ -102,7 +102,7 @@ export default function SystemHealthPage() {
                   <td className="px-4 py-3 mono-num text-muted">{log.retryCount}</td>
                   <td className="px-4 py-3">
                     {log.status === 'Success' ? (
-                      <span className="flex items-center gap-1.5 text-xs font-bold text-[#16A34A] uppercase tracking-wider">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-[#6D9773] uppercase tracking-wider">
                         <CheckCircle2 size={12} /> OK
                       </span>
                     ) : (

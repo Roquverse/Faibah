@@ -163,7 +163,7 @@ export default function GenerateReceiptModal({
             type="submit" 
             form="generate-receipt-form"
             disabled={isSubmitting}
-            className="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#FBDF4B] text-gray-900 hover:bg-[#F3D53C] transition-colors disabled:opacity-50"
+            className="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#FFBA00] text-gray-900 hover:bg-[#E6A700] transition-colors disabled:opacity-50"
           >
             {isSubmitting ? 'Generating...' : 'Generate Receipt'}
           </button>

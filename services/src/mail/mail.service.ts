@@ -132,12 +132,12 @@ export class MailService {
           body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; }
           .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; padding: 36px; border: 1px solid #e2e8f0; }
           .header { text-align: center; margin-bottom: 24px; }
-          .badge { display: inline-block; background-color: #e6f4ea; color: #346E3A; font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 13px; margin-bottom: 12px; }
+          .badge { display: inline-block; background-color: #e6f4ea; color: #0C3B2E; font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 13px; margin-bottom: 12px; }
           h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 0; }
           p { font-size: 15px; line-height: 1.6; color: #475569; }
           .box { background: #f8fafc; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #f1f5f9; }
           .box-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
-          .btn { display: inline-block; background-color: #FBDF4B; color: #0f172a; font-weight: 800; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-size: 15px; text-align: center; margin-top: 16px; }
+          .btn { display: inline-block; background-color: #FFBA00; color: #0f172a; font-weight: 800; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-size: 15px; text-align: center; margin-top: 16px; }
           .footer { margin-top: 36px; text-align: center; font-size: 12px; color: #94a3b8; }
         </style>
       </head>
@@ -201,7 +201,7 @@ export class MailService {
           h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 0; }
           p { font-size: 15px; line-height: 1.6; color: #475569; }
           .box { background: #f8fafc; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #f1f5f9; }
-          .btn { display: inline-block; background-color: #346E3A; color: #ffffff; font-weight: 800; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-size: 15px; text-align: center; }
+          .btn { display: inline-block; background-color: #0C3B2E; color: #ffffff; font-weight: 800; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-size: 15px; text-align: center; }
           .footer { margin-top: 36px; text-align: center; font-size: 12px; color: #94a3b8; }
         </style>
       </head>

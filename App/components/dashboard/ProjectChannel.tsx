@@ -272,7 +272,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                   {message.taskId && (() => {
                     const linkedTask = tasks.find(t => t.id === message.taskId);
                     if (!linkedTask) return (
-                      <span className="text-[10px] font-bold text-[#346E3A] bg-[#A5D149]/20 border border-[#A5D149]/30 px-1.5 py-0.5 rounded ml-2">
+                      <span className="text-[10px] font-bold text-[#0C3B2E] bg-[#6D9773]/20 border border-[#6D9773]/30 px-1.5 py-0.5 rounded ml-2">
                         Task Link
                       </span>
                     );
@@ -290,7 +290,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                             console.error('Failed to update task status', error);
                           }
                         }}
-                        className="text-[10px] font-bold text-[#346E3A] bg-[#A5D149]/20 border border-[#A5D149]/30 px-1.5 py-0.5 rounded ml-2 focus:outline-none focus:ring-1 focus:ring-[#A5D149]"
+                        className="text-[10px] font-bold text-[#0C3B2E] bg-[#6D9773]/20 border border-[#6D9773]/30 px-1.5 py-0.5 rounded ml-2 focus:outline-none focus:ring-1 focus:ring-[#6D9773]"
                       >
                         <option value="TODO">To Do</option>
                         <option value="IN_PROGRESS">In Progress</option>
@@ -342,7 +342,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                           target="_blank"
                           rel="noreferrer"
                           download
-                          className="text-xs font-bold bg-[#346E3A] text-white px-3 py-1.5 rounded-lg hover:bg-[#2c5d31] transition-colors flex items-center gap-1.5"
+                          className="text-xs font-bold bg-[#0C3B2E] text-white px-3 py-1.5 rounded-lg hover:bg-[#2c5d31] transition-colors flex items-center gap-1.5"
                         >
                           <Download className="w-3.5 h-3.5" /> Download
                         </a>
@@ -357,7 +357,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                     <button 
                       key={i} 
                       onClick={() => toggleReaction(message.id, r.emoji)}
-                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold transition-colors ${r.userReacted ? 'bg-[#A5D149]/20 border-[#A5D149] text-[#346E3A]' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold transition-colors ${r.userReacted ? 'bg-[#6D9773]/20 border-[#6D9773] text-[#0C3B2E]' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}
                     >
                       <span>{r.emoji}</span>
                       <span>{r.count}</span>
@@ -419,7 +419,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                   type="radio" 
                   checked={visibility === 'CLIENT_VISIBLE'} 
                   onChange={() => setVisibility('CLIENT_VISIBLE')}
-                  className="w-3.5 h-3.5 text-[#A5D149] border-gray-300 focus:ring-[#A5D149]"
+                  className="w-3.5 h-3.5 text-[#6D9773] border-gray-300 focus:ring-[#6D9773]"
                 />
                 <span className={visibility === 'CLIENT_VISIBLE' ? 'text-gray-900' : 'text-gray-400'}>Client Visible</span>
               </label>
@@ -435,7 +435,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
             </div>
           )}
           
-          <div className={`flex items-end gap-3 rounded-xl border p-2 transition-colors ${visibility === 'INTERNAL' && !isClientView ? 'border-amber-300 bg-amber-50/30 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500' : 'border-gray-200 bg-white focus-within:border-[#A5D149] focus-within:ring-1 focus-within:ring-[#A5D149]'}`}>
+          <div className={`flex items-end gap-3 rounded-xl border p-2 transition-colors ${visibility === 'INTERNAL' && !isClientView ? 'border-amber-300 bg-amber-50/30 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500' : 'border-gray-200 bg-white focus-within:border-[#6D9773] focus-within:ring-1 focus-within:ring-[#6D9773]'}`}>
             <div className="flex flex-col gap-2 shrink-0">
               <label className="p-2.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer w-max">
                 <Paperclip className="w-5 h-5" />
@@ -507,7 +507,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
             <button 
               onClick={handleSend}
               disabled={!draft.trim()}
-              className="p-2.5 bg-[#FBDF4B] text-gray-900 rounded-lg hover:bg-[#F3D53C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-sm"
+              className="p-2.5 bg-[#FFBA00] text-gray-900 rounded-lg hover:bg-[#E6A700] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-sm"
             >
               <Send className="w-5 h-5" />
             </button>
@@ -648,7 +648,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                     {member.type === 'CLIENT' ? (
                       <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded uppercase">Client</span>
                     ) : (
-                      <span className="text-[10px] font-bold text-[#346E3A] bg-[#A5D149]/20 border border-[#A5D149]/30 px-1.5 py-0.5 rounded uppercase">Team</span>
+                      <span className="text-[10px] font-bold text-[#0C3B2E] bg-[#6D9773]/20 border border-[#6D9773]/30 px-1.5 py-0.5 rounded uppercase">Team</span>
                     )}
                   </div>
                 ))}
@@ -690,13 +690,13 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                   placeholder="e.g. john@example.com or @johndoe"
                   value={teamInviteInput}
                   onChange={(e) => setTeamInviteInput(e.target.value)}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149] placeholder:text-gray-400"
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773] placeholder:text-gray-400"
                 />
                 <p className="text-xs text-gray-400 mt-1.5">If they aren't on your team yet, we'll send them an invite link.</p>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Project Role</label>
-                <select className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]">
+                <select className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]">
                   <option value="PROJECT_MANAGER">Project Manager</option>
                   <option value="CONTRACTOR">Contractor</option>
                 </select>
@@ -708,7 +708,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
               <button 
                 onClick={() => setShowAddTeamModal(false)} 
                 disabled={!teamInviteInput.trim()}
-                className="px-4 py-2 text-sm font-semibold bg-[#FBDF4B] text-gray-900 rounded-lg hover:bg-[#F3D53C] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-semibold bg-[#FFBA00] text-gray-900 rounded-lg hover:bg-[#E6A700] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add / Invite
               </button>
@@ -727,15 +727,15 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Contact Name</label>
-                  <input type="text" placeholder="Full name" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" />
+                  <input type="text" placeholder="Full name" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
-                  <input type="email" placeholder="email@company.com" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]" />
+                  <input type="email" placeholder="email@company.com" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Project Role</label>
-                  <select className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]">
+                  <select className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]">
                     <option value="PRIMARY_CONTACT">Primary Contact (Can Accept/Pay)</option>
                     <option value="VIEWER">Viewer (Read-only & Comment)</option>
                   </select>
@@ -752,7 +752,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Select Contact</label>
                   <select 
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]"
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]"
                     onChange={(e) => {
                       if (e.target.value === 'new') {
                         setIsAddingNewClientContact(true);
@@ -765,7 +765,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Project Role</label>
-                  <select className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#A5D149] focus:ring-1 focus:ring-[#A5D149]">
+                  <select className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773]">
                     <option value="PRIMARY_CONTACT">Primary Contact (Can Accept/Pay)</option>
                     <option value="VIEWER">Viewer (Read-only & Comment)</option>
                   </select>
@@ -788,7 +788,7 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
                   setShowAddClientModal(false);
                   setIsAddingNewClientContact(false);
                 }} 
-                className="px-4 py-2 text-sm font-semibold bg-[#FBDF4B] text-gray-900 rounded-lg hover:bg-[#F3D53C]"
+                className="px-4 py-2 text-sm font-semibold bg-[#FFBA00] text-gray-900 rounded-lg hover:bg-[#E6A700]"
               >
                 Send Invite
               </button>

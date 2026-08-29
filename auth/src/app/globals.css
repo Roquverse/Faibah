@@ -4,9 +4,10 @@
 
 :root {
   /* Brand - Faibah Colors */
-  --primary: #FBDF4B;
-  --secondary: #A5D149;
-  --deep-green: #346E3A;
+  --primary: #FFBA00;
+  --secondary: #6D9773;
+  --deep-green: #0C3B2E;
+  --accent: #BB8A52;
 
   /* Surfaces - Dashboard Light Theme */
   --background: #F4F7FE;
@@ -15,8 +16,8 @@
   --surface-03: #E9ECEF;
 
   /* Semantic */
-  --success: #A5D149;
-  --warning: #FBDF4B;
+  --success: #6D9773;
+  --warning: #FFBA00;
   --danger: #FF6B5F;
   --muted: #64748B;
 
@@ -64,18 +65,18 @@
 }
 
 /* Preserve dark black text color on yellow/primary buttons and badges in dark mode */
-.dark .bg-\[\#FBDF4B\],
-.dark .bg-\[\#FBDF4B\] *,
-.dark .bg-\[\#F3D53C\],
-.dark .bg-\[\#F3D53C\] *,
+.dark .bg-\[\#FFBA00\],
+.dark .bg-\[\#FFBA00\] *,
+.dark .bg-\[\#E6A700\],
+.dark .bg-\[\#E6A700\] *,
 .dark .bg-amber-400,
 .dark .bg-amber-400 *,
 .dark .bg-yellow-400,
 .dark .bg-yellow-400 *,
 .dark .bg-yellow-500,
 .dark .bg-yellow-500 *,
-.dark button.bg-\[\#FBDF4B\],
-.dark button.bg-\[\#FBDF4B\] * {
+.dark button.bg-\[\#FFBA00\],
+.dark button.bg-\[\#FFBA00\] * {
   color: #0F172A !important;
 }
 

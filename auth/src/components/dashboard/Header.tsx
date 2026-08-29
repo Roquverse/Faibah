@@ -261,12 +261,12 @@ export default function Header() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-gray-900 tracking-tight">Notifications</span>
                     {notifications.length > 0 && (
-                      <span className="px-2 py-0.5 bg-[#346E3A]/10 text-[#346E3A] rounded-full text-[10px] font-bold">
+                      <span className="px-2 py-0.5 bg-[#0C3B2E]/10 text-[#0C3B2E] rounded-full text-[10px] font-bold">
                         {notifications.length}
                       </span>
                     )}
                   </div>
-                  <button onClick={() => setNotifications([])} className="text-xs font-medium text-[#346E3A] hover:underline">
+                  <button onClick={() => setNotifications([])} className="text-xs font-medium text-[#0C3B2E] hover:underline">
                     Mark all read
                   </button>
                 </div>
@@ -290,7 +290,7 @@ export default function Header() {
                               <MessageSquare size={15} />
                             </div>
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-green-50 text-[#346E3A] flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-green-50 text-[#0C3B2E] flex items-center justify-center">
                               <CheckCircle2 size={15} />
                             </div>
                           )}
@@ -338,7 +338,7 @@ export default function Header() {
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt="Profile" className="w-10 h-10 rounded-full object-cover shrink-0" />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-sm shrink-0">
+              <div className="w-10 h-10 rounded-full bg-[#0C3B2E]/10 text-[#0C3B2E] flex items-center justify-center font-bold text-sm shrink-0">
                 {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
               </div>
             )}

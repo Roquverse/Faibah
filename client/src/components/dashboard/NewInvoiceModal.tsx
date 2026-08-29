@@ -257,7 +257,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
               <button 
                 type="button"
                 onClick={addItem}
-                className="mt-3 flex items-center gap-2 text-sm font-semibold text-[#346E3A] hover:text-[#2b592f] transition-colors"
+                className="mt-3 flex items-center gap-2 text-sm font-semibold text-[#0C3B2E] hover:text-[#2b592f] transition-colors"
               >
                 <Plus className="w-4 h-4" /> Add Item
               </button>
@@ -295,7 +295,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
             type="submit" 
             form="new-invoice-form"
             disabled={isSubmitting}
-            className="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#FBDF4B] text-gray-900 hover:bg-[#F3D53C] transition-colors disabled:opacity-50"
+            className="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#FFBA00] text-gray-900 hover:bg-[#E6A700] transition-colors disabled:opacity-50"
           >
             {isSubmitting ? 'Creating...' : 'Create Invoice'}
           </button>

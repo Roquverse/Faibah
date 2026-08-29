@@ -13,7 +13,7 @@ export default function Solutions() {
         <div className={styles.grid}>
           <div className={styles.feature}>
             <div className={styles.iconWrapper}>
-              <Sparkles size={24} color="#FBDF4B" />
+              <Sparkles size={24} color="#FFBA00" />
             </div>
             <p className={styles.text}>
               Keep everyone aligned with seamless task sharing and transparent progress tracking.
@@ -21,7 +21,7 @@ export default function Solutions() {
           </div>
           <div className={styles.feature}>
             <div className={styles.iconWrapper}>
-              <ListTodo size={24} color="#FBDF4B" />
+              <ListTodo size={24} color="#FFBA00" />
             </div>
             <p className={styles.text}>
               Track billable hours, manage projects, and send invoices — all in one place.
@@ -29,7 +29,7 @@ export default function Solutions() {
           </div>
           <div className={styles.feature}>
             <div className={styles.iconWrapper}>
-              <UserCheck size={24} color="#FBDF4B" />
+              <UserCheck size={24} color="#FFBA00" />
             </div>
             <p className={styles.text}>
               Automate follow-ups and get paid faster with automated reminders and payment tracking.

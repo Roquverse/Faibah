@@ -135,7 +135,7 @@ export default function Sidebar() {
           {user?.avatarUrl ? (
             <img src={user.avatarUrl} alt="Profile" className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0" />
           ) : (
-            <div className="w-9 h-9 rounded-full bg-[#346E3A]/10 text-[#346E3A] flex items-center justify-center font-bold text-sm shrink-0">
+            <div className="w-9 h-9 rounded-full bg-[#0C3B2E]/10 text-[#0C3B2E] flex items-center justify-center font-bold text-sm shrink-0">
               {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
             </div>
           )}

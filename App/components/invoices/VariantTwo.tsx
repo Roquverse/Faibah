@@ -19,7 +19,7 @@ export default function VariantTwo({ invoice, company }: { invoice: any, company
       {/* Top Banner (Novatech style: Dark slate with green accent) */}
       <div className="h-32 print:!h-12 bg-[#111827] relative flex justify-end items-center px-10 overflow-hidden">
         {/* Decorative Green slash */}
-        <div className="absolute -left-10 top-0 bottom-0 w-[400px] bg-[#346E3A] -skew-x-[30deg]"></div>
+        <div className="absolute -left-10 top-0 bottom-0 w-[400px] bg-[#0C3B2E] -skew-x-[30deg]"></div>
         
         {/* Contact info on the right */}
         <div className="text-gray-300 text-xs space-y-2 z-10 font-medium">
@@ -59,8 +59,8 @@ export default function VariantTwo({ invoice, company }: { invoice: any, company
                   <img src={company.logoUrl} alt={company.name || 'Agency Logo'} className="w-full h-full object-contain" />
                 </div>
               ) : (
-                <div className="w-12 h-12 bg-[#346E3A] rounded-xl flex items-center justify-center">
-                  <span className="text-[#FBDF4B] font-bold text-2xl tracking-tighter">
+                <div className="w-12 h-12 bg-[#0C3B2E] rounded-xl flex items-center justify-center">
+                  <span className="text-[#FFBA00] font-bold text-2xl tracking-tighter">
                     {company?.name ? company.name.charAt(0).toUpperCase() : 'F'}
                   </span>
                 </div>
@@ -77,7 +77,7 @@ export default function VariantTwo({ invoice, company }: { invoice: any, company
 
           <div className="flex items-center gap-6 mt-16 print:!mt-4 bg-gray-50 px-6 py-4 rounded-xl border border-gray-100">
             <div className="flex items-center gap-4 text-sm border-r border-gray-200 pr-6">
-              <FileText size={24} className="text-[#346E3A]" />
+              <FileText size={24} className="text-[#0C3B2E]" />
               <div className="flex flex-col gap-1">
                 <span className="text-gray-500 font-medium">Invoice Date</span>
                 <span className="font-bold text-gray-900">{new Date(invoice.createdAt).toLocaleDateString()}</span>
@@ -91,7 +91,7 @@ export default function VariantTwo({ invoice, company }: { invoice: any, company
             </div>
             <div className="flex flex-col items-center gap-1">
               <span className="text-gray-500 text-sm font-medium">Status</span>
-              <span className={`px-4 py-1 rounded-full text-xs font-bold ${isPaid ? 'bg-[#346E3A] text-white' : 'bg-gray-200 text-gray-700'}`}>
+              <span className={`px-4 py-1 rounded-full text-xs font-bold ${isPaid ? 'bg-[#0C3B2E] text-white' : 'bg-gray-200 text-gray-700'}`}>
                 {invoice.status}
               </span>
             </div>
@@ -101,7 +101,7 @@ export default function VariantTwo({ invoice, company }: { invoice: any, company
         {/* Addresses Section */}
         <div className="flex justify-between mb-12 print:!mb-4">
           <div className="flex gap-4 max-w-[300px]">
-            <div className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center text-[#346E3A] shrink-0">
+            <div className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center text-[#0C3B2E] shrink-0">
               <User size={18} />
             </div>
             <div className="flex flex-col">
@@ -117,7 +117,7 @@ export default function VariantTwo({ invoice, company }: { invoice: any, company
           </div>
 
           <div className="flex gap-4 max-w-[300px]">
-            <div className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center text-[#346E3A] shrink-0">
+            <div className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center text-[#0C3B2E] shrink-0">
               <Building2 size={18} />
             </div>
             <div className="flex flex-col">
@@ -157,7 +157,7 @@ export default function VariantTwo({ invoice, company }: { invoice: any, company
                 return (
                 <tr key={idx} className="bg-white hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-6 print:!py-2 text-center">
-                    <div className="w-8 h-8 mx-auto bg-gray-50 border border-gray-100 text-[#346E3A] rounded flex items-center justify-center">
+                    <div className="w-8 h-8 mx-auto bg-gray-50 border border-gray-100 text-[#0C3B2E] rounded flex items-center justify-center">
                       <FileText size={16} />
                     </div>
                   </td>
@@ -229,7 +229,7 @@ export default function VariantTwo({ invoice, company }: { invoice: any, company
               <span>Total</span>
               <span>{formatCurrency(formattedTotal)}</span>
             </div>
-            <div className="flex justify-between items-center pt-2 font-bold text-[#346E3A] text-xl bg-green-50 p-3 rounded-lg">
+            <div className="flex justify-between items-center pt-2 font-bold text-[#0C3B2E] text-xl bg-green-50 p-3 rounded-lg">
               <span>Amount Paid</span>
               <span>{isPaid ? formatCurrency(formattedTotal) : formatCurrency(0)}</span>
             </div>
@@ -253,8 +253,8 @@ export default function VariantTwo({ invoice, company }: { invoice: any, company
       </div>
 
       {/* Bottom Thanks Banner */}
-      <div className="bg-[#111827] text-center py-6 print:!py-2 text-[#346E3A] italic font-serif text-2xl mt-auto">
-        Thank you for your <span className="font-bold underline decoration-[#FBDF4B] underline-offset-4 decoration-2">business!</span>
+      <div className="bg-[#111827] text-center py-6 print:!py-2 text-[#0C3B2E] italic font-serif text-2xl mt-auto">
+        Thank you for your <span className="font-bold underline decoration-[#FFBA00] underline-offset-4 decoration-2">business!</span>
       </div>
 
     </div>

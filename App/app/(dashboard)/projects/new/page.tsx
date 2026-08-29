@@ -226,7 +226,7 @@ export default function NewProjectProposal() {
  <button 
  onClick={handleSend}
  disabled={isSending}
- className="flex items-center justify-center whitespace-nowrap gap-2 px-5 h-10 rounded-xl text-sm font-bold text-gray-900 bg-[#FBDF4B] hover:bg-[#F3D740] transition-colors disabled:opacity-50"
+ className="flex items-center justify-center whitespace-nowrap gap-2 px-5 h-10 rounded-xl text-sm font-bold text-gray-900 bg-[#FFBA00] hover:bg-[#E6A700] transition-colors disabled:opacity-50"
  >
  {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
  {isSending ? 'Sending...' : 'Send'}
@@ -453,7 +453,7 @@ export default function NewProjectProposal() {
  <div className="flex items-center gap-4 mt-8">
  <button 
  onClick={() => setProposalHTML(prev => prev + '<br/><h2>New Section Title</h2><p>Start typing your content here...</p>')} 
- className="flex items-center gap-2 text-sm font-bold text-[#346E3A] hover:text-[#254F2A] transition-colors py-2 px-4 bg-green-50 rounded-lg border border-green-100"
+ className="flex items-center gap-2 text-sm font-bold text-[#0C3B2E] hover:text-[#082B21] transition-colors py-2 px-4 bg-green-50 rounded-lg border border-green-100"
  >
  <Plus className="w-4 h-4" />
  Add Text Section
@@ -511,7 +511,7 @@ export default function NewProjectProposal() {
  </tbody>
  </table>
  
- <button onClick={addItem} className="flex items-center gap-2 text-sm font-bold text-[#346E3A] hover:text-[#254F2A] transition-colors py-2 mb-12">
+ <button onClick={addItem} className="flex items-center gap-2 text-sm font-bold text-[#0C3B2E] hover:text-[#082B21] transition-colors py-2 mb-12">
  <Plus className="w-4 h-4" /> Add Line Item
  </button>
 
@@ -538,11 +538,11 @@ export default function NewProjectProposal() {
  <span className="text-2xl font-bold text-gray-900 tracking-tighter">{formatCurrency(total)}</span>
  </div>
 
- <div className="pt-4 flex justify-between items-center text-sm font-bold text-[#346E3A]">
+ <div className="pt-4 flex justify-between items-center text-sm font-bold text-[#0C3B2E]">
  <div className="flex items-center gap-2">
  <span>Upfront Deposit</span>
  <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded border border-green-100">
- <input type="number" placeholder="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="w-12 bg-transparent text-xs text-right focus:outline-none text-[#346E3A]" />
+ <input type="number" placeholder="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="w-12 bg-transparent text-xs text-right focus:outline-none text-[#0C3B2E]" />
  <span className="text-xs">%</span>
  </div>
  </div>
@@ -631,7 +631,7 @@ export default function NewProjectProposal() {
  <span className="text-sm font-bold text-gray-900 uppercase tracking-widest">Total</span>
  <span className="text-2xl font-bold text-gray-900 tracking-tighter">{formatCurrency(total)}</span>
  </div>
- <div className="pt-4 flex justify-between items-center text-sm font-bold text-[#346E3A]">
+ <div className="pt-4 flex justify-between items-center text-sm font-bold text-[#0C3B2E]">
  <span>Required Deposit ({deposit}%)</span>
  <span>{formatCurrency(depositAmount)}</span>
  </div>
@@ -645,7 +645,7 @@ export default function NewProjectProposal() {
  <button 
    onClick={handleSend}
    disabled={isSending}
-   className="flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-gray-900 bg-[#FBDF4B] hover:bg-[#F3D53C] transition-all hover:-translate-y-1 border border-transparent cursor-pointer disabled:opacity-50"
+   className="flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-gray-900 bg-[#FFBA00] hover:bg-[#E6A700] transition-all hover:-translate-y-1 border border-transparent cursor-pointer disabled:opacity-50"
  >
    {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-gray-900" />}
    {isSending ? 'Accepting Proposal...' : 'Accept Proposal'}

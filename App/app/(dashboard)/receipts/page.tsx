@@ -111,13 +111,13 @@ export default function ReceiptsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search receipts..." 
-              className="pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#346E3A] focus:ring-1 focus:ring-[#346E3A] w-full sm:w-64"
+              className="pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0C3B2E] focus:ring-1 focus:ring-[#0C3B2E] w-full sm:w-64"
             />
           </div>
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#F3D53C] transition-colors shadow-xs border border-transparent shrink-0"
+            className="flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#E6A700] transition-colors shadow-xs border border-transparent shrink-0"
           >
             <Plus className="w-4 h-4" /> Record Receipt
           </button>
@@ -179,7 +179,7 @@ export default function ReceiptsPage() {
                           setSelectedReceipt(receipt);
                         }}
                         title="View / Download PDF"
-                        className="p-1.5 text-gray-400 hover:text-[#346E3A] hover:bg-emerald-50 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-[#0C3B2E] hover:bg-emerald-50 rounded-lg transition-colors"
                       >
                         <Download className="w-4 h-4" />
                       </button>
@@ -228,7 +228,7 @@ export default function ReceiptsPage() {
                     const total = inv ? inv.items?.reduce((s: number, item: any) => s + item.amount, 0) : '';
                     setNewReceipt({ ...newReceipt, invoiceId: e.target.value, amountPaid: total ? String(total) : newReceipt.amountPaid });
                   }}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#0C3B2E]"
                 >
                   <option value="">Select Invoice...</option>
                   {invoices.map((inv) => (
@@ -248,7 +248,7 @@ export default function ReceiptsPage() {
                   placeholder="0.00"
                   value={newReceipt.amountPaid}
                   onChange={(e) => setNewReceipt({ ...newReceipt, amountPaid: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                 />
               </div>
 
@@ -258,7 +258,7 @@ export default function ReceiptsPage() {
                   <select
                     value={newReceipt.paymentMethod}
                     onChange={(e) => setNewReceipt({ ...newReceipt, paymentMethod: e.target.value })}
-                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                   >
                     <option value="Bank Transfer">Bank Transfer</option>
                     <option value="Paystack">Paystack</option>
@@ -275,7 +275,7 @@ export default function ReceiptsPage() {
                     required
                     value={newReceipt.paymentDate}
                     onChange={(e) => setNewReceipt({ ...newReceipt, paymentDate: e.target.value })}
-                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#346E3A]"
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#0C3B2E]"
                   />
                 </div>
               </div>
@@ -291,7 +291,7 @@ export default function ReceiptsPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-[#FBDF4B] text-gray-900 font-bold rounded-lg text-xs hover:bg-[#F3D53C] transition-colors"
+                  className="px-4 py-2 bg-[#FFBA00] text-gray-900 font-bold rounded-lg text-xs hover:bg-[#E6A700] transition-colors"
                 >
                   {isSubmitting ? 'Recording...' : 'Record Receipt'}
                 </button>
@@ -312,7 +312,7 @@ export default function ReceiptsPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#346E3A] text-white rounded-lg text-xs font-bold hover:bg-[#2a592f] transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0C3B2E] text-white rounded-lg text-xs font-bold hover:bg-[#082B21] transition-colors"
                 >
                   <Printer className="w-3.5 h-3.5" /> Print / PDF
                 </button>
@@ -331,7 +331,7 @@ export default function ReceiptsPage() {
               {/* Header */}
               <div className="flex justify-between items-start border-b border-gray-200 pb-6">
                 <div>
-                  <div className="text-xl font-extrabold text-[#346E3A] tracking-tight">FAIBA PLATFORM</div>
+                  <div className="text-xl font-extrabold text-[#0C3B2E] tracking-tight">FAIBA PLATFORM</div>
                   <div className="text-xs text-gray-500 mt-1">Payment Confirmation Receipt</div>
                 </div>
                 <div className="text-right">

@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #16A34A; /* Faibah Green */
-  --color-accent-hover: #15803d;
+  --color-accent: #6D9773; /* Faibah Green */
+  --color-accent-hover: #0C3B2E;
+  --color-primary: #FFBA00;
+  --color-brand-tan: #BB8A52;
   --color-danger: #ef4444;
   --color-danger-hover: #dc2626;
   --color-success: #22c55e;

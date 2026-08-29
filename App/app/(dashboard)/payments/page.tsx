@@ -93,13 +93,13 @@ export default function PaymentsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search payments..." 
-              className="pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#346E3A]/20 transition-all w-full sm:w-64"
+              className="pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0C3B2E]/20 transition-all w-full sm:w-64"
             />
           </div>
           
           <button 
             onClick={handleExportCSV}
-            className="flex items-center justify-center gap-2 bg-[#FBDF4B] text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#F3D53C] transition-colors border border-transparent shrink-0 w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#E6A700] transition-colors border border-transparent shrink-0 w-full sm:w-auto"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -159,7 +159,7 @@ export default function PaymentsPage() {
                   </td>
                   <td className="px-6 py-4 text-gray-500 font-medium">{payment.date}</td>
                   <td className="px-6 py-4 font-bold text-gray-900">{payment.client}</td>
-                  <td className="px-6 py-4 text-[#346E3A] font-bold">{payment.invoice}</td>
+                  <td className="px-6 py-4 text-[#0C3B2E] font-bold">{payment.invoice}</td>
                   <td className="px-6 py-4 text-gray-500 font-medium">
                     <span className="px-2.5 py-1 bg-gray-100 rounded-full text-xs font-bold text-gray-700">
                       {payment.method}
