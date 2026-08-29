@@ -193,6 +193,7 @@ export default function Header() {
             <Link href="/channels" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Channels</Link>
             <div className="h-px bg-gray-100 my-2"></div>
             <Link href="/clients" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Clients</Link>
+            <Link href="/subscriptions" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Subscriptions</Link>
             <Link href="/invoices" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Invoices</Link>
             <Link href="/receipts" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Receipts</Link>
             <Link href="/payments" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-900 hover:bg-gray-50 p-3 rounded-lg">Payments</Link>

@@ -34,7 +34,7 @@ export default function SubscriptionsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 overflow-hidden">
           {isLoading ? (
             <div className="p-8 text-center text-gray-500 dark:text-slate-400 font-semibold text-sm">Loading subscriptions...</div>
           ) : subscriptions.length === 0 ? (
