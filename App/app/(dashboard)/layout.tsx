@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <InactivityGuard>
       <ProjectDrawerProvider>
-        <div className="dashboard-layout flex h-screen print:h-auto w-full overflow-hidden print:overflow-visible bg-white print:block">
+        <div className="dashboard-layout flex h-[100dvh] print:h-auto w-full overflow-hidden print:overflow-visible bg-white print:block">
           <div className="print:hidden">
             <Sidebar />
           </div>
