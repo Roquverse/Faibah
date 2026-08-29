@@ -187,9 +187,10 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
               
               <div className="space-y-4">
                 {items.map((item, index) => (
-                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-end gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 relative">
+                  <div key={index} className="flex flex-col bg-gray-50 p-4 rounded-xl border border-gray-200 relative">
                     
-                    <div className="w-full sm:flex-1 space-y-1.5 pr-8 sm:pr-0">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 w-full">
+                      <div className="w-full sm:flex-1 space-y-1.5 pr-8 sm:pr-0">
                       <label className="text-xs font-semibold text-gray-700">Item Name</label>
                       <input 
                         type="text" 
@@ -242,10 +243,20 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
                           {item.amount.toLocaleString()}
                         </div>
                       </div>
+                      
+                      <button 
+                        type="button" 
+                        onClick={() => removeItem(index)}
+                        className="absolute top-4 right-4 sm:static sm:mb-1.5 p-2 sm:p-1.5 text-gray-400 hover:text-red-500 transition-colors bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent disabled:opacity-50"
+                        disabled={items.length === 1}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                     </div>
 
                     {/* Subscription Checkbox */}
-                    <div className="w-full sm:w-full mt-2 pt-2 border-t border-gray-200/60">
+                    <div className="w-full mt-4 pt-4 border-t border-gray-200/60">
                       <label className="flex items-center gap-2 cursor-pointer mb-2">
                         <input
                           type="checkbox"
@@ -282,15 +293,6 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
                         </div>
                       )}
                     </div>
-                    
-                    <button 
-                      type="button" 
-                      onClick={() => removeItem(index)}
-                      className="absolute top-4 right-4 sm:static sm:mb-1.5 p-2 sm:p-1.5 text-gray-400 hover:text-red-500 transition-colors bg-white sm:bg-transparent rounded-lg border border-gray-200 sm:border-transparent disabled:opacity-50"
-                      disabled={items.length === 1}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                     
                   </div>
                 ))}
