@@ -13,8 +13,11 @@ const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false, loadin
 interface LineItem {
  id: string;
  description: string;
- quantity: number;
- rate: number;
+ quantity: number | string;
+ rate: number | string;
+ isSubscription?: boolean;
+ subscriptionFrequency?: string;
+ subscriptionDate?: string;
 }
 
 interface Client {
@@ -77,9 +80,9 @@ export default function NewProjectProposal() {
 
  // Financials State
  const [items, setItems] = useState<LineItem[]>([
- { id: '1', description: 'Concept Development & Scouting', quantity: 1, rate: 500000 },
- { id: '2', description: '2-Day On-Site Photography & Video', quantity: 1, rate: 2500000 },
- { id: '3', description: 'Post-Production Editing', quantity: 1, rate: 750000 },
+ { id: '1', description: 'Concept Development & Scouting', quantity: 1, rate: 500000, isSubscription: false, subscriptionFrequency: 'MONTHLY', subscriptionDate: '' },
+ { id: '2', description: '2-Day On-Site Photography & Video', quantity: 1, rate: 2500000, isSubscription: false, subscriptionFrequency: 'MONTHLY', subscriptionDate: '' },
+ { id: '3', description: 'Post-Production Editing', quantity: 1, rate: 750000, isSubscription: false, subscriptionFrequency: 'MONTHLY', subscriptionDate: '' },
  ]);
  const [taxRate, setTaxRate] = useState<number | string>(7.5);
  const [deposit, setDeposit] = useState<number | string>(50);
@@ -96,9 +99,9 @@ export default function NewProjectProposal() {
  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
  };
 
- const addItem = () => setItems([...items, { id: Date.now().toString(), description: '', quantity: 1, rate: 0 }]);
+ const addItem = () => setItems([...items, { id: Date.now().toString(), description: '', quantity: 1, rate: 0, isSubscription: false, subscriptionFrequency: 'MONTHLY', subscriptionDate: '' }]);
  const removeItem = (id: string) => { if (items.length > 1) setItems(items.filter(item => item.id !== id)); };
- const updateItem = (id: string, field: keyof LineItem, value: string | number) => {
+ const updateItem = (id: string, field: keyof LineItem, value: string | number | boolean) => {
  setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
  };
 
@@ -154,6 +157,9 @@ export default function NewProjectProposal() {
         quantity: Number(item.quantity) || 1,
         unitPrice: Number(item.rate) || 0,
         amount: (Number(item.quantity) || 1) * (Number(item.rate) || 0),
+        isSubscription: item.isSubscription || false,
+        subscriptionFrequency: item.subscriptionFrequency,
+        subscriptionDate: item.subscriptionDate ? new Date(item.subscriptionDate).toISOString() : undefined,
       }));
 
       await InvoicesApi.create({
@@ -478,38 +484,63 @@ export default function NewProjectProposal() {
  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Financial Breakdown</span>
  </div>
 
- <table className="w-full mb-4">
- <thead>
- <tr className="border-b-2 border-gray-900">
- <th className="text-left py-3 text-[11px] font-bold text-gray-900 uppercase tracking-widest w-full">Description</th>
- <th className="text-right py-3 text-[11px] font-bold text-gray-900 uppercase tracking-widest w-24 min-w-[100px]">Qty</th>
- <th className="text-right py-3 text-[11px] font-bold text-gray-900 uppercase tracking-widest w-32 min-w-[140px]">Rate (₦)</th>
- <th className="text-right py-3 text-[11px] font-bold text-gray-900 uppercase tracking-widest w-32 min-w-[140px]">Amount</th>
- <th className="w-10"></th>
- </tr>
- </thead>
- <tbody className="divide-y divide-gray-100">
+ <div className="space-y-6 mb-8">
  {items.map((item) => (
- <tr key={item.id} className="group">
- <td className="py-4 pr-4">
- <textarea rows={1} value={item.description} onChange={(e) => updateItem(item.id, 'description', e.target.value)} placeholder="Item description..." className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 focus:outline-none resize-none leading-snug transition-all" />
- </td>
- <td className="py-4 px-2">
- <input type="number" placeholder="0" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', e.target.value)} className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 text-right focus:outline-none transition-all" />
- </td>
- <td className="py-4 px-2">
- <input type="number" placeholder="0" value={item.rate} onChange={(e) => updateItem(item.id, 'rate', e.target.value)} className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 text-right focus:outline-none transition-all" />
- </td>
- <td className="py-4 pl-4 text-right">
- <span className="text-sm font-bold text-gray-900">{formatCurrency((Number(item.quantity) || 0) * (Number(item.rate) || 0))}</span>
- </td>
- <td className="py-4 text-right">
- <button onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1"><Trash2 className="w-4 h-4" /></button>
- </td>
- </tr>
+ <div key={item.id} className="group p-4 sm:p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-gray-200 hover:shadow-md transition-all relative">
+ <div className="mb-4">
+ <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Description</label>
+ <textarea rows={1} value={item.description} onChange={(e) => updateItem(item.id, 'description', e.target.value)} placeholder="Item description..." className="w-full bg-gray-50 border border-transparent hover:border-gray-200 focus:bg-white focus:border-indigo-500 rounded-xl p-3 text-sm font-medium text-gray-900 focus:outline-none resize-none leading-snug transition-all" />
+ </div>
+ 
+ <div className="flex flex-wrap items-end gap-4">
+ <div className="flex-1 min-w-[100px]">
+ <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Qty</label>
+ <input type="number" placeholder="0" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', e.target.value)} className="w-full bg-gray-50 border border-transparent hover:border-gray-200 focus:bg-white focus:border-indigo-500 rounded-xl p-3 text-sm font-medium text-gray-900 focus:outline-none transition-all" />
+ </div>
+ <div className="flex-1 min-w-[120px]">
+ <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Rate (₦)</label>
+ <input type="number" placeholder="0" value={item.rate} onChange={(e) => updateItem(item.id, 'rate', e.target.value)} className="w-full bg-gray-50 border border-transparent hover:border-gray-200 focus:bg-white focus:border-indigo-500 rounded-xl p-3 text-sm font-medium text-gray-900 focus:outline-none transition-all" />
+ </div>
+ <div className="w-full sm:w-32 flex flex-col justify-end">
+ <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 sm:text-right">Amount</label>
+ <span className="text-base font-bold text-gray-900 sm:text-right py-2">{formatCurrency((Number(item.quantity) || 0) * (Number(item.rate) || 0))}</span>
+ </div>
+ </div>
+
+ <div className="mt-6 pt-4 border-t border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+ <label className="flex items-center gap-2 cursor-pointer group/sub w-fit">
+ <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors border ${item.isSubscription ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-100 border-gray-200 group-hover/sub:border-indigo-300'}`}>
+ {item.isSubscription && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+ </div>
+ <input type="checkbox" checked={item.isSubscription} onChange={(e) => updateItem(item.id, 'isSubscription', e.target.checked)} className="hidden" />
+ <span className="text-sm font-bold text-gray-600 group-hover/sub:text-gray-900 transition-colors">Recurring Subscription</span>
+ </label>
+ 
+ <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold w-fit">
+ <Trash2 className="w-4 h-4" />
+ <span className="sm:hidden">Remove Item</span>
+ </button>
+ </div>
+ 
+ {item.isSubscription && (
+ <div className="flex flex-col sm:flex-row items-center gap-4 mt-4 p-4 bg-indigo-50/50 border border-indigo-100 rounded-xl animate-in slide-in-from-top-2 fade-in duration-200">
+ <div className="flex-1 w-full">
+ <label className="block text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Frequency</label>
+ <select value={item.subscriptionFrequency} onChange={(e) => updateItem(item.id, 'subscriptionFrequency', e.target.value)} className="w-full bg-white border border-indigo-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 focus:outline-none transition-all">
+ <option value="WEEKLY">Weekly</option>
+ <option value="MONTHLY">Monthly</option>
+ <option value="YEARLY">Yearly</option>
+ </select>
+ </div>
+ <div className="flex-1 w-full">
+ <label className="block text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Start Date</label>
+ <input type="date" value={item.subscriptionDate} onChange={(e) => updateItem(item.id, 'subscriptionDate', e.target.value)} className="w-full bg-white border border-indigo-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg p-3 text-sm font-medium text-gray-900 focus:outline-none transition-all" required={item.isSubscription} />
+ </div>
+ </div>
+ )}
+ </div>
  ))}
- </tbody>
- </table>
+ </div>
  
  <button onClick={addItem} className="flex items-center gap-2 text-sm font-bold text-[#0C3B2E] hover:text-[#082B21] transition-colors py-2 mb-12">
  <Plus className="w-4 h-4" /> Add Line Item
@@ -611,7 +642,7 @@ export default function NewProjectProposal() {
  {items.map(item => (
  <tr key={item.id}>
  <td className="py-4 text-sm font-medium text-gray-900">{item.description}</td>
- <td className="py-4 text-right text-sm font-bold text-gray-900">{formatCurrency(item.quantity * item.rate)}</td>
+ <td className="py-4 text-right text-sm font-bold text-gray-900">{formatCurrency((Number(item.quantity) || 0) * (Number(item.rate) || 0))}</td>
  </tr>
  ))}
  </tbody>
