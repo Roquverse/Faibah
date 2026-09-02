@@ -153,7 +153,7 @@ export default function InvoicesPage() {
               const formattedTotal = totalAmount + (totalAmount * ((invoice.taxRate || 0) / 100));
 
               return (
-                <tr key={invoice.id} className="hover:bg-gray-50 transition-colors cursor-pointer group">
+                <tr key={invoice.id} className={`hover:bg-gray-50 transition-colors cursor-pointer group ${openDropdownId === invoice.id ? 'relative z-50' : ''}`}>
                   <td className="px-6 py-4 font-medium text-gray-900">{invoice.invoiceRef || invoice.id.slice(0, 8).toUpperCase()}</td>
                   <td className="px-6 py-4">
                     <div className="font-semibold text-gray-900 mb-0.5 flex items-center gap-2">
