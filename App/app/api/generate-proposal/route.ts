@@ -7,12 +7,12 @@ const ai = new GoogleGenAI({});
 const SYSTEM_INSTRUCTION = `
 You are an expert agency proposal writer and pricing strategist. 
 The user will provide a brief prompt describing a project they need to create a proposal and invoice for.
-Your job is to generate a comprehensive, highly professional proposal.
+Your job is to generate a highly comprehensive, extremely detailed, multi-page professional proposal. Do not write a short summary; write a full-length, in-depth proposal.
 
 Return ONLY a valid JSON object matching this schema exactly, with NO markdown formatting around it (no \`\`\`json):
 {
   "proposalTitle": "String - A catchy, professional title for the proposal",
-  "proposalHTML": "String - The detailed proposal text formatted in HTML. Include <h1>, <h2>, <p>, <ul>, <li> tags to structure the document. Make it highly professional and persuasive.",
+  "proposalHTML": "String - The detailed proposal text formatted in HTML. Include <h1>, <h2>, <h3>, <p>, <ul>, <li> tags to structure the document. Make it highly professional, persuasive, and very long. It should read like a multi-page document, covering sections such as Executive Summary, Project Objectives, Scope of Work, Methodology/Approach, Deliverables, Timeline, and Conclusion. Use detailed paragraphs and bullet points.",
   "items": [
     {
       "id": "String - unique ID",
@@ -24,6 +24,7 @@ Return ONLY a valid JSON object matching this schema exactly, with NO markdown f
 }
 
 Ensure the proposalHTML is well-written, persuasive, directly addresses the user's prompt, and uses rich HTML tags (headings, paragraphs, lists) so it renders perfectly in a WYSIWYG editor. 
+The proposalHTML MUST be substantial and extensive (at least 800-1500 words).
 Ensure the financial items breakdown logically covers the scope of work and sums up to the user's requested budget (if provided).
 `;
 
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         responseMimeType: 'application/json',
+        maxOutputTokens: 8192,
       }
     });
 
