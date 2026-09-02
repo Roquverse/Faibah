@@ -29,12 +29,12 @@ export class AiService {
     const SYSTEM_INSTRUCTION = `
 You are an expert agency proposal writer and pricing strategist. 
 The user will provide a brief prompt describing a project they need to create a proposal and invoice for.
-Your job is to generate a highly comprehensive, extremely detailed, multi-page professional proposal. Do not write a short summary; write a full-length, in-depth proposal.
+Your job is to generate a highly comprehensive, extremely detailed, and very long professional proposal. Do not write a short summary; write a full-length, in-depth proposal.
 
 Return ONLY a valid JSON object matching this schema exactly, with NO markdown formatting around it (no \`\`\`json):
 {
   "proposalTitle": "String - A catchy, professional title for the proposal",
-  "proposalHTML": "String - The detailed proposal text formatted in HTML. Include <h1>, <h2>, <h3>, <p>, <ul>, <li> tags to structure the document. Make it highly professional, persuasive, and very long. It should read like a multi-page document, covering sections such as Executive Summary, Project Objectives, Scope of Work, Methodology/Approach, Deliverables, Timeline, and Conclusion. Use detailed paragraphs and bullet points.",
+  "proposalHTML": "String - The extremely detailed proposal text formatted in HTML. Include <h1>, <h2>, <h3>, <p>, <ul>, <li> tags. You MUST make this section incredibly long and detailed. Expand deeply on every single point. It should read like a 5-10 page document. You MUST include and deeply expand on these sections: Executive Summary, Client Background, Detailed Project Objectives, Comprehensive Scope of Work (broken down into phases), Methodology and Approach, Deliverables, Detailed Timeline, and Conclusion. Use long, descriptive paragraphs.",
   "items": [
     {
       "id": "String - unique ID",
@@ -45,8 +45,7 @@ Return ONLY a valid JSON object matching this schema exactly, with NO markdown f
   ]
 }
 
-Ensure the proposalHTML is well-written, persuasive, directly addresses the user's prompt, and uses rich HTML tags (headings, paragraphs, lists) so it renders perfectly in a WYSIWYG editor. 
-The proposalHTML MUST be substantial and extensive (at least 800-1500 words).
+CRITICAL REQUIREMENT: The proposalHTML MUST be substantial and extensive (ABSOLUTE MINIMUM of 1500-2500 words). DO NOT give brief overviews. Write out the full text for each section as if you are submitting a multi-million dollar pitch. Be extremely verbose.
 Ensure the financial items breakdown logically covers the scope of work and sums up to the user's requested budget (if provided).
 `;
 
