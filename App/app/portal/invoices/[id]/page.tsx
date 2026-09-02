@@ -61,12 +61,6 @@ export default function ClientInvoicePreviewPage() {
       {/* Top action bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden mb-8">
         <div className="flex items-center gap-4 shrink-0">
-          <button 
-            onClick={() => router.push('/portal/invoices')}
-            className="p-2 text-gray-500 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors shadow-sm"
-          >
-            <ArrowLeft size={20} />
-          </button>
           <div>
             <h1 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
               Invoice 
@@ -83,9 +77,9 @@ export default function ClientInvoicePreviewPage() {
             Download PDF
           </button>
           {invoice.status !== 'PAID' && (
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm">
+            <button disabled className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed shadow-sm">
               <CreditCard className="w-4 h-4" />
-              Pay Now
+              Pay Now (Coming Soon)
             </button>
           )}
         </div>

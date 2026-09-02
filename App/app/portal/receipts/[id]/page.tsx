@@ -52,12 +52,6 @@ export default function ClientReceiptPreviewPage() {
       {/* Top action bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden mb-8">
         <div className="flex items-center gap-4 shrink-0">
-          <button 
-            onClick={() => router.back()}
-            className="p-2 text-gray-500 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors shadow-sm"
-          >
-            <ArrowLeft size={20} />
-          </button>
           <div>
             <h1 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
               Payment Receipt 
