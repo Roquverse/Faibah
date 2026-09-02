@@ -7,6 +7,7 @@ import { InvoicesApi, CompanyApi } from '@/lib/api';
 import VariantOne from '@/components/invoices/VariantOne';
 import VariantTwo from '@/components/invoices/VariantTwo';
 import VariantThree from '@/components/invoices/VariantThree';
+import ShareDropdown from '@/components/shared/ShareDropdown';
 
 export default function InvoicePreviewPage() {
   const { id } = useParams();
@@ -105,10 +106,13 @@ export default function InvoicePreviewPage() {
               <Download className="w-4 h-4" />
               Download PDF
             </button>
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#E6A700] transition-colors border border-transparent whitespace-nowrap">
-              <Send className="w-4 h-4" />
-              Send to Client
-            </button>
+            <ShareDropdown
+              itemType="Invoice"
+              itemRef={invoice.invoiceRef || invoice.id.slice(0,8).toUpperCase()}
+              publicUrl={typeof window !== 'undefined' ? `${window.location.origin}/portal/invoices/${invoice.id}` : ''}
+              client={invoice.client}
+              triggerClassName="flex-1 sm:flex-none"
+            />
           </div>
         </div>
       </div>

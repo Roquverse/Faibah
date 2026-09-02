@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, MoreHorizontal, FileText, Download, Trash2, Printer, CheckCircle2, X, Building2, CreditCard } from 'lucide-react';
 import { ReceiptsApi, InvoicesApi } from '@/lib/api';
+import ShareDropdown from '@/components/shared/ShareDropdown';
 
 export default function ReceiptsPage() {
   const [receipts, setReceipts] = useState<any[]>([]);
@@ -310,6 +311,13 @@ export default function ReceiptsPage() {
             <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6 print:hidden">
               <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Official Payment Receipt</span>
               <div className="flex items-center gap-2">
+                <ShareDropdown
+                  itemType="Receipt"
+                  itemRef={selectedReceipt.receiptRef || `RCP-${selectedReceipt.id.slice(0, 6).toUpperCase()}`}
+                  publicUrl={typeof window !== 'undefined' ? `${window.location.origin}/portal/receipts/${selectedReceipt.id}` : ''}
+                  client={selectedReceipt.invoice?.client}
+                  triggerClassName="!bg-white !text-gray-700 !border-gray-200 hover:!bg-gray-50 !py-1.5"
+                />
                 <button
                   onClick={() => window.print()}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0C3B2E] text-white rounded-lg text-xs font-bold hover:bg-[#082B21] transition-colors"

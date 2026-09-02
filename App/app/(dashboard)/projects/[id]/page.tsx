@@ -23,6 +23,7 @@ import { useParams } from 'next/navigation';
 import ProjectChannel from '@/components/dashboard/ProjectChannel';
 import KanbanBoard from '@/components/dashboard/KanbanBoard';
 import ProjectSchedule from '@/components/dashboard/ProjectSchedule';
+import ShareDropdown from '@/components/shared/ShareDropdown';
 
 type Tab = 'overview' | 'proposal' | 'quotation' | 'invoice' | 'channel' | 'files' | 'tasks' | 'schedule';
 
@@ -123,10 +124,12 @@ Total: ₦450,000`}
               <Download className="w-4 h-4" />
               PDF
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#FFBA00] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#E6A700] transition-colors shadow-sm">
-              <Send className="w-4 h-4" />
-              Send
-            </button>
+            <ShareDropdown
+              itemType="Proposal"
+              itemRef="Q-001"
+              publicUrl={typeof window !== 'undefined' ? `${window.location.origin}/portal/projects/${project.id}` : ''}
+              client={project.client}
+            />
           </div>
         </div>
         <div className="p-0">
