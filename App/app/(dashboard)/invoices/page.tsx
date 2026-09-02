@@ -15,9 +15,13 @@ export default function InvoicesPage() {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleClickOutside = () => setOpenDropdownId(null);
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.dropdown-container')) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleDeleteInvoice = async (id: string) => {
@@ -190,7 +194,7 @@ export default function InvoicesPage() {
                         </button>
                       )}
                       
-                      <div className="relative">
+                      <div className="relative dropdown-container">
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
