@@ -118,7 +118,7 @@ export default function NewProjectProposal() {
       if (data.items && data.items.length > 0) setItems(data.items);
       
       // Optimistically decrement tokens locally
-      setCompany(prev => prev ? { ...prev, aiTokens: prev.aiTokens - 1 } : prev);
+      setCompany((prev: any) => prev ? { ...prev, aiTokens: prev.aiTokens - 1 } : prev);
       
       setIsAiModalOpen(false);
       setAiPrompt('');
@@ -132,7 +132,7 @@ export default function NewProjectProposal() {
   const handleTopUpTokens = async () => {
     try {
       const result = await AiApi.topUpTokens(5);
-      setCompany(prev => prev ? { ...prev, aiTokens: result.aiTokens } : prev);
+      setCompany((prev: any) => prev ? { ...prev, aiTokens: result.aiTokens } : prev);
     } catch (err) {
       console.error('Failed to top up tokens', err);
     }
