@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { ClientsApi, ProjectsApi, InvoicesApi } from '@/lib/api';
 
-export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onClose: () => void, onSuccess: () => void }) {
+export default function NewInvoiceModal({ isOpen, onClose, onSuccess, invoiceToEdit }: { isOpen: boolean, onClose: () => void, onSuccess: () => void, invoiceToEdit?: any }) {
   const [clients, setClients] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,8 +19,38 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
   useEffect(() => {
     if (isOpen) {
       ClientsApi.getAll().then(setClients).catch(console.error);
+      
+      if (invoiceToEdit) {
+        setClientId(invoiceToEdit.clientId || '');
+        setProjectId(invoiceToEdit.projectId || '');
+        setCurrency(invoiceToEdit.currency || 'NGN');
+        setTaxRate(invoiceToEdit.taxRate || 0);
+        setDueDate(invoiceToEdit.dueDate ? new Date(invoiceToEdit.dueDate).toISOString().split('T')[0] : '');
+        if (invoiceToEdit.items && invoiceToEdit.items.length > 0) {
+          setItems(invoiceToEdit.items.map((i: any) => {
+            const parts = i.description ? i.description.split('|||') : [''];
+            return {
+              itemName: parts[0] || '',
+              details: parts.length > 1 ? parts.slice(1).join('|||') : '',
+              quantity: i.quantity || 1,
+              unitPrice: i.unitPrice || 0,
+              amount: i.amount || 0,
+              isSubscription: false,
+              subscriptionFrequency: 'MONTHLY',
+              subscriptionDate: ''
+            };
+          }));
+        }
+      } else {
+        setClientId('');
+        setProjectId('');
+        setCurrency('NGN');
+        setTaxRate('');
+        setDueDate('');
+        setItems([{ itemName: '', details: '', quantity: 1, unitPrice: '', amount: 0, isSubscription: false, subscriptionFrequency: 'MONTHLY', subscriptionDate: '' }]);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, invoiceToEdit]);
 
   useEffect(() => {
     if (clientId) {
@@ -80,18 +110,29 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
         subscriptionDate: item.subscriptionDate ? new Date(item.subscriptionDate).toISOString() : undefined,
       }));
 
-      await InvoicesApi.create({
-        clientId,
-        projectId: projectId || undefined,
-        currency,
-        taxRate: taxRate === '' ? 0 : Number(taxRate),
-        dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
-        items: formattedItems
-      });
+      if (invoiceToEdit) {
+        await InvoicesApi.update(invoiceToEdit.id, {
+          clientId,
+          projectId: projectId || undefined,
+          currency,
+          taxRate: taxRate === '' ? 0 : Number(taxRate),
+          dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+          items: formattedItems
+        });
+      } else {
+        await InvoicesApi.create({
+          clientId,
+          projectId: projectId || undefined,
+          currency,
+          taxRate: taxRate === '' ? 0 : Number(taxRate),
+          dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+          items: formattedItems
+        });
+      }
       onSuccess();
     } catch (error) {
-      console.error("Failed to create invoice:", error);
-      alert("Failed to create invoice.");
+      console.error("Failed to save invoice:", error);
+      alert("Failed to save invoice.");
     } finally {
       setIsSubmitting(false);
     }
@@ -102,7 +143,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh]">
         
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900">New Invoice</h2>
+          <h2 className="text-xl font-bold text-gray-900">{invoiceToEdit ? 'Edit Invoice' : 'New Invoice'}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -341,7 +382,7 @@ export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: { isOpen
             disabled={isSubmitting}
             className="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#FFBA00] text-gray-900 hover:bg-[#E6A700] transition-colors disabled:opacity-50"
           >
-            {isSubmitting ? 'Creating...' : 'Create Invoice'}
+            {isSubmitting ? 'Saving...' : invoiceToEdit ? 'Save Changes' : 'Create Invoice'}
           </button>
         </div>
 

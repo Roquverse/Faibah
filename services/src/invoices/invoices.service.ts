@@ -234,4 +234,58 @@ export class InvoicesService {
       where: { id },
     });
   }
+
+  async updateInvoice(id: string, data: {
+    clientId?: string;
+    projectId?: string;
+    currency?: string;
+    taxRate?: number;
+    dueDate?: Date | string;
+    items?: { 
+      description: string; 
+      quantity: number; 
+      unitPrice: number; 
+      amount: number;
+    }[];
+  }) {
+    const { clientId, projectId, currency, taxRate, dueDate, items } = data;
+    const invoice = await this.prisma.invoice.findUnique({ where: { id } });
+    if (!invoice) throw new NotFoundException(`Invoice with ID ${id} not found`);
+
+    const updateData: any = {};
+    if (clientId !== undefined) updateData.clientId = clientId;
+    if (projectId !== undefined) updateData.projectId = projectId;
+    if (currency !== undefined) updateData.currency = currency;
+    if (taxRate !== undefined) updateData.taxRate = taxRate;
+    if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null;
+
+    if (items) {
+      // Replace all items
+      await this.prisma.invoiceItem.deleteMany({
+        where: { invoiceId: id },
+      });
+      updateData.items = {
+        create: items.map(item => ({
+          description: item.description,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          amount: item.amount,
+        }))
+      };
+    }
+
+    return this.prisma.invoice.update({
+      where: { id },
+      data: updateData,
+      include: {
+        items: true,
+        client: {
+          include: {
+            company: true
+          }
+        },
+        project: true,
+      }
+    });
+  }
 }

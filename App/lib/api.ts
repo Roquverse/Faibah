@@ -188,11 +188,17 @@ export const InvoicesApi = {
   getAll: () => fetchApi('/invoices'),
   getById: (id: string) => fetchApi(`/invoices/${id}`),
   create: (data: any) => fetchApi('/invoices', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: any) => fetchApi(`/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: (id: string) => fetchApi(`/invoices/${id}`, { method: 'DELETE' }),
 };
 
 export const SubscriptionsApi = {
   getAll: () => fetchApi('/subscriptions'),
   getUpcoming: () => fetchApi('/subscriptions/upcoming'),
+};
+
+export const AiApi = {
+  generateProposal: (prompt: string) => fetchApi('/ai/generate-proposal', { method: 'POST', body: JSON.stringify({ prompt }) }),
+  topUpTokens: (amount?: number) => fetchApi('/ai/top-up', { method: 'POST', body: JSON.stringify({ amount }) }),
 };
 

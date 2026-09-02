@@ -23,6 +23,7 @@ model Company {
   multipleMilestones  Boolean  @default(false)
   itemizeMaterials    Boolean  @default(false)
   defaultCurrency     String   @default("NGN")
+  aiTokens            Int      @default(3)
   taxRegistered       Boolean  @default(false)
   taxRate             Float?
   commPreference      String?

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Req, Patch } from '@nestjs/common';
 import type { Request } from 'express';
 import { InvoicesService } from './invoices.service';
 
@@ -25,5 +25,10 @@ export class InvoicesController {
   @Delete(':id')
   async deleteInvoice(@Param('id') id: string) {
     return this.invoicesService.deleteInvoice(id);
+  }
+
+  @Patch(':id')
+  async updateInvoice(@Param('id') id: string, @Body() body: any) {
+    return this.invoicesService.updateInvoice(id, body);
   }
 }

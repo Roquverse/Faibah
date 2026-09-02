@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Save, Send, Plus, Trash2, Calendar, FileText, CheckCircle2, Eye, PenTool, Calculator, Sparkles, Loader2, X, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ProjectsApi, CompanyApi, ClientsApi, InvoicesApi } from '@/lib/api';
+import { ProjectsApi, CompanyApi, ClientsApi, InvoicesApi, AiApi } from '@/lib/api';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -111,30 +111,32 @@ export default function NewProjectProposal() {
  setAiError('');
 
  try {
- const response = await fetch('/api/generate-proposal', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ prompt: aiPrompt }),
- });
+      const data = await AiApi.generateProposal(aiPrompt);
 
- const data = await response.json();
+      if (data.proposalTitle) setProposalTitle(data.proposalTitle);
+      if (data.proposalHTML) setProposalHTML(data.proposalHTML);
+      if (data.items && data.items.length > 0) setItems(data.items);
+      
+      // Optimistically decrement tokens locally
+      setCompany(prev => prev ? { ...prev, aiTokens: prev.aiTokens - 1 } : prev);
+      
+      setIsAiModalOpen(false);
+      setAiPrompt('');
+    } catch (err: any) {
+      setAiError(err.message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
- if (!response.ok) {
- throw new Error(data.error || 'Failed to generate proposal');
- }
-
- if (data.proposalTitle) setProposalTitle(data.proposalTitle);
- if (data.proposalHTML) setProposalHTML(data.proposalHTML);
- if (data.items && data.items.length > 0) setItems(data.items);
- 
- setIsAiModalOpen(false);
- setAiPrompt('');
- } catch (err: any) {
- setAiError(err.message);
- } finally {
- setIsGenerating(false);
- }
- };
+  const handleTopUpTokens = async () => {
+    try {
+      const result = await AiApi.topUpTokens(5);
+      setCompany(prev => prev ? { ...prev, aiTokens: result.aiTokens } : prev);
+    } catch (err) {
+      console.error('Failed to top up tokens', err);
+    }
+  };
 
   const handleSend = async () => {
     if (isSending) return;
@@ -254,9 +256,15 @@ export default function NewProjectProposal() {
  <p className="text-xs text-gray-500">Describe the project and let AI write the proposal.</p>
  </div>
  </div>
- <button onClick={() => setIsAiModalOpen(false)} className="text-gray-400 hover:text-gray-900 p-2">
- <X className="w-5 h-5" />
- </button>
+ <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-white border border-indigo-100 rounded-lg shadow-sm">
+                    <span className="text-sm font-bold text-indigo-600">{company?.aiTokens || 0}</span>
+                    <span className="text-xs font-semibold text-gray-500">Tokens</span>
+                  </div>
+                  <button onClick={() => setIsAiModalOpen(false)} className="text-gray-400 hover:text-gray-900 p-2">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
  </div>
  
  <div className="p-6">
@@ -276,32 +284,45 @@ export default function NewProjectProposal() {
  )}
  </div>
 
- <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
- <button 
- onClick={() => setIsAiModalOpen(false)}
- className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-200 transition-colors"
- disabled={isGenerating}
- >
- Cancel
- </button>
- <button 
- onClick={handleGenerateAI}
- disabled={isGenerating || !aiPrompt.trim()}
- className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors"
- >
- {isGenerating ? (
- <>
- <Loader2 className="w-4 h-4 animate-spin" />
- Generating...
- </>
- ) : (
- <>
- <Sparkles className="w-4 h-4" />
- Generate
- </>
- )}
- </button>
- </div>
+ <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center gap-3">
+                {company?.aiTokens <= 0 ? (
+                  <button 
+                    onClick={handleTopUpTokens}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Buy Tokens (Mock Top-Up)
+                  </button>
+                ) : (
+                  <div /> // Spacer
+                )}
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => setIsAiModalOpen(false)}
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-200 transition-colors"
+                    disabled={isGenerating}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleGenerateAI}
+                    disabled={isGenerating || !aiPrompt.trim() || company?.aiTokens <= 0}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Generate
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
  </div>
  </div>
  )}

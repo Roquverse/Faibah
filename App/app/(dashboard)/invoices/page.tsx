@@ -11,6 +11,7 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [invoiceToEdit, setInvoiceToEdit] = useState<any>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -203,6 +204,16 @@ export default function InvoicesPage() {
                         {openDropdownId === invoice.id && (
                           <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-10 py-1 overflow-hidden" onClick={e => e.stopPropagation()}>
                             <button 
+                              onClick={() => {
+                                setInvoiceToEdit(invoice);
+                                setIsNewInvoiceOpen(true);
+                                setOpenDropdownId(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium flex items-center gap-2 transition-colors"
+                            >
+                              <FileText className="w-4 h-4" /> Edit Invoice
+                            </button>
+                            <button 
                               onClick={() => handleDeleteInvoice(invoice.id)}
                               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium flex items-center gap-2 transition-colors"
                             >
@@ -228,9 +239,14 @@ export default function InvoicesPage() {
 
       <NewInvoiceModal 
         isOpen={isNewInvoiceOpen} 
-        onClose={() => setIsNewInvoiceOpen(false)} 
+        invoiceToEdit={invoiceToEdit}
+        onClose={() => {
+          setIsNewInvoiceOpen(false);
+          setInvoiceToEdit(null);
+        }} 
         onSuccess={() => {
           setIsNewInvoiceOpen(false);
+          setInvoiceToEdit(null);
           fetchInvoices();
         }} 
       />

@@ -5,7 +5,7 @@ import {
   Building2, CreditCard, Users, Bell, Loader2,
   User, Shield, Palette, LayoutGrid, Globe, ChevronRight, Save
 } from 'lucide-react';
-import { CompanyApi, UploadApi, UsersApi } from '@/lib/api';
+import { CompanyApi, UploadApi, UsersApi, AiApi } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from 'next-themes';
 
@@ -107,6 +107,20 @@ export default function SettingsPage() {
       setErrorMsg(error.message || 'Failed to update password');
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  const handleTopUpTokens = async () => {
+    try {
+      setIsSaving(true);
+      const result = await AiApi.topUpTokens(5);
+      setCompany((prev: any) => ({ ...prev, aiTokens: result.aiTokens }));
+      setSuccessMsg(`Successfully purchased 5 AI Tokens!`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (error: any) {
+      setErrorMsg(error.message || 'Failed to top up tokens');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -677,6 +691,32 @@ export default function SettingsPage() {
                     onChange={(e) => setCompany({ ...company, depositPercent: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all bg-white"
                   />
+                </div>
+              </div>
+
+              {/* AI Tokens Section */}
+              <div className="border border-gray-200 rounded-xl bg-white p-6 md:p-8 mt-6">
+                <h4 className="text-sm font-bold text-gray-900 mb-2">AI Generation Tokens</h4>
+                <p className="text-sm text-gray-500 mb-6 max-w-xl">
+                  Tokens are used to generate proposals with Gemini AI. Each generation costs 1 token.
+                </p>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-indigo-600 font-bold text-xl">
+                      {company?.aiTokens || 0}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">Available Tokens</div>
+                      <div className="text-xs text-gray-500 mt-0.5">Renews automatically? No</div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handleTopUpTokens}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  >
+                    Buy 5 Tokens (Mock)
+                  </button>
                 </div>
               </div>
             </div>

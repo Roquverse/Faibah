@@ -27,6 +27,7 @@ import { REDIS_CLIENT } from './redis/redis.constants';
 import { MailModule } from './mail/mail.module';
 import { PaymentsModule } from './payments/payments.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     PaymentsModule,
     AdminModule,
     SubscriptionsModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [
