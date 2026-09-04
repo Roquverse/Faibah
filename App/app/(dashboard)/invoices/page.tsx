@@ -139,7 +139,7 @@ export default function InvoicesPage() {
 
       {/* Invoices Table */}
       <div className="bg-white rounded-2xl border border-gray-200 flex-1 min-h-[500px] flex flex-col">
-        <div className="overflow-visible flex-1 pb-32">
+        <div className="overflow-x-auto flex-1 pb-32">
           <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
             <tr>
