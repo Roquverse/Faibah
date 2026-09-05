@@ -9,7 +9,7 @@ import {
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import dynamic from 'next/dynamic';
-const PaystackButton = dynamic(() => import('react-paystack').then((mod) => mod.PaystackButton), { ssr: false });
+const PaystackCheckout = dynamic(() => import('@/components/PaystackWrapper'), { ssr: false });
 
 type UserType = 'professional' | 'client' | null;
 type WorkType = 'freelancer' | 'agency' | 'contractor' | 'other' | null;
@@ -586,16 +586,13 @@ export default function OnboardingPage() {
           </button>
           
           {workType === 'agency' ? (
-            <PaystackButton 
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-gray-900 rounded-xl text-[15px] font-medium hover:bg-primary/90 disabled:opacity-50 transition-all disabled:cursor-not-allowed"
+            <PaystackCheckout 
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl text-[15px] font-medium hover:bg-primary/90 disabled:opacity-50 transition-all disabled:cursor-not-allowed"
               disabled={isLoading || !acceptedTerms}
               text="Pay ₦3,800 to Finish Setup"
-              reference={(new Date()).getTime().toString()}
               email={userEmail || 'user@example.com'}
               amount={3800 * 100}
-              publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''}
               onSuccess={(ref: any) => handleComplete()}
-              onClose={() => console.log('Payment closed')}
             />
           ) : (
             <button 

@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
-const PaystackButton = dynamic(() => import('react-paystack').then((mod) => mod.PaystackButton), { ssr: false });
+const PaystackCheckout = dynamic(() => import('@/components/PaystackWrapper'), { ssr: false });
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -379,8 +379,8 @@ export default function SettingsPage() {
                           </div>
                         </div>
                         <DialogFooter>
-                          <PaystackButton 
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium h-10 px-4 py-2 rounded-md transition-colors" 
+                          <PaystackCheckout 
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-10 px-4 py-2 rounded-md transition-colors" 
                             {...componentProps} 
                           />
                         </DialogFooter>
