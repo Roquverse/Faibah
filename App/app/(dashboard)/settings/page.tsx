@@ -9,7 +9,8 @@ import { CompanyApi, UsersApi, AiApi } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
-import { PaystackButton } from 'react-paystack';
+import dynamic from 'next/dynamic';
+const PaystackButton = dynamic(() => import('react-paystack').then((mod) => mod.PaystackButton), { ssr: false });
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";

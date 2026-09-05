@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { PaystackButton } from 'react-paystack';
+import dynamic from 'next/dynamic';
+const PaystackButton = dynamic(() => import('react-paystack').then((mod) => mod.PaystackButton), { ssr: false });
 
 type UserType = 'professional' | 'client' | null;
 type WorkType = 'freelancer' | 'agency' | 'contractor' | 'other' | null;
