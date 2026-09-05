@@ -379,8 +379,8 @@ model Appointment {
   startTime   String?  // e.g., "14:00"
   endTime     String?  // e.g., "15:00"
   type        AppointmentType @default(MEETING)
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id])
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
 }
 
