@@ -168,6 +168,27 @@ export class ProjectsService {
     return project;
   }
 
+  async getProposal(proposalId: string) {
+    const proposal = await this.prisma.proposal.findUnique({
+      where: { id: proposalId },
+      include: {
+        project: {
+          include: {
+            client: {
+              include: {
+                company: true
+              }
+            }
+          }
+        }
+      }
+    });
+    if (!proposal) {
+      throw new Error('Proposal not found');
+    }
+    return proposal;
+  }
+
   async createProposal(projectId: string, content: string) {
     const proposal = await this.prisma.proposal.create({
       data: {

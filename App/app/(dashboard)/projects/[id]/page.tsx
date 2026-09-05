@@ -30,7 +30,7 @@ import ShareDropdown from '@/components/shared/ShareDropdown';
 import { ProjectsApi } from '@/lib/api';
 import { toast } from 'sonner';
 
-type Tab = 'overview' | 'proposal' | 'invoice' | 'channel' | 'files' | 'tasks' | 'schedule';
+type Tab = 'overview' | 'invoice' | 'channel' | 'files' | 'tasks' | 'schedule';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -41,29 +41,7 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [projectStatus, setProjectStatus] = useState('ONGOING');
 
-  // Proposal state
-  interface ProposalItem {
-    id: string;
-    description: string;
-    amount: number;
-  }
-  
-  interface ProposalData {
-    title: string;
-    description: string;
-    items: ProposalItem[];
-  }
-  
-  const defaultProposalData: ProposalData = {
-    title: 'Untitled Proposal',
-    description: '[Proposal Title]\n[Section Sub-heading]\n[Start typing your paragraph here...]',
-    items: [
-      { id: '1', description: 'Concept Development & Scouting', amount: 500000 }
-    ]
-  };
 
-  const [proposalData, setProposalData] = useState<ProposalData>(defaultProposalData);
-  const [isSavingProposal, setIsSavingProposal] = useState(false);
   
   useEffect(() => {
     const fetchProject = async () => {
@@ -71,19 +49,7 @@ export default function ProjectDetailPage() {
         const data = await ProjectsApi.getOne(params.id as string);
         setProject(data);
         setProjectStatus(data.status || 'ONGOING');
-        if (data.proposals && data.proposals.length > 0) {
-          try {
-            const parsed = JSON.parse(data.proposals[0].content);
-            if (parsed && typeof parsed === 'object') {
-              setProposalData(parsed);
-            }
-          } catch(e) {
-            setProposalData({
-              ...defaultProposalData,
-              description: data.proposals[0].content || ''
-            });
-          }
-        }
+
       } catch (e) {
         console.error(e);
         toast.error('Failed to load project details');
@@ -96,34 +62,6 @@ export default function ProjectDetailPage() {
     }
   }, [params.id]);
 
-  const handleSaveProposal = async () => {
-    if (!project?.proposals?.[0]?.id) {
-      // If there is no existing proposal, create one
-      try {
-        setIsSavingProposal(true);
-        const contentString = JSON.stringify(proposalData);
-        const newProp = await ProjectsApi.createProposal(project.id, contentString);
-        setProject({ ...project, proposals: [newProp, ...(project.proposals || [])] });
-        toast.success('Proposal created successfully');
-      } catch (e) {
-        toast.error('Failed to create proposal');
-      } finally {
-        setIsSavingProposal(false);
-      }
-      return;
-    }
-    
-    try {
-      setIsSavingProposal(true);
-      const contentString = JSON.stringify(proposalData);
-      await ProjectsApi.updateProposal(project.id, project.proposals[0].id, contentString);
-      toast.success('Proposal updated successfully');
-    } catch (e) {
-      toast.error('Failed to save proposal');
-    } finally {
-      setIsSavingProposal(false);
-    }
-  };
 
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = e.target.value;
@@ -137,30 +75,7 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const updateProposalData = (updates: Partial<ProposalData>) => {
-    setProposalData(prev => ({ ...prev, ...updates }));
-  };
 
-  const addProposalItem = () => {
-    setProposalData(prev => ({
-      ...prev,
-      items: [...prev.items, { id: Math.random().toString(), description: '', amount: 0 }]
-    }));
-  };
-
-  const updateProposalItem = (id: string, field: keyof ProposalItem, value: any) => {
-    setProposalData(prev => ({
-      ...prev,
-      items: prev.items.map(item => item.id === id ? { ...item, [field]: value } : item)
-    }));
-  };
-
-  const removeProposalItem = (id: string) => {
-    setProposalData(prev => ({
-      ...prev,
-      items: prev.items.filter(item => item.id !== id)
-    }));
-  };
 
   if (loading) {
     return <div className="flex items-center justify-center h-full"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>;
@@ -213,116 +128,7 @@ export default function ProjectDetailPage() {
     </div>
   );
 
-  const renderProposal = () => (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex justify-end mb-4">
-        <button 
-          onClick={handleSaveProposal}
-          disabled={isSavingProposal}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white border border-transparent text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors shadow-sm disabled:opacity-70"
-        >
-          {isSavingProposal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {isSavingProposal ? 'Saving...' : 'Save'}
-        </button>
-      </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-12 max-w-4xl mx-auto min-h-[800px]">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-16">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{project.company?.name || 'Avatec Interactives'}</h2>
-            <div className="text-sm text-gray-500 space-y-1">
-              <div>{project.company?.email || 'helpdesk@avatecinteractives.dev'}</div>
-              <div>{project.company?.phone || '08035212521'}</div>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-xs font-semibold tracking-wider text-gray-400 uppercase mb-2">Proposal / Estimate</div>
-            <div className="text-3xl font-bold text-gray-900 mb-4">#{project.projectRef || 'PRJ-092'}</div>
-            <div className="text-sm text-gray-900 font-semibold">{project.client?.name || 'Arakunrin Cole'}</div>
-            <div className="text-xs text-gray-500 mt-1">Client Recipient</div>
-          </div>
-        </div>
-
-        <hr className="border-gray-100 mb-16" />
-
-        {/* Main Content Editor */}
-        <div className="mb-16">
-          <input
-            type="text"
-            value={proposalData.title}
-            onChange={(e) => updateProposalData({ title: e.target.value })}
-            className="w-full text-4xl font-bold text-gray-900 mb-8 border-none p-0 focus:ring-0 placeholder-gray-300 bg-transparent"
-            placeholder="Proposal Title"
-          />
-          <textarea
-            value={proposalData.description}
-            onChange={(e) => updateProposalData({ description: e.target.value })}
-            className="w-full min-h-[200px] text-gray-700 text-base leading-relaxed border-none p-0 focus:ring-0 resize-none bg-transparent"
-            placeholder="Start typing your paragraph here..."
-          />
-        </div>
-
-        {/* Investment Section */}
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-8">Investment</h3>
-          
-          <table className="w-full text-sm text-left mb-4">
-            <thead className="border-b-2 border-gray-900">
-              <tr>
-                <th className="py-3 font-semibold text-gray-500 uppercase tracking-wider text-xs">Description</th>
-                <th className="py-3 font-semibold text-gray-500 uppercase tracking-wider text-xs text-right w-48">Amount</th>
-                <th className="py-3 w-10"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {proposalData.items.map((item) => (
-                <tr key={item.id} className="group">
-                  <td className="py-4">
-                    <input
-                      type="text"
-                      value={item.description}
-                      onChange={(e) => updateProposalItem(item.id, 'description', e.target.value)}
-                      className="w-full border-none p-0 focus:ring-0 bg-transparent font-medium text-gray-900"
-                      placeholder="Item description"
-                    />
-                  </td>
-                  <td className="py-4 text-right">
-                    <div className="flex items-center justify-end font-bold text-gray-900">
-                      <span>₦</span>
-                      <input
-                        type="number"
-                        value={item.amount || ''}
-                        onChange={(e) => updateProposalItem(item.id, 'amount', parseFloat(e.target.value) || 0)}
-                        className="w-24 text-right border-none p-0 focus:ring-0 bg-transparent font-bold ml-1"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </td>
-                  <td className="py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      onClick={() => removeProposalItem(item.id)}
-                      className="text-gray-400 hover:text-red-600 p-1"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          
-          <button 
-            onClick={addProposalItem}
-            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Item
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
   const renderInvoice = () => (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -372,7 +178,6 @@ export default function ProjectDetailPage() {
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { id: 'proposal', label: 'Proposal', icon: <FileText className="w-4 h-4" /> },
     { id: 'invoice', label: 'Invoice', icon: <Receipt className="w-4 h-4" /> },
     { id: 'channel', label: 'Channel', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'files', label: 'Files', icon: <Download className="w-4 h-4" /> },
@@ -423,7 +228,6 @@ export default function ProjectDetailPage() {
       {/* Tab Content */}
       <div className="min-h-[400px]">
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'proposal' && renderProposal()}
         {activeTab === 'invoice' && renderInvoice()}
         {activeTab === 'channel' && renderChannel()}
         {activeTab === 'files' && renderFiles()}

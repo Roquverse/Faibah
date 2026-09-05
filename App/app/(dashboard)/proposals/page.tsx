@@ -119,7 +119,7 @@ export default function ProposalsPage() {
       render: p => (
         <div className="flex items-center justify-end gap-1.5">
           <Link
-            href={`/projects/${p.projectId}?tab=proposal`}
+            href={`/proposals/${p.id}`}
             className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
           >
             <Eye size={12} /> View Proposal

@@ -28,6 +28,11 @@ export class ProjectsController {
     return this.projectsService.updateProjectStatus(id, status);
   }
 
+  @Get('proposals/:proposalId')
+  async getProposal(@Param('proposalId') proposalId: string) {
+    return this.projectsService.getProposal(proposalId);
+  }
+
   @Post(':id/proposals')
   async createProposal(@Param('id') id: string, @Body('content') content: string) {
     return this.projectsService.createProposal(id, content);
