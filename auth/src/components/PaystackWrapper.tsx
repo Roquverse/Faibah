@@ -16,10 +16,7 @@ export default function PaystackWrapper({ email, amount, onSuccess, text, classN
       alert('Paystack Public Key is missing or invalid. Please check your .env file.');
       return;
     }
-    initializePayment({
-      onSuccess,
-      onClose: () => console.log('Payment window closed.')
-    });
+    initializePayment(onSuccess, () => console.log('Payment window closed.'));
   };
 
   return (
