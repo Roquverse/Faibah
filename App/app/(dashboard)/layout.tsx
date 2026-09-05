@@ -5,6 +5,7 @@ import InactivityGuard from '@/components/auth/InactivityGuard';
 import { ProjectDrawerProvider } from '@/context/ProjectDrawerContext';
 import ProjectQuickPanel from '@/components/dashboard/ProjectQuickPanel';
 import { TierProvider } from '@/context/TierContext';
+import { Toaster } from 'sonner';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -25,6 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <ProjectQuickPanel />
           </div>
+          <Toaster position="top-center" richColors />
         </ProjectDrawerProvider>
       </TierProvider>
     </InactivityGuard>
