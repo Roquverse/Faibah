@@ -18,6 +18,12 @@ export default function PaystackWrapper({ email, amount, onSuccess, text, classN
       toast.error('Paystack Public Key is missing or invalid. Please check your .env file.');
       return;
     }
+    
+    // Hack to fix Radix UI Dialog blocking pointer events on the body when open
+    setTimeout(() => {
+      document.body.style.pointerEvents = 'auto';
+    }, 100);
+
     initializePayment({ onSuccess, onClose: () => toast.info('Payment window closed.') });
   };
 
