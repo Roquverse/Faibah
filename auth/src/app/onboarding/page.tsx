@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { PaystackButton } from 'react-paystack';
 
 type UserType = 'professional' | 'client' | null;
 type WorkType = 'freelancer' | 'agency' | 'contractor' | 'other' | null;
@@ -17,11 +18,24 @@ type CommPref = 'whatsapp' | 'email' | 'both';
 
 export default function OnboardingPage() {
   // Navigation State
-  const [step, setStep] = useState(0); // 0 = Toggle, 1 = Basics, 2 = Work Type, etc.
+  const [step, setStep] = useState(1); // Start at 1 (Basics)
   const [isLoading, setIsLoading] = useState(false);
 
   // Global State
-  const [userType, setUserType] = useState<UserType>(null);
+  const [userType, setUserType] = useState<UserType>('professional');
+  const [userEmail, setUserEmail] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // Professional State
   const [businessName, setBusinessName] = useState('');
@@ -61,12 +75,11 @@ export default function OnboardingPage() {
   const [clientPhoneOnly, setClientPhoneOnly] = useState('');
 
   const calculateTotalSteps = () => {
-    if (userType === 'client') return 2; // Step 0, Step 1 (Client)
-    return 6; // Pro: 0, 1, 2, 3, 4, 5, 6
+    return 6; // Pro: 1, 2, 3, 4, 5, 6
   };
 
   const totalSteps = calculateTotalSteps();
-  const progressPercent = step === 0 ? 0 : Math.min((step / totalSteps) * 100, 100);
+  const progressPercent = Math.min((step / totalSteps) * 100, 100);
 
   const handleNext = () => setStep(s => s + 1);
   const handleBack = () => setStep(s => s - 1);
@@ -98,7 +111,8 @@ export default function OnboardingPage() {
         clientPhone,
         projectTitle,
         invoiceRef,
-        clientPhoneOnly
+        clientPhoneOnly,
+        planTier: workType === 'agency' ? 'agency' : (workType === 'contractor' ? 'contractor' : 'solo')
       };
 
       const supabase = createClient();
@@ -135,122 +149,9 @@ export default function OnboardingPage() {
       console.error(error);
     } finally {
       setIsLoading(false);
-      if (userType === 'client') {
-        window.location.href = process.env.NEXT_PUBLIC_CLIENT_APP_URL || 'http://localhost:3002';
-      } else {
-        window.location.href = process.env.NEXT_PUBLIC_MAIN_APP_URL || 'http://localhost:3000';
-      }
+      window.location.href = process.env.NEXT_PUBLIC_MAIN_APP_URL || 'http://localhost:3000';
     }
   };
-
-  // -------------------------------------------------------------
-  // STEP 0: THE TOGGLE
-  // -------------------------------------------------------------
-  const renderStep0 = () => (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col items-center text-center mb-8">
-        <div className="rounded-full flex items-center justify-center mb-6">
-          <img src="/logo.png" alt="" width={200} />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">
-          How will you be using Faiba?
-        </h1>
-        <p className="text-[15px] text-gray-500">
-          This helps us set up your workspace perfectly.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <button
-          onClick={() => {
-            setUserType('professional');
-            handleNext();
-          }}
-          className="flex flex-col items-center p-8 rounded-2xl border border-gray-200 hover:border-primary hover:bg-primary/10 transition-all group"
-        >
-          <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <Building2 className="w-8 h-8 text-primary" />
-          </div>
-          <div className="text-lg font-bold text-gray-900 mb-2">I'm a Professional</div>
-          <div className="text-sm text-gray-500 text-center">I want to send quotes and invoices to clients</div>
-        </button>
-
-        <button
-          onClick={() => {
-            setUserType('client');
-            handleNext();
-          }}
-          className="flex flex-col items-center p-8 rounded-2xl border border-gray-200 hover:border-purple-500 hover:bg-purple-50/30 transition-all group"
-        >
-          <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <UserCircle className="w-8 h-8 text-purple-600" />
-          </div>
-          <div className="text-lg font-bold text-gray-900 mb-2">I'm a Client</div>
-          <div className="text-sm text-gray-500 text-center">I received a quote or invoice from someone on Faiba</div>
-        </button>
-      </div>
-    </div>
-  );
-
-  // -------------------------------------------------------------
-  // CLIENT FLOW (Scenario B)
-  // -------------------------------------------------------------
-  const renderClientStep = () => (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col items-center text-center mb-10">
-        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-6">
-          <FileText className="w-6 h-6 text-purple-600" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">
-          Link an invoice
-        </h1>
-        <p className="text-[15px] text-gray-500">
-          Track all your invoices from Faiba businesses in one place.
-        </p>
-      </div>
-
-      <div className="space-y-5">
-        <div>
-          <label className="block text-[13px] font-medium text-gray-700 mb-2">
-            Invoice or Quote Reference Number (Optional)
-          </label>
-          <input
-            type="text"
-            value={invoiceRef}
-            onChange={(e) => setInvoiceRef(e.target.value)}
-            placeholder="e.g. INV-2023-001"
-            className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-[13px] font-medium text-gray-700 mb-2">
-            WhatsApp Number (Optional)
-          </label>
-          <input
-            type="tel"
-            value={clientPhoneOnly}
-            onChange={(e) => setClientPhoneOnly(e.target.value)}
-            placeholder="+234 800 000 0000"
-            className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
-          />
-          <p className="text-xs text-gray-400 mt-2">So businesses can reach you faster.</p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between pt-6">
-        <button onClick={handleBack} className="text-[15px] text-gray-500 hover:text-gray-900 transition-colors">
-          Back
-        </button>
-        <button
-          onClick={handleComplete}
-          disabled={isLoading}
-          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-gray-900 rounded-xl text-[15px] font-medium hover:bg-primary/90 disabled:opacity-50 transition-all"
-        >
-          {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finish Setup <CheckCircle2 className="w-4 h-4" /></>}
-        </button>
-      </div>
-    </div>
-  );
 
   // -------------------------------------------------------------
   // PROFESSIONAL FLOW - Step 1: Basics
@@ -667,13 +568,44 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-6">
-        <button onClick={handleComplete} className="text-[14px] text-gray-400 hover:text-gray-600 transition-colors">
-          I'll do this later
-        </button>
-        <button onClick={handleComplete} disabled={isLoading} className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-gray-900 rounded-xl text-[15px] font-medium hover:bg-primary/90 disabled:opacity-50 transition-all">
-          {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finish Setup <CheckCircle2 className="w-4 h-4" /></>}
-        </button>
+      <div className="pt-6 space-y-4">
+        <label className="flex items-start gap-3 cursor-pointer group bg-gray-50 p-3 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors">
+          <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors ${acceptedTerms ? 'bg-primary border-primary' : 'bg-white border-gray-300'}`}>
+            {acceptedTerms && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+          </div>
+          <input type="checkbox" className="hidden" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
+          <div className="text-[13px] text-gray-700">
+            I agree to the <Link href="/terms" className="text-primary font-medium hover:underline">Terms of Use</Link> and <Link href="/privacy" className="text-primary font-medium hover:underline">Privacy Policy</Link>.
+          </div>
+        </label>
+
+        <div className="flex items-center justify-between">
+          <button onClick={handleComplete} className="text-[14px] text-gray-400 hover:text-gray-600 transition-colors">
+            I'll do this later
+          </button>
+          
+          {workType === 'agency' ? (
+            <PaystackButton 
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-gray-900 rounded-xl text-[15px] font-medium hover:bg-primary/90 disabled:opacity-50 transition-all disabled:cursor-not-allowed"
+              disabled={isLoading || !acceptedTerms}
+              text="Pay ₦3,800 to Finish Setup"
+              reference={(new Date()).getTime().toString()}
+              email={userEmail || 'user@example.com'}
+              amount={3800 * 100}
+              publicKey={process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ''}
+              onSuccess={(ref: any) => handleComplete()}
+              onClose={() => console.log('Payment closed')}
+            />
+          ) : (
+            <button 
+              onClick={handleComplete} 
+              disabled={isLoading || !acceptedTerms} 
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-gray-900 rounded-xl text-[15px] font-medium hover:bg-primary/90 disabled:opacity-50 transition-all"
+            >
+              {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finish Setup <CheckCircle2 className="w-4 h-4" /></>}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -682,27 +614,19 @@ export default function OnboardingPage() {
   // RENDER LOGIC
   // -------------------------------------------------------------
   const renderCurrentStep = () => {
-    if (step === 0) return renderStep0();
-
-    if (userType === 'client') {
-      if (step === 1) return renderClientStep();
-    }
-
-    if (userType === 'professional') {
-      if (step === 1) return renderProStep1();
-      if (step === 2) return renderProStep2();
-      if (step === 3) {
-        if (workType === 'other') {
-          // Skip billing specifics for 'other'
-          setTimeout(() => setStep(4), 0);
-          return null;
-        }
-        return renderProStep3();
+    if (step === 1) return renderProStep1();
+    if (step === 2) return renderProStep2();
+    if (step === 3) {
+      if (workType === 'other') {
+        // Skip billing specifics for 'other'
+        setTimeout(() => setStep(4), 0);
+        return null;
       }
-      if (step === 4) return renderProStep4();
-      if (step === 5) return renderProStep5();
-      if (step === 6) return renderProStep6();
+      return renderProStep3();
     }
+    if (step === 4) return renderProStep4();
+    if (step === 5) return renderProStep5();
+    if (step === 6) return renderProStep6();
 
     return null;
   };

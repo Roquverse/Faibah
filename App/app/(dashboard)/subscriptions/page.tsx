@@ -3,7 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { SubscriptionsApi } from '@/lib/api';
 import { format } from 'date-fns';
-import { Repeat } from 'lucide-react';
+import { Repeat, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 export default function SubscriptionsPage() {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
@@ -25,22 +28,22 @@ export default function SubscriptionsPage() {
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-900 p-8">
+    <div className="flex-1 overflow-auto bg-gray-50/50 dark:bg-slate-900/50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Subscriptions</h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Manage recurring billing and subscriptions</p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Subscriptions</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-2">Manage recurring billing and client subscriptions.</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+        <Card className="border-0 shadow-sm bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl">
           {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-slate-400 font-semibold text-sm">Loading subscriptions...</div>
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            </div>
           ) : subscriptions.length === 0 ? (
             <div className="p-16 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 bg-blue-50 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
-                <Repeat className="w-8 h-8 text-blue-500 dark:text-blue-400" />
+              <div className="w-16 h-16 bg-indigo-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                <Repeat className="w-8 h-8 text-indigo-500 dark:text-indigo-400" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Subscriptions Yet</h3>
               <p className="text-sm text-gray-500 dark:text-slate-400 max-w-sm">
@@ -48,55 +51,49 @@ export default function SubscriptionsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400">
-                  <tr>
-                    <th className="px-6 py-4 font-bold">Subscription Name</th>
-                    <th className="px-6 py-4 font-bold">Client</th>
-                    <th className="px-6 py-4 font-bold">Frequency</th>
-                    <th className="px-6 py-4 font-bold">Amount</th>
-                    <th className="px-6 py-4 font-bold">Next Billing</th>
-                    <th className="px-6 py-4 font-bold">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                  {subscriptions.map(sub => (
-                    <tr key={sub.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="font-bold text-gray-900 dark:text-white">{sub.name}</div>
-                        {sub.invoiceRef && <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Ref: {sub.invoiceRef}</div>}
-                      </td>
-                      <td className="px-6 py-4 text-gray-700 dark:text-slate-300">
-                        {sub.client?.companyName || sub.client?.name}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                          {sub.frequency}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
-                        {sub.amount?.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-gray-700 dark:text-slate-300 font-medium">
-                        {format(new Date(sub.nextBillingDate), 'MMM d, yyyy')}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          sub.status === 'ACTIVE' 
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
-                            : 'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300'
-                        }`}>
-                          {sub.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b-gray-200 dark:border-b-gray-700/50 hover:bg-transparent">
+                  <TableHead className="font-semibold text-gray-900 dark:text-gray-300">Subscription Name</TableHead>
+                  <TableHead className="font-semibold text-gray-900 dark:text-gray-300">Client</TableHead>
+                  <TableHead className="font-semibold text-gray-900 dark:text-gray-300">Frequency</TableHead>
+                  <TableHead className="font-semibold text-gray-900 dark:text-gray-300">Amount</TableHead>
+                  <TableHead className="font-semibold text-gray-900 dark:text-gray-300">Next Billing</TableHead>
+                  <TableHead className="font-semibold text-gray-900 dark:text-gray-300">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {subscriptions.map((sub) => (
+                  <TableRow key={sub.id} className="border-b-gray-100 dark:border-b-gray-700/30 hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                    <TableCell>
+                      <div className="font-medium text-gray-900 dark:text-white">{sub.name}</div>
+                      {sub.invoiceRef && <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Ref: {sub.invoiceRef}</div>}
+                    </TableCell>
+                    <TableCell className="text-gray-700 dark:text-slate-300">
+                      {sub.client?.companyName || sub.client?.name}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300">
+                        {sub.frequency}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-bold text-gray-900 dark:text-white">
+                      {sub.amount?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="text-gray-700 dark:text-slate-300 font-medium">
+                      {format(new Date(sub.nextBillingDate), 'MMM d, yyyy')}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={sub.status === 'ACTIVE' ? 'default' : 'outline'} className={sub.status === 'ACTIVE' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}>
+                        {sub.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );
