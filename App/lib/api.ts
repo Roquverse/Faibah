@@ -79,6 +79,8 @@ export const CompanyApi = {
   getProfile: () => fetchApi('/company/profile'),
   updateProfile: (data: any) => fetchApi('/company/profile', { method: 'PATCH', body: JSON.stringify(data) }),
   getOverview: () => fetchApi('/company/overview'),
+  getTeamMembers: () => fetchApi('/company/team'),
+  inviteTeamMember: (email: string, role?: string) => fetchApi('/company/invite', { method: 'POST', body: JSON.stringify({ email, role }) }),
 };
 
 export const UsersApi = {
@@ -104,6 +106,7 @@ export const ProjectsApi = {
   updateStatus: (id: string, status: string) => fetchApi(`/projects/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   updateName: (id: string, name: string) => fetchApi(`/projects/${id}/name`, { method: 'PATCH', body: JSON.stringify({ name }) }),
   createProposal: (projectId: string, content: string) => fetchApi(`/projects/${projectId}/proposals`, { method: 'POST', body: JSON.stringify({ content }) }),
+  updateProposal: (projectId: string, proposalId: string, content: string) => fetchApi(`/projects/${projectId}/proposals/${proposalId}`, { method: 'PATCH', body: JSON.stringify({ content }) }),
   getMembers: (projectId: string) => fetchApi(`/projects/${projectId}/members`),
   inviteMember: (projectId: string, email: string, role?: string) => fetchApi(`/projects/${projectId}/members/invite`, { method: 'POST', body: JSON.stringify({ email, role }) }),
   getPendingInvitations: () => fetchApi('/projects/invitations/pending'),

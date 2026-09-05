@@ -33,6 +33,11 @@ export class ProjectsController {
     return this.projectsService.createProposal(id, content);
   }
 
+  @Patch(':id/proposals/:proposalId')
+  async updateProposal(@Param('id') id: string, @Param('proposalId') proposalId: string, @Body('content') content: string) {
+    return this.projectsService.updateProposal(id, proposalId, content);
+  }
+
   @Get('invitations/pending')
   async getPendingInvitations(@Req() req: Request) {
     const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;

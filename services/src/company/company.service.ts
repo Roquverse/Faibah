@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { createClient } from '@supabase/supabase-js';
 
 @Injectable()
 export class CompanyService {
@@ -118,5 +119,56 @@ export class CompanyService {
       subscriptions,
       reminders
     };
+  }
+
+  async getTeamMembers(userId?: string) {
+    if (!userId) return [];
+    const company = await this.getProfile(userId);
+    if (!company) return [];
+
+    return this.prisma.user.findMany({
+      where: { companyId: company.id },
+      select: { id: true, email: true, name: true, userType: true, createdAt: true },
+    });
+  }
+
+  async inviteTeamMember(userId: string | undefined, email: string, role?: string) {
+    if (!userId) throw new Error('User not authenticated');
+    const company = await this.getProfile(userId);
+    if (!company) throw new Error('Company not found for this user');
+
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Supabase admin credentials are not configured. Cannot send email invite.');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email);
+    if (error) {
+      throw new Error(`Failed to invite user: ${error.message}`);
+    }
+
+    const newUserId = data.user.id;
+    const existing = await this.prisma.user.findUnique({ where: { id: newUserId } });
+    
+    if (existing) {
+      await this.prisma.user.update({
+        where: { id: newUserId },
+        data: { companyId: company.id, userType: 'TEAM' }
+      });
+    } else {
+      await this.prisma.user.create({
+        data: {
+          id: newUserId,
+          email,
+          companyId: company.id,
+          userType: 'TEAM',
+        }
+      });
+    }
+
+    return { success: true, message: 'Invitation sent', userId: newUserId };
   }
 }

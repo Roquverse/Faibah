@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   MoreHorizontal, 
@@ -16,31 +16,101 @@ import {
   Receipt,
   MessageSquare,
   CheckSquare,
-  Calendar
+  Calendar,
+  Save,
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import ProjectChannel from '@/components/dashboard/ProjectChannel';
 import KanbanBoard from '@/components/dashboard/KanbanBoard';
 import ProjectSchedule from '@/components/dashboard/ProjectSchedule';
 import ShareDropdown from '@/components/shared/ShareDropdown';
+import { ProjectsApi } from '@/lib/api';
+import { toast } from 'sonner';
 
-type Tab = 'overview' | 'proposal' | 'quotation' | 'invoice' | 'channel' | 'files' | 'tasks' | 'schedule';
+type Tab = 'overview' | 'proposal' | 'invoice' | 'channel' | 'files' | 'tasks' | 'schedule';
 
 export default function ProjectDetailPage() {
   const params = useParams();
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<Tab>((searchParams?.get('tab') as Tab) || 'overview');
+  
+  const [project, setProject] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [projectStatus, setProjectStatus] = useState('ONGOING');
 
-  // Mock data for UI
-  const project = {
-    id: params.id,
-    title: 'Website Redesign',
-    client: { name: 'Acme Corp', avatar: 'A', email: 'hello@acmecorp.com' },
-    createdAt: '2023-10-24',
-    dueDate: '2023-11-15',
-    value: '₦450,000'
+  // Proposal state
+  const [proposalContent, setProposalContent] = useState('');
+  const [isSavingProposal, setIsSavingProposal] = useState(false);
+  
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const data = await ProjectsApi.getOne(params.id as string);
+        setProject(data);
+        setProjectStatus(data.status || 'ONGOING');
+        if (data.proposals && data.proposals.length > 0) {
+          setProposalContent(data.proposals[0].content || '');
+        }
+      } catch (e) {
+        console.error(e);
+        toast.error('Failed to load project details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (params.id) {
+      fetchProject();
+    }
+  }, [params.id]);
+
+  const handleSaveProposal = async () => {
+    if (!project?.proposals?.[0]?.id) {
+      // If there is no existing proposal, create one
+      try {
+        setIsSavingProposal(true);
+        const newProp = await ProjectsApi.createProposal(project.id, proposalContent);
+        setProject({ ...project, proposals: [newProp, ...(project.proposals || [])] });
+        toast.success('Proposal created successfully');
+      } catch (e) {
+        toast.error('Failed to create proposal');
+      } finally {
+        setIsSavingProposal(false);
+      }
+      return;
+    }
+    
+    try {
+      setIsSavingProposal(true);
+      await ProjectsApi.updateProposal(project.id, project.proposals[0].id, proposalContent);
+      toast.success('Proposal updated successfully');
+    } catch (e) {
+      toast.error('Failed to save proposal');
+    } finally {
+      setIsSavingProposal(false);
+    }
   };
+
+  const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value;
+    setProjectStatus(newStatus);
+    try {
+      await ProjectsApi.updateStatus(project.id, newStatus);
+      toast.success('Project status updated');
+    } catch (err) {
+      toast.error('Failed to update project status');
+      setProjectStatus(project.status); // revert
+    }
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-full"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>;
+  }
+
+  if (!project) {
+    return <div className="p-8">Project not found</div>;
+  }
 
   const renderOverview = () => (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -50,17 +120,17 @@ export default function ProjectDetailPage() {
           <div>
             <div className="text-sm text-gray-500 mb-1">Client</div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-[#6D9773]/20 text-[#0C3B2E] flex items-center justify-center text-xs font-bold">
-                {project.client.avatar}
+              <div className="w-6 h-6 rounded-full bg-[#6D9773]/20 text-[#0C3B2E] flex items-center justify-center text-xs font-bold uppercase">
+                {project.client?.name?.[0] || 'C'}
               </div>
-              <span className="font-medium text-gray-900">{project.client.name}</span>
+              <span className="font-medium text-gray-900">{project.client?.name || 'Unknown Client'}</span>
             </div>
           </div>
           <div>
             <div className="text-sm text-gray-500 mb-1">Status</div>
             <select 
               value={projectStatus} 
-              onChange={(e) => setProjectStatus(e.target.value)}
+              onChange={handleStatusChange}
               className="text-sm font-medium bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#6D9773]"
             >
               <option value="DRAFT">Draft</option>
@@ -72,11 +142,13 @@ export default function ProjectDetailPage() {
           </div>
           <div>
             <div className="text-sm text-gray-500 mb-1">Created</div>
-            <div className="font-medium text-gray-900">{project.createdAt}</div>
+            <div className="font-medium text-gray-900">
+              {new Date(project.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </div>
           </div>
           <div>
-            <div className="text-sm text-gray-500 mb-1">Project Value</div>
-            <div className="font-medium text-gray-900">{project.value}</div>
+            <div className="text-sm text-gray-500 mb-1">Project Currency</div>
+            <div className="font-medium text-gray-900">{project.currency || 'NGN'}</div>
           </div>
         </div>
       </div>
@@ -88,93 +160,24 @@ export default function ProjectDetailPage() {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
           <div className="font-medium text-gray-900">Project Proposal</div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#FFBA00] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#E6A700] transition-colors shadow-sm">
-            <Sparkles className="w-4 h-4" />
-            Generate Quotation
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleSaveProposal}
+              disabled={isSavingProposal}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white border border-transparent text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors shadow-sm disabled:opacity-70"
+            >
+              {isSavingProposal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSavingProposal ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </div>
         <div className="p-6">
           <textarea 
-            className="w-full h-64 p-4 border border-gray-200 rounded-lg focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773] resize-none"
+            className="w-full h-96 p-4 border border-gray-200 rounded-lg focus:outline-none focus:border-[#6D9773] focus:ring-1 focus:ring-[#6D9773] resize-y"
             placeholder="Type your raw proposal or notes here..."
-            defaultValue={`We will redesign the Acme Corp website over 4 weeks.
-Phase 1: Discovery & Design (₦150,000)
-Phase 2: Development & Testing (₦200,000)
-Phase 3: Launch & SEO setup (₦100,000)
-
-Total: ₦450,000`}
+            value={proposalContent}
+            onChange={(e) => setProposalContent(e.target.value)}
           />
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderQuotation = () => (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
-          <div className="flex items-center gap-3">
-            <div className="font-medium text-gray-900">Quotation #Q-001</div>
-            <span className="px-2.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">
-              Draft
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-              <Download className="w-4 h-4" />
-              PDF
-            </button>
-            <ShareDropdown
-              itemType="Proposal"
-              itemRef="Q-001"
-              publicUrl={typeof window !== 'undefined' ? `${window.location.origin}/portal/projects/${project.id}` : ''}
-              client={project.client}
-            />
-          </div>
-        </div>
-        <div className="p-0">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
-              <tr>
-                <th className="px-6 py-3 font-medium">Description</th>
-                <th className="px-6 py-3 font-medium text-right">Qty</th>
-                <th className="px-6 py-3 font-medium text-right">Price</th>
-                <th className="px-6 py-3 font-medium text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              <tr>
-                <td className="px-6 py-4">Phase 1: Discovery & Design</td>
-                <td className="px-6 py-4 text-right">1</td>
-                <td className="px-6 py-4 text-right">₦150,000</td>
-                <td className="px-6 py-4 text-right">₦150,000</td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4">Phase 2: Development</td>
-                <td className="px-6 py-4 text-right">1</td>
-                <td className="px-6 py-4 text-right">₦200,000</td>
-                <td className="px-6 py-4 text-right">₦200,000</td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4">Phase 3: Launch</td>
-                <td className="px-6 py-4 text-right">1</td>
-                <td className="px-6 py-4 text-right">₦100,000</td>
-                <td className="px-6 py-4 text-right">₦100,000</td>
-              </tr>
-            </tbody>
-            <tfoot className="bg-gray-50 border-t border-gray-200">
-              <tr>
-                <td colSpan={3} className="px-6 py-4 text-right font-medium text-gray-500">Total</td>
-                <td className="px-6 py-4 text-right font-bold text-gray-900">₦450,000</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-        <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end">
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#FFBA00] text-gray-900 border border-transparent text-sm font-semibold rounded-lg hover:bg-[#E6A700] transition-colors shadow-sm">
-            <CheckCircle2 className="w-4 h-4" />
-            Convert to Invoice
-          </button>
         </div>
       </div>
     </div>
@@ -229,7 +232,6 @@ Total: ₦450,000`}
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'proposal', label: 'Proposal', icon: <FileText className="w-4 h-4" /> },
-    { id: 'quotation', label: 'Quotation', icon: <FileBox className="w-4 h-4" /> },
     { id: 'invoice', label: 'Invoice', icon: <Receipt className="w-4 h-4" /> },
     { id: 'channel', label: 'Channel', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'files', label: 'Files', icon: <Download className="w-4 h-4" /> },
@@ -245,11 +247,11 @@ Total: ₦450,000`}
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{project.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{project.name || 'Untitled Project'}</h1>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-gray-500">For {project.client.name}</span>
+            <span className="text-sm text-gray-500">For {project.client?.name || 'Unknown Client'}</span>
             <span className="text-gray-300">•</span>
-            <span className="text-sm text-gray-500 flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Due Nov 15</span>
+            <span className="text-sm text-gray-500 flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Created {new Date(project.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
         <div className="ml-auto">
@@ -281,7 +283,6 @@ Total: ₦450,000`}
       <div className="min-h-[400px]">
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'proposal' && renderProposal()}
-        {activeTab === 'quotation' && renderQuotation()}
         {activeTab === 'invoice' && renderInvoice()}
         {activeTab === 'channel' && renderChannel()}
         {activeTab === 'files' && renderFiles()}

@@ -18,7 +18,6 @@ const MAIN_NAV = [
   { name: 'Overview',    icon: LayoutDashboard, path: '/',            feature: 'overview'   },
   { name: 'Projects',    icon: Folder,           path: '/projects',   feature: 'projects'   },
   { name: 'Proposals',   icon: FileText,          path: '/proposals',  feature: 'proposals'  },
-  { name: 'Quotations',  icon: BarChart3,         path: '/quotations', feature: 'quotations' },
   { name: 'Tasks',       icon: ListTodo,          path: '/tasks',      feature: 'tasks'      },
   { name: 'Schedule',    icon: Calendar,          path: '/schedule',   feature: 'schedule'   },
   { name: 'Channels',    icon: MessageSquare,     path: '/channels',   feature: 'channels'   },

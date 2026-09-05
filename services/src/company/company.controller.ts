@@ -19,6 +19,18 @@ export class CompanyController {
     return this.companyService.updateProfile(userId, body);
   }
 
+  @Get('team')
+  getTeamMembers(@Req() req: Request) {
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
+    return this.companyService.getTeamMembers(userId);
+  }
+
+  @Post('invite')
+  inviteTeamMember(@Req() req: Request, @Body() body: { email: string; role?: string }) {
+    const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
+    return this.companyService.inviteTeamMember(userId, body.email, body.role);
+  }
+
   @Public()
   @Get('overview')
   async getOverview(@Req() req: Request) {

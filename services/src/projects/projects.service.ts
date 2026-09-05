@@ -202,6 +202,13 @@ export class ProjectsService {
     return proposal;
   }
 
+  async updateProposal(projectId: string, proposalId: string, content: string) {
+    return this.prisma.proposal.update({
+      where: { id: proposalId, projectId },
+      data: { content }
+    });
+  }
+
   async getProjectMembers(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
