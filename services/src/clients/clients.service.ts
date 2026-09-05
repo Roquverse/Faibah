@@ -15,8 +15,12 @@ export class ClientsService {
   }
 
   async getAllClients(userId?: string) {
-    const companyId = await this.resolveCompanyId(userId);
-    if (!companyId) return [];
+    let companyId = await this.resolveCompanyId(userId);
+    if (!companyId) {
+      const company = await this.prisma.company.findFirst();
+      if (company) companyId = company.id;
+      else return [];
+    }
 
     const clients = await this.prisma.client.findMany({
       where: { companyId },

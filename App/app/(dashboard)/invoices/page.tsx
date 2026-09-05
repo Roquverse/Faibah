@@ -1,271 +1,238 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreHorizontal, FileText, CheckCircle2, XCircle, Clock, Copy, Send, Download, Receipt, Eye, Trash2 } from 'lucide-react';
+import { Plus, Eye, Receipt, FileText, Trash2, MoreHorizontal, Search, DollarSign, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicesApi } from '@/lib/api';
+import { PageHeader } from '@/components/shared/PageHeader';
+import { StatCard } from '@/components/shared/StatCard';
+import { StatusPill } from '@/components/shared/StatusPill';
+import { DataTable, type ColumnDef } from '@/components/shared/DataTable';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import NewInvoiceModal from '@/components/dashboard/NewInvoiceModal';
 import GenerateReceiptModal from '@/components/dashboard/GenerateReceiptModal';
 
+type Invoice = {
+  id: string;
+  invoiceRef?: string;
+  status: string;
+  currency: string;
+  taxRate?: number;
+  dueDate?: string;
+  updatedAt?: string;
+  createdAt?: string;
+  client?: { name?: string } | null;
+  project?: { name?: string } | null;
+  items?: { amount: number }[];
+};
+
+function calcTotal(inv: Invoice) {
+  const sub = inv.items?.reduce((a, i) => a + i.amount, 0) ?? 0;
+  return sub * (1 + (inv.taxRate ?? 0) / 100);
+}
+
+function currencySymbol(currency: string) {
+  return currency === 'NGN' ? '₦' : currency === 'USD' ? '$' : currency;
+}
+
+function fmtCurrency(sym: string, amt: number) {
+  return `${sym}${amt.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+}
+
 export default function InvoicesPage() {
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
-  const [invoiceToEdit, setInvoiceToEdit] = useState<any>(null);
-  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (!(e.target as Element).closest('.dropdown-container')) {
-        setOpenDropdownId(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleDeleteInvoice = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this invoice?")) return;
-    try {
-      await InvoicesApi.delete(id);
-      fetchInvoices();
-    } catch (e) {
-      console.error(e);
-      alert("Failed to delete invoice.");
-    }
-  };
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [isNewOpen, setIsNewOpen] = useState(false);
+  const [invoiceToEdit, setInvoiceToEdit] = useState<Invoice | null>(null);
+  const [receiptInvoice, setReceiptInvoice] = useState<Invoice | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const fetchInvoices = async () => {
+    setLoading(true);
     try {
       const data = await InvoicesApi.getAll();
-      setInvoices(data);
-    } catch (e) {
-      console.error(e);
-    }
+      setInvoices(data ?? []);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
+  useEffect(() => { fetchInvoices(); }, []);
   useEffect(() => {
-    fetchInvoices();
+    const handler = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.invoice-menu')) setOpenMenuId(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'DRAFT': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700"><FileText className="w-3.5 h-3.5" /> Draft</span>;
-      case 'SENT': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700"><Clock className="w-3.5 h-3.5" /> Sent</span>;
-      case 'PAID': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700"><CheckCircle2 className="w-3.5 h-3.5" /> Paid</span>;
-      case 'CANCELLED': return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700"><XCircle className="w-3.5 h-3.5" /> Cancelled</span>;
-      default: return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700">{status}</span>;
-    }
-  };
-
-  // KPI Calculations
-  const defaultCurrency = invoices.length > 0 ? (invoices[0].currency === 'NGN' ? '₦' : invoices[0].currency === 'USD' ? '$' : invoices[0].currency) : '₦';
-
-  let outstandingTotal = 0;
-  let overdueTotal = 0;
-  let thisMonthCollected = 0;
-
+  // ── KPIs ────────────────────────────────────────────────────────────────
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const sym = invoices.length > 0 ? currencySymbol(invoices[0].currency) : '₦';
 
+  let outstanding = 0, overdue = 0, collected = 0;
   invoices.forEach(inv => {
-    const total = (inv.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0) * (1 + (inv.taxRate || 0) / 100);
-    
+    const total = calcTotal(inv);
     if (inv.status === 'SENT') {
-      outstandingTotal += total;
-      if (inv.dueDate && new Date(inv.dueDate) < now) {
-        overdueTotal += total;
-      }
+      outstanding += total;
+      if (inv.dueDate && new Date(inv.dueDate) < now) overdue += total;
     } else if (inv.status === 'PAID') {
-      // Use updatedAt as a proxy for payment date for now
-      const updated = new Date(inv.updatedAt || inv.createdAt);
-      if (updated >= startOfMonth) {
-        thisMonthCollected += total;
-      }
+      if (new Date(inv.updatedAt ?? inv.createdAt ?? '') >= startOfMonth) collected += total;
     }
   });
 
-  const formatCurrency = (amt: number) => `${defaultCurrency}${amt.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  // ── Table ────────────────────────────────────────────────────────────────
+  const filtered = invoices.filter(inv => {
+    const q = search.toLowerCase();
+    return !q || (inv.invoiceRef ?? inv.id).toLowerCase().includes(q)
+      || inv.client?.name?.toLowerCase().includes(q)
+      || inv.project?.name?.toLowerCase().includes(q);
+  });
+
+  const columns: ColumnDef<Invoice>[] = [
+    {
+      key: 'invoiceRef', header: 'Invoice ID',
+      render: inv => (
+        <span className="font-mono text-xs font-semibold text-gray-900">
+          {inv.invoiceRef ?? inv.id.slice(0, 8).toUpperCase()}
+        </span>
+      ),
+    },
+    {
+      key: 'client', header: 'Client & Project',
+      render: inv => (
+        <div>
+          <div className="font-semibold text-gray-900 text-sm">{inv.client?.name ?? 'Unknown Client'}</div>
+          <div className="text-xs text-gray-400">{inv.project?.name ?? 'No project linked'}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'status', header: 'Status', headerClassName: 'text-center',
+      render: inv => <div className="flex justify-center"><StatusPill status={inv.status} /></div>,
+    },
+    {
+      key: 'amount', header: 'Amount', headerClassName: 'text-right',
+      render: inv => (
+        <div className="text-right font-bold text-gray-900">
+          {fmtCurrency(currencySymbol(inv.currency), calcTotal(inv))}
+        </div>
+      ),
+    },
+    {
+      key: 'dueDate', header: 'Due Date', headerClassName: 'text-right',
+      render: inv => (
+        <div className="text-right text-sm text-gray-500">
+          {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : '—'}
+        </div>
+      ),
+    },
+    {
+      key: 'actions', header: '', headerClassName: 'w-[140px]',
+      render: inv => (
+        <div className="flex items-center justify-end gap-1.5">
+          <Link
+            href={`/invoices/${inv.id}`}
+            onClick={e => e.stopPropagation()}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+          >
+            <Eye size={12} /> View
+          </Link>
+          {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
+            <button
+              onClick={e => { e.stopPropagation(); setReceiptInvoice(inv); }}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              <Receipt size={12} /> Receipt
+            </button>
+          )}
+          {/* ⋯ menu */}
+          <div className="relative invoice-menu">
+            <button
+              onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === inv.id ? null : inv.id); }}
+              className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              <MoreHorizontal size={15} />
+            </button>
+            {openMenuId === inv.id && (
+              <div className="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1">
+                <button
+                  onClick={() => { setInvoiceToEdit(inv); setIsNewOpen(true); setOpenMenuId(null); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <FileText size={14} /> Edit Invoice
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!confirm('Delete this invoice?')) return;
+                    await InvoicesApi.delete(inv.id);
+                    fetchInvoices();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="p-4 md:p-8 w-full font-sans flex flex-col">
-      
-      {/* KPI Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 shrink-0">
-        <div className="bg-white p-6 rounded-2xl border border-gray-200">
-          <div className="text-sm font-medium text-gray-500 mb-1">Outstanding Total</div>
-          <div className="text-2xl font-bold text-gray-900">{formatCurrency(outstandingTotal)}</div>
-          <div className="text-xs text-gray-400 mt-2">Unpaid Sent Invoices</div>
+    <div className="flex flex-col h-full">
+      <PageHeader
+        title="Invoices"
+        description="Global view of all your receivables and payments."
+        action={{ label: 'New Invoice', onClick: () => { setInvoiceToEdit(null); setIsNewOpen(true); }, icon: <Plus size={15} /> }}
+      />
+
+      <div className="p-6 space-y-6">
+        {/* KPI strip */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard title="Outstanding" value={fmtCurrency(sym, outstanding)} icon={<DollarSign size={18} />} />
+          <StatCard title="Overdue" value={fmtCurrency(sym, overdue)} icon={<AlertTriangle size={18} />} />
+          <StatCard title="Avg. Days to Payment" value="0 Days" icon={<Clock size={18} />} />
+          <StatCard title="Collected This Month" value={fmtCurrency(sym, collected)} icon={<TrendingUp size={18} />} />
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-gray-200">
-          <div className="text-sm font-medium text-gray-500 mb-1">Overdue Total</div>
-          <div className="text-2xl font-bold text-red-600">{formatCurrency(overdueTotal)}</div>
-          <div className="text-xs text-red-500 mt-2">Action Required</div>
+
+        {/* Search */}
+        <div className="relative w-full sm:w-72">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search invoices..."
+            className="pl-9"
+          />
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-gray-200">
-          <div className="text-sm font-medium text-gray-500 mb-1">Avg. Days to Payment</div>
-          <div className="text-2xl font-bold text-gray-900">0 Days</div>
-          <div className="text-xs text-gray-400 mt-2">Historical Average</div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl border border-gray-200">
-          <div className="text-sm font-medium text-gray-500 mb-1">This Month Collected</div>
-          <div className="text-2xl font-bold text-green-600">{formatCurrency(thisMonthCollected)}</div>
-          <div className="text-xs text-green-600 mt-2">In current month</div>
-        </div>
+
+        {/* Table */}
+        <DataTable
+          columns={columns}
+          data={filtered}
+          loading={loading}
+          emptyTitle="No invoices yet"
+          emptyDescription="Create your first invoice to start tracking receivables."
+          emptyAction={{ label: 'New Invoice', onClick: () => setIsNewOpen(true) }}
+        />
       </div>
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 shrink-0">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
-          <p className="text-sm text-gray-500 mt-1">Global view of all your receivables and payments.</p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
-          <div className="relative w-full sm:w-auto">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text" 
-              placeholder="Search invoices..." 
-              className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full sm:w-64"
-            />
-          </div>
-          <button onClick={() => setIsNewInvoiceOpen(true)} className="flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#E6A700] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
-            <Plus className="w-4 h-4" />
-            New Invoice
-          </button>
-        </div>
-      </div>
-
-      {/* Invoices Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 flex-1 min-h-[500px] flex flex-col">
-        <div className="overflow-x-auto flex-1 pb-32">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-          <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
-            <tr>
-              <th className="px-6 py-4">Invoice ID</th>
-              <th className="px-6 py-4">Client & Project</th>
-              <th className="px-6 py-4 text-center">Status</th>
-              <th className="px-6 py-4 text-right">Amount</th>
-              <th className="px-6 py-4 text-right">Due Date</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {invoices.map(invoice => {
-              const totalAmount = invoice.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
-              const formattedTotal = totalAmount + (totalAmount * ((invoice.taxRate || 0) / 100));
-
-              return (
-                <tr key={invoice.id} className={`hover:bg-gray-50 transition-colors cursor-pointer group ${openDropdownId === invoice.id ? 'relative z-50' : ''}`}>
-                  <td className="px-6 py-4 font-medium text-gray-900">{invoice.invoiceRef || invoice.id.slice(0, 8).toUpperCase()}</td>
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-gray-900 mb-0.5 flex items-center gap-2">
-                      {invoice.client?.name || 'Unknown Client'}
-                    </div>
-                    <div className="text-xs text-gray-500">{invoice.project?.name || 'No Project Linked'}</div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {getStatusBadge(invoice.status)}
-                  </td>
-                  <td className="px-6 py-4 text-right font-bold text-gray-900">
-                    {invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}
-                    {formattedTotal.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-right text-gray-500">
-                    {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : '-'}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                      <Link 
-                        href={`/invoices/${invoice.id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1" title="View Invoice">
-                        <Eye className="w-3.5 h-3.5" /> View
-                      </Link>
-                      {invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedInvoice(invoice);
-                          }}
-                          className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1" title="Generate Receipt">
-                          <Receipt className="w-3.5 h-3.5" /> Receipt
-                        </button>
-                      )}
-                      
-                      <div className="relative dropdown-container">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenDropdownId(openDropdownId === invoice.id ? null : invoice.id);
-                          }}
-                          className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
-                        
-                        {openDropdownId === invoice.id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1 overflow-hidden" onClick={e => e.stopPropagation()}>
-                            <button 
-                              onClick={() => {
-                                setInvoiceToEdit(invoice);
-                                setIsNewInvoiceOpen(true);
-                                setOpenDropdownId(null);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium flex items-center gap-2 transition-colors"
-                            >
-                              <FileText className="w-4 h-4" /> Edit Invoice
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteInvoice(invoice.id)}
-                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium flex items-center gap-2 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" /> Delete Invoice
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {invoices.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No invoices found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        </div>
-      </div>
-
-      <NewInvoiceModal 
-        isOpen={isNewInvoiceOpen} 
+      <NewInvoiceModal
+        isOpen={isNewOpen}
         invoiceToEdit={invoiceToEdit}
-        onClose={() => {
-          setIsNewInvoiceOpen(false);
-          setInvoiceToEdit(null);
-        }} 
-        onSuccess={() => {
-          setIsNewInvoiceOpen(false);
-          setInvoiceToEdit(null);
-          fetchInvoices();
-        }} 
+        onClose={() => { setIsNewOpen(false); setInvoiceToEdit(null); }}
+        onSuccess={() => { setIsNewOpen(false); setInvoiceToEdit(null); fetchInvoices(); }}
       />
-
       <GenerateReceiptModal
-        isOpen={!!selectedInvoice}
-        invoice={selectedInvoice}
-        onClose={() => setSelectedInvoice(null)}
-        onSuccess={() => {
-          setSelectedInvoice(null);
-          // Ideally fetchInvoices should be called to see status updates if we handle them
-          // fetchInvoices();
-        }}
+        isOpen={!!receiptInvoice}
+        invoice={receiptInvoice}
+        onClose={() => setReceiptInvoice(null)}
+        onSuccess={() => setReceiptInvoice(null)}
       />
-
     </div>
   );
 }

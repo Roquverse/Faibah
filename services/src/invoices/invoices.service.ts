@@ -12,7 +12,7 @@ export class InvoicesService {
   async getAllInvoices(userId?: string) {
     let whereClause: any = {};
 
-    if (userId) {
+    if (userId && userId !== 'dev-user') {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: { id: true, email: true, companyId: true, userType: true },

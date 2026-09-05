@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, Req, UseGuards, Patch } from '@nestjs/common';
 import type { Request } from 'express';
 import { ReceiptsService } from './receipts.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -17,6 +17,11 @@ export class ReceiptsController {
   @Post()
   async createReceipt(@Body() data: any) {
     return this.receiptsService.createReceipt(data);
+  }
+
+  @Patch(':id')
+  async updateReceipt(@Param('id') id: string, @Body() data: any) {
+    return this.receiptsService.updateReceipt(id, data);
   }
 
   @Delete(':id')

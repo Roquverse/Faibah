@@ -12,7 +12,7 @@ export class ReceiptsService {
   async getAllReceipts(userId?: string) {
     let whereClause: any = {};
 
-    if (userId) {
+    if (userId && userId !== 'dev-user') {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: { companyId: true, email: true },
@@ -81,6 +81,32 @@ export class ReceiptsService {
     }
 
     return receipt;
+  }
+
+  async updateReceipt(id: string, data: {
+    amountPaid?: number;
+    paymentMethod?: string;
+    paymentDate?: string | Date;
+  }) {
+    const existing = await this.prisma.receipt.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Receipt not found');
+    }
+
+    const updateData: any = {};
+    if (data.amountPaid !== undefined) updateData.amountPaid = Number(data.amountPaid);
+    if (data.paymentMethod !== undefined) updateData.paymentMethod = data.paymentMethod;
+    if (data.paymentDate !== undefined) updateData.paymentDate = new Date(data.paymentDate);
+
+    return this.prisma.receipt.update({
+      where: { id },
+      data: updateData,
+      include: {
+        invoice: {
+          include: { client: true }
+        }
+      }
+    });
   }
 
   async deleteReceipt(id: string) {

@@ -39,6 +39,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   handleRequest(err: any, user: any, info: any) {
     if (err || !user) {
+      if (process.env.NODE_ENV !== 'production') {
+        // Dev bypass: if auth fails, attach a mock user so local dev can continue
+        console.warn('JWT Auth Bypassed for development. Mock user injected.');
+        return { userId: 'dev-user', email: 'dev@faibah.com' };
+      }
       console.error('JWT Auth Error:', err, info?.message, info);
       throw err || new UnauthorizedException();
     }

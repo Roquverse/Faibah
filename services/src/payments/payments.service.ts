@@ -65,4 +65,45 @@ export class PaymentsService {
       payments: paymentsList
     };
   }
+
+  async createPayment(data: { invoiceId: string; amount: number; provider?: string }) {
+    return this.prisma.paymentRecord.create({
+      data: {
+        invoiceId: data.invoiceId,
+        amount: Number(data.amount),
+        provider: data.provider || 'manual',
+      },
+      include: {
+        invoice: {
+          include: { client: true }
+        }
+      }
+    });
+  }
+
+  async updatePayment(id: string, data: { amount?: number; provider?: string }) {
+    const existing = await this.prisma.paymentRecord.findUnique({ where: { id } });
+    if (!existing) {
+      throw new Error('Payment not found');
+    }
+
+    const updateData: any = {};
+    if (data.amount !== undefined) updateData.amount = Number(data.amount);
+    if (data.provider !== undefined) updateData.provider = data.provider;
+
+    return this.prisma.paymentRecord.update({
+      where: { id },
+      data: updateData,
+    });
+  }
+
+  async deletePayment(id: string) {
+    const existing = await this.prisma.paymentRecord.findUnique({ where: { id } });
+    if (!existing) {
+      throw new Error('Payment not found');
+    }
+
+    await this.prisma.paymentRecord.delete({ where: { id } });
+    return { success: true };
+  }
 }

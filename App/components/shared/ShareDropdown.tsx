@@ -11,7 +11,7 @@ interface ShareDropdownProps {
     name?: string | null;
     email?: string | null;
     whatsappNumber?: string | null;
-  };
+  } | null;
   triggerClassName?: string;
   align?: 'left' | 'right';
 }

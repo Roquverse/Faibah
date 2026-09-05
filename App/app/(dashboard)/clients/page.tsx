@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreHorizontal, Filter, DownloadCloud, Columns, ChevronDown, CheckCircle2, Upload, User, Image, FileText, Receipt, Trash2, Mail, MessageCircle, MapPin, X, Check } from 'lucide-react';
+import { Search, MoreHorizontal, Filter, DownloadCloud, Columns, ChevronDown, Upload, User, Image, FileText, Receipt, Trash2, Mail, MessageCircle, MapPin, X, Check, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { ClientsApi } from '@/lib/api';
 import EditClientSlideOver from '@/components/dashboard/EditClientSlideOver';
+import { PageHeader } from '@/components/shared/PageHeader';
 
 interface Client {
   id: string;
@@ -149,28 +150,14 @@ export default function ClientsPage() {
   };
 
   return (
-    <div className="p-8 w-full">
-      
-      {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 shrink-0">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 tracking-tight">Clients</h1>
-        </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
-          <button className="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors w-full sm:w-auto">
-            <DownloadCloud className="w-4 h-4" />
-            Export
-          </button>
-          <button 
-            onClick={() => setIsNewClientModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#E6A700] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4" />
-            New Client
-          </button>
-        </div>
-      </div>
+    <div className="flex flex-col h-full">
+      <PageHeader
+        title="Clients"
+        description="Manage your client relationships and billing history."
+        action={{ label: 'New Client', onClick: () => setIsNewClientModalOpen(true), icon: <Plus size={15} /> }}
+      />
 
+      <div className="p-6">
       {/* Table Section */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         
@@ -618,6 +605,7 @@ export default function ClientsPage() {
         clientId={editingClientId}
         onClientUpdated={fetchClients}
       />
+      </div>
     </div>
   );
 }
