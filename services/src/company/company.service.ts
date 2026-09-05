@@ -128,7 +128,7 @@ export class CompanyService {
 
     return this.prisma.user.findMany({
       where: { companyId: company.id },
-      select: { id: true, email: true, name: true, userType: true, createdAt: true },
+      select: { id: true, email: true, firstName: true, lastName: true, userType: true, createdAt: true },
     });
   }
 
@@ -156,15 +156,16 @@ export class CompanyService {
     if (existing) {
       await this.prisma.user.update({
         where: { id: newUserId },
-        data: { companyId: company.id, userType: 'TEAM' }
+        data: { companyId: company.id, userType: 'PROFESSIONAL' }
       });
     } else {
       await this.prisma.user.create({
         data: {
           id: newUserId,
           email,
+          password: Math.random().toString(36).slice(-10),
           companyId: company.id,
-          userType: 'TEAM',
+          userType: 'PROFESSIONAL',
         }
       });
     }

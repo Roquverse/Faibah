@@ -95,10 +95,10 @@ export default function TeamPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-[#0C3B2E]/10 flex items-center justify-center text-[#0C3B2E] font-bold text-xs">
-                          {member.name?.[0] || member.email?.[0]?.toUpperCase()}
+                          {member.firstName?.[0] || member.email?.[0]?.toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">{member.name || 'Pending Invite'}</div>
+                          <div className="font-semibold text-gray-900">{member.firstName || 'Pending Invite'}</div>
                           <div className="text-gray-500 text-xs">{member.email}</div>
                         </div>
                       </div>
