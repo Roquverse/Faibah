@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../clients/data/providers/clients_provider.dart';
+import '../../clients/data/models/client_model.dart';
+import '../data/providers/projects_provider.dart';
 import 'widgets/project_quick_panel.dart';
 
 class ProjectsScreen extends ConsumerStatefulWidget {
@@ -10,44 +13,20 @@ class ProjectsScreen extends ConsumerStatefulWidget {
 }
 
 class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
-  // Dummy data mapped to Kanban statuses
-  final List<Map<String, dynamic>> _projects = [
-    {
-      'id': '1',
-      'title': 'Comprehensive Plumbing Infrastructure Proposal',
-      'client': 'Arakunrin Cole deliverables and planning',
-      'status': 'DRAFT',
-      'progress': 10,
-      'budget': '₦800,000',
-    },
-    {
-      'id': '2',
-      'title': 'Web Development Proposal for Premium Cleaning Agency',
-      'client': 'Arakunrin Cole deliverables and planning',
-      'status': 'ONGOING',
-      'progress': 65,
-      'budget': '₦1,200,000',
-    },
-    {
-      'id': '4',
-      'title': 'Comprehensive Web Platform & E-Commerce',
-      'client': 'Tizzle Studios deliverables and planning',
-      'status': 'ONGOING',
-      'progress': 40,
-      'budget': '₦500,000',
-    },
-    {
-      'id': '3',
-      'title': 'SEO Optimization',
-      'client': 'Arakunrin Cole deliverables and planning',
-      'status': 'COMPLETED',
-      'progress': 100,
-      'budget': '₦150,000',
-    },
-  ];
+  // We no longer need the dummy data _projects
 
-  final List<String> _statuses = ['DRAFT', 'ONGOING', 'AWAITING PAYMENT', 'COMPLETED'];
+  final List<String> _statuses = ['DRAFT', 'ONGOING', 'AWAITING_PAYMENT', 'COMPLETED'];
   final PageController _pageController = PageController(viewportFraction: 0.85);
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch initial data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(projectsProvider.notifier).fetchProjects();
+      ref.read(clientsProvider.notifier).fetchClients();
+    });
+  }
 
   void _showQuickPanel(BuildContext context, Map<String, dynamic> project) {
     showModalBottomSheet(
@@ -58,7 +37,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     );
   }
 
-  void _showCreateProjectModal(BuildContext context) {
+  void _showCreateProjectModal(BuildContext context, List<ClientModel> clients) {
     final _formKey = GlobalKey<FormState>();
     String projectName = '';
     String clientName = '';
@@ -111,12 +90,12 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     labelText: 'Client',
                     border: OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'Acme Corp', child: Text('Acme Corp')),
-                    DropdownMenuItem(value: 'Wayne Enterprises', child: Text('Wayne Enterprises')),
-                  ],
+                  items: clients.map((c) {
+                    return DropdownMenuItem(value: c.id, child: Text(c.name));
+                  }).toList(),
                   onChanged: (val) {},
                   onSaved: (val) => clientName = val ?? '',
+                  validator: (val) => val == null || val.isEmpty ? 'Required' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -146,23 +125,23 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
-                        // Here you'd call ProjectsApi.createProject(...)
-                        // Mocking success
-                        setState(() {
-                          _projects.add({
-                            'id': DateTime.now().millisecondsSinceEpoch.toString(),
-                            'title': projectName,
-                            'client': clientName.isNotEmpty ? clientName : 'Unknown Client',
-                            'status': 'DRAFT',
-                            'progress': 0,
-                            'budget': '₦0',
-                          });
+                        
+                        final success = await ref.read(projectsProvider.notifier).createProject({
+                          'name': projectName,
+                          'clientId': clientName,
+                          'description': projectDetails,
+                          'dueDate': dueDate.isNotEmpty ? dueDate : null,
                         });
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Project created as DRAFT')));
+                        
+                        if (mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(success ? 'Project created as DRAFT' : 'Failed to create project')),
+                          );
+                        }
                       }
                     },
                     child: const Text('Create Project', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -181,7 +160,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     switch (status) {
       case 'DRAFT': return Colors.grey;
       case 'ONGOING': return Colors.amber;
-      case 'AWAITING PAYMENT': return Colors.orange;
+      case 'AWAITING_PAYMENT': return Colors.orange;
       case 'COMPLETED': return Colors.green;
       default: return Colors.grey;
     }
@@ -190,6 +169,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final projectsAsync = ref.watch(projectsProvider);
+    final clientsAsync = ref.watch(clientsProvider);
+    
+    final clients = clientsAsync.value ?? [];
 
     return Scaffold(
       appBar: AppBar(
@@ -197,18 +180,22 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => _showCreateProjectModal(context),
+            onPressed: () => _showCreateProjectModal(context, clients),
           ),
         ],
       ),
-      body: PageView.builder(
-        controller: _pageController,
-        itemCount: _statuses.length,
-        itemBuilder: (context, index) {
-          final status = _statuses[index];
-          final columnProjects = _projects.where((p) => p['status'] == status).toList();
-          
-          return Padding(
+      body: projectsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (projectsList) {
+          return PageView.builder(
+            controller: _pageController,
+            itemCount: _statuses.length,
+            itemBuilder: (context, index) {
+              final status = _statuses[index];
+              final columnProjects = projectsList.where((p) => p['status'] == status).toList();
+              
+              return Padding(
             padding: const EdgeInsets.only(right: 16.0, top: 16.0, bottom: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +206,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     CircleAvatar(radius: 4, backgroundColor: _getStatusColor(status)),
                     const SizedBox(width: 8),
                     Text(
-                      status,
+                      status.replaceAll('_', ' '),
                       style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 8),
@@ -239,7 +226,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                       icon: const Icon(Icons.add, size: 20),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      onPressed: () => _showCreateProjectModal(context),
+                      onPressed: () => _showCreateProjectModal(context, clients),
                     ),
                   ],
                 ),
@@ -254,9 +241,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     },
                     onAcceptWithDetails: (details) {
                       final project = details.data;
-                      setState(() {
-                        project['status'] = status;
-                      });
+                      ref.read(projectsProvider.notifier).updateProjectStatus(project['id'], status);
                     },
                     builder: (context, candidateData, rejectedData) {
                       return Container(
@@ -300,7 +285,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             ),
           );
         },
-      ),
+      );
+    }),
     );
   }
 
@@ -322,12 +308,12 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                project['title'],
+                project['name'] ?? project['title'] ?? 'Unnamed',
                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
-                project['client'],
+                project['client']?['name'] ?? project['client'] ?? 'No Client',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurface.withOpacity(0.6),
                 ),
