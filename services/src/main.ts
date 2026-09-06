@@ -2,8 +2,18 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { execSync } from 'child_process';
 
 async function bootstrap() {
+  if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
+    try {
+      console.log('Running database migrations...');
+      execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
+    } catch (e) {
+      console.error('Failed to run prisma db push', e);
+    }
+  }
+
   const app = await NestFactory.create(AppModule);
   
   // Security Headers
