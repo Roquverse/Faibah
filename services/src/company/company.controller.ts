@@ -31,19 +31,9 @@ export class CompanyController {
     return this.companyService.inviteTeamMember(userId, body.email, body.role);
   }
 
-  @Public()
   @Get('overview')
   async getOverview(@Req() req: Request) {
     let userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
-    
-    // TEMPORARY: Fallback for local mobile app testing without auth
-    if (!userId && process.env.NODE_ENV !== 'production') {
-      const firstUser = await this.companyService['prisma'].user.findFirst({
-        where: { companyId: { not: null } }
-      });
-      userId = firstUser?.id;
-    }
-
     return this.companyService.getOverview(userId);
   }
 }
