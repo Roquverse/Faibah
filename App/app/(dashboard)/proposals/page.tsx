@@ -135,7 +135,7 @@ export default function ProposalsPage() {
       <PageHeader
         title="Proposals"
         description="Create and track proposals sent to clients for project approval."
-        action={{ label: 'New Proposal', onClick: () => router.push('/projects/new'), icon: <Plus size={15} /> }}
+        action={{ label: 'New Proposal', onClick: () => router.push('/proposals/new'), icon: <Plus size={15} /> }}
       />
 
       <div className="p-6 space-y-6">
@@ -163,7 +163,7 @@ export default function ProposalsPage() {
           loading={loading}
           emptyTitle="No proposals yet"
           emptyDescription="Create a proposal for a project to start winning new work."
-          emptyAction={{ label: 'Create Proposal', onClick: () => router.push('/projects/new') }}
+          emptyAction={{ label: 'Create Proposal', onClick: () => router.push('/proposals/new') }}
         />
       </div>
 

@@ -18,7 +18,7 @@ export class ProjectsService {
     return user?.companyId || null;
   }
 
-  async createProject(userId: string | undefined, clientId: string | undefined, name: string) {
+  async createProject(userId: string | undefined, clientId: string | undefined, name: string, description?: string, dueDate?: string) {
     let companyId = await this.resolveCompanyId(userId);
 
     let client;
@@ -50,6 +50,8 @@ export class ProjectsService {
     const project = await this.prisma.project.create({
       data: {
         name: name || 'Untitled Project',
+        description: description || null,
+        dueDate: dueDate ? new Date(dueDate) : null,
         clientId: client.id,
         currency: client.currency || 'NGN'
       },

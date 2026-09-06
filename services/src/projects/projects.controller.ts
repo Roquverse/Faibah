@@ -7,9 +7,9 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  async createProject(@Req() req: Request, @Body() body: { clientId?: string, name: string }) {
+  async createProject(@Req() req: Request, @Body() body: { clientId?: string, name: string, description?: string, dueDate?: string }) {
     const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
-    return this.projectsService.createProject(userId, body.clientId, body.name);
+    return this.projectsService.createProject(userId, body.clientId, body.name, body.description, body.dueDate);
   }
 
   @Get()

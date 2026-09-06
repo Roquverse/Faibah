@@ -393,7 +393,7 @@ export default function ProjectQuickPanel() {
               </div>
 
               {/* Quick Actions Row */}
-              <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100 dark:border-slate-700/50">
+              <div className="grid grid-cols-5 gap-2 pt-4 border-t border-gray-100 dark:border-slate-700/50">
                 <button
                   onClick={handleOpenOrCreateChannel}
                   className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#0C3B2E]/5 dark:hover:bg-[#0C3B2E]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#0C3B2E] dark:hover:text-green-400 transition-colors cursor-pointer group"
@@ -423,11 +423,22 @@ export default function ProjectQuickPanel() {
                 <button
                   onClick={() => {
                     closeProjectDrawer();
-                    router.push('/invoices');
+                    router.push(`/proposals/new?project=${project.id}`);
                   }}
                   className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#0C3B2E]/5 dark:hover:bg-[#0C3B2E]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#0C3B2E] dark:hover:text-green-400 transition-colors cursor-pointer group"
                 >
                   <FileText className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#0C3B2E]" />
+                  <span className="text-[11px] truncate w-full text-center">New Proposal</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    closeProjectDrawer();
+                    router.push(`/invoices?project=${project.id}`);
+                  }}
+                  className="flex flex-col items-center justify-center p-2.5 bg-white dark:bg-slate-800 hover:bg-[#0C3B2E]/5 dark:hover:bg-[#0C3B2E]/20 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-[#0C3B2E] dark:hover:text-green-400 transition-colors cursor-pointer group"
+                >
+                  <DollarSign className="w-4 h-4 mb-1 text-gray-400 group-hover:text-[#0C3B2E]" />
                   <span className="text-[11px] truncate w-full text-center">New Invoice</span>
                 </button>
               </div>

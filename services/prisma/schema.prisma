@@ -148,10 +148,12 @@ enum ProjectStatus {
 
 model Project {
   id        String   @id @default(uuid())
-  name      String
-  currency  String
-  status    ProjectStatus @default(DRAFT)
-  clientId  String
+  name        String
+  description String?
+  currency    String
+  status      ProjectStatus @default(DRAFT)
+  dueDate     DateTime?
+  clientId    String
   client    Client   @relation(fields: [clientId], references: [id])
   createdAt DateTime @default(now())
 

@@ -40,12 +40,45 @@ export default function ProjectsPage() {
   const { openProjectDrawer } = useProjectDrawer();
   const [view, setView] = useState<'board' | 'list'>('board');
   const [projects, setProjects] = useState<Project[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
+  // Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState({ name: '', clientId: '', description: '', dueDate: '' });
+
   useEffect(() => {
     loadProjects();
+    loadClients();
   }, []);
+
+  const loadClients = async () => {
+    try {
+      const { ClientsApi } = await import('@/lib/api');
+      const data = await ClientsApi.getAll();
+      setClients(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const { ProjectsApi } = await import('@/lib/api');
+      await ProjectsApi.create(form);
+      setShowCreateModal(false);
+      setForm({ name: '', clientId: '', description: '', dueDate: '' });
+      loadProjects();
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const loadProjects = async () => {
     try {
@@ -159,10 +192,10 @@ export default function ProjectsPage() {
             </button>
           </div>
 
-          <Link href="/projects/new" className="flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#E6A700] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
+          <button onClick={() => setShowCreateModal(true)} className="flex items-center justify-center gap-2 bg-[#FFBA00] text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#E6A700] transition-colors border border-transparent whitespace-nowrap w-full sm:w-auto">
             <Plus className="w-4 h-4" />
             New Project
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -313,6 +346,61 @@ export default function ProjectsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-xl border border-gray-100">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <h3 className="text-base font-bold text-gray-900">New Project</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100">✕</button>
+            </div>
+            <form onSubmit={handleCreate} className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Project Name</label>
+                <input required type="text" value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. Website Redesign"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#FFBA00]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Client</label>
+                <select required value={form.clientId}
+                  onChange={e => setForm({ ...form, clientId: e.target.value })}
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#FFBA00]"
+                >
+                  <option value="">Select a client...</option>
+                  {clients.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Project Details</label>
+                <textarea rows={3} value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Brief description of the project..."
+                  className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#FFBA00] resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Due Date</label>
+                <input type="date" value={form.dueDate}
+                  onChange={e => setForm({ ...form, dueDate: e.target.value })}
+                  className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#FFBA00]"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 border border-gray-200 text-sm font-semibold rounded-lg hover:bg-gray-50">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-[#FFBA00] text-gray-900 text-sm font-semibold rounded-lg hover:bg-[#E6A700] disabled:opacity-50">
+                  {isSubmitting ? 'Creating...' : 'Create Project'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
