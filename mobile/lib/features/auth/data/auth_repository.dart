@@ -59,6 +59,41 @@ class AuthRepository {
     }
   }
 
+  Future<void> verifyOtp(String email, String token) async {
+    try {
+      final response = await Supabase.instance.client.auth.verifyOTP(
+        email: email,
+        token: token,
+        type: OtpType.signup,
+      );
+
+      final accessToken = response.session?.accessToken;
+      if (accessToken != null) {
+        await _storage.write(key: 'jwt_token', value: accessToken);
+      }
+    } catch (e) {
+      throw Exception('Failed to verify OTP: $e');
+    }
+  }
+
+  Future<void> submitOnboarding(Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.post('/users/onboarding', data: data);
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to submit onboarding data');
+      }
+
+      // Update local supabase user metadata
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(
+          data: {'onboarding_completed': true, 'userType': data['userType']},
+        ),
+      );
+    } catch (e) {
+      throw Exception('Failed to submit onboarding: $e');
+    }
+  }
+
   Future<void> logout() async {
     await Supabase.instance.client.auth.signOut();
     await _storage.delete(key: 'jwt_token');

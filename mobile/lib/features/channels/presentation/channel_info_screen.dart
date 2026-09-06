@@ -27,9 +27,9 @@ class ChannelInfoScreen extends StatelessWidget {
         body: TabBarView(
           children: [
             _buildInfoTab(theme),
-            const Center(child: Text('Pins')),
-            const Center(child: Text('Media')),
-            const Center(child: Text('Links')),
+            _buildPinsTab(theme),
+            _buildMediaTab(theme),
+            _buildLinksTab(theme),
           ],
         ),
       ),
@@ -161,6 +161,75 @@ class ChannelInfoScreen extends StatelessWidget {
           ),
           Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.onSurface.withOpacity(0.4)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPinsTab(ThemeData theme) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildPinItem(theme, 'Important Project Update', 'Please review the latest design files before Friday.'),
+        _buildPinItem(theme, 'Meeting Notes', 'Kickoff meeting notes attached here with the timeline.'),
+      ],
+    );
+  }
+
+  Widget _buildPinItem(ThemeData theme, String title, String subtitle) {
+    return Card(
+      color: const Color(0xFF1A1A1A),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: const Icon(Icons.push_pin, color: Colors.blueAccent),
+        title: Text(title, style: theme.textTheme.titleSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
+      ),
+    );
+  }
+
+  Widget _buildMediaTab(ThemeData theme) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: 15,
+      itemBuilder: (context, index) {
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A1A),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: Icon(Icons.image_outlined, color: Colors.grey, size: 32),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLinksTab(ThemeData theme) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildLinkItem(theme, 'Figma Design', 'https://figma.com/file/123abc456...'),
+        _buildLinkItem(theme, 'Project Brief', 'https://docs.google.com/document/d/...'),
+        _buildLinkItem(theme, 'Github Repo', 'https://github.com/project/mobile-app'),
+      ],
+    );
+  }
+
+  Widget _buildLinkItem(ThemeData theme, String title, String url) {
+    return Card(
+      color: const Color(0xFF1A1A1A),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: const Icon(Icons.link, color: Colors.greenAccent),
+        title: Text(title, style: theme.textTheme.titleSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+        subtitle: Text(url, style: theme.textTheme.bodySmall?.copyWith(color: Colors.blueAccent)),
+        trailing: const Icon(Icons.open_in_new, color: Colors.grey, size: 16),
       ),
     );
   }

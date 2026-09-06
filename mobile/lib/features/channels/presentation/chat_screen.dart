@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
 import 'channel_info_screen.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -18,6 +22,10 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final FocusNode _messageFocusNode = FocusNode();
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  bool _isRecording = false;
+  bool _showActionIcons = false;
   final List<Map<String, dynamic>> _messages = [
     {
       'id': '1',
@@ -75,7 +83,148 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void dispose() {
     _messageController.dispose();
+    _messageFocusNode.dispose();
+    _audioRecorder.dispose();
     super.dispose();
+  }
+
+  void _showMentionPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A1A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        final List<String> teamMembers = [
+          'Arakunrin Cole',
+          'Oluwadamilola Cole',
+          'Jane Doe',
+          'John Smith',
+        ];
+
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text('Mention a teammate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: teamMembers.length,
+                  itemBuilder: (context, index) {
+                    final member = teamMembers[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                        child: Text(member[0]),
+                      ),
+                      title: Text(member),
+                      onTap: () {
+                        Navigator.pop(context);
+                        final text = _messageController.text;
+                        _messageController.text = '$text@$member ';
+                        _messageController.selection = TextSelection.fromPosition(TextPosition(offset: _messageController.text.length));
+                        _messageFocusNode.requestFocus();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEmojiPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A1A),
+      builder: (context) {
+        return SafeArea(
+          child: SizedBox(
+            height: 300,
+            child: EmojiPicker(
+              onEmojiSelected: (category, emoji) {
+                final text = _messageController.text;
+                _messageController.text = '$text${emoji.emoji}';
+                _messageController.selection = TextSelection.fromPosition(TextPosition(offset: _messageController.text.length));
+              },
+              config: const Config(
+                bottomActionBarConfig: BottomActionBarConfig(showBackspaceButton: false, showSearchViewButton: false),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showAttachmentPicker() async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final List<XFile> images = await picker.pickMultiImage();
+      if (images.isNotEmpty) {
+        setState(() {
+          for (var image in images) {
+            _messages.add({
+              'id': DateTime.now().millisecondsSinceEpoch.toString(),
+              'sender': 'Oluwadamilola Cole (You)',
+              'role': 'OWNER',
+              'text': 'Attached an image: ${image.name}',
+              'image': image.path,
+              'time': 'Just now',
+              'isMe': true,
+            });
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error selecting attachment: $e')));
+      }
+    }
+  }
+
+  Future<void> _toggleVoiceRecording() async {
+    try {
+      if (_isRecording) {
+        final path = await _audioRecorder.stop();
+        setState(() {
+          _isRecording = false;
+          if (path != null) {
+            _messages.add({
+              'id': DateTime.now().millisecondsSinceEpoch.toString(),
+              'sender': 'Oluwadamilola Cole (You)',
+              'role': 'OWNER',
+              'text': 'Voice Message',
+              'isVoice': true,
+              'audioPath': path,
+              'time': 'Just now',
+              'isMe': true,
+            });
+          }
+        });
+      } else {
+        if (await _audioRecorder.hasPermission()) {
+          final dir = await getTemporaryDirectory();
+          final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+          await _audioRecorder.start(const RecordConfig(), path: path);
+          setState(() {
+            _isRecording = true;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error recording voice: $e')));
+      }
+    }
   }
 
   @override
@@ -88,7 +237,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           children: [
             const Icon(Icons.tag, size: 20),
             const SizedBox(width: 8),
-            Text(widget.channelName),
+            Expanded(
+              child: Text(
+                widget.channelName,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         actions: [
@@ -117,74 +271,94 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               },
             ),
           ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24, top: 8),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.2)),
-                ),
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF050505),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 0),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(
-                      controller: _messageController,
-                      decoration: InputDecoration(
-                        hintText: 'Message #${widget.channelName}...',
-                        hintStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                      maxLines: 4,
-                      minLines: 1,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(24),
                       ),
                       child: Row(
                         children: [
-                          _buildInputIcon(theme, Icons.alternate_email),
-                          _buildInputIcon(theme, Icons.emoji_emotions_outlined),
-                          _buildInputIcon(theme, Icons.attach_file),
-                          _buildInputIcon(theme, Icons.mic_none),
-                          const Spacer(),
-                          ElevatedButton(
-                            onPressed: _sendMessage,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.colorScheme.onSurface.withOpacity(0.6),
-                              foregroundColor: theme.colorScheme.surface,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              elevation: 0,
+                          IconButton(
+                            icon: Icon(_showActionIcons ? Icons.close : Icons.add, color: Colors.grey),
+                            onPressed: () {
+                              setState(() {
+                                _showActionIcons = !_showActionIcons;
+                              });
+                            },
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: _messageController,
+                              focusNode: _messageFocusNode,
+                              cursorColor: const Color(0xFF6B4EFF),
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: 'Send to ${widget.channelName}',
+                                hintStyle: const TextStyle(color: Colors.grey, fontSize: 16),
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              maxLines: 4,
+                              minLines: 1,
+                              textInputAction: TextInputAction.send,
+                              onSubmitted: (_) => _sendMessage(),
                             ),
-                            child: const Text('Send'),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.send_outlined, color: Colors.grey),
+                            onPressed: _sendMessage,
                           ),
                         ],
                       ),
                     ),
+                    if (_showActionIcons)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                        child: Row(
+                          children: [
+                            // Action Icons
+                            _buildActionIcon(Icons.alternate_email, 'Mention', _showMentionPicker),
+                            _buildActionIcon(Icons.sentiment_satisfied_alt, 'Emoji', _showEmojiPicker),
+                            _buildActionIcon(Icons.attach_file, 'Attachment', _showAttachmentPicker),
+                            _buildActionIcon(Icons.mic_none, 'Voice', _toggleVoiceRecording, color: _isRecording ? Colors.red : Colors.grey),
+                          ],
+                        ),
+                      ),
+                    if (!_showActionIcons)
+                      const SizedBox(height: 8),
                   ],
                 ),
-              ),
             ),
           ),
-        ],
+        ),
+      ],
       ),
     );
   }
 
-  Widget _buildInputIcon(ThemeData theme, IconData icon) {
-    return IconButton(
-      icon: Icon(icon, size: 20),
-      color: theme.colorScheme.onSurface.withOpacity(0.6),
-      onPressed: () {},
-      padding: const EdgeInsets.all(8),
-      constraints: const BoxConstraints(),
+  Widget _buildActionIcon(IconData icon, String tooltip, VoidCallback onTap, {Color color = Colors.grey}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: IconButton(
+        icon: Icon(icon, size: 22, color: color),
+        onPressed: onTap,
+        constraints: const BoxConstraints(),
+        padding: const EdgeInsets.all(8),
+      ),
     );
   }
 

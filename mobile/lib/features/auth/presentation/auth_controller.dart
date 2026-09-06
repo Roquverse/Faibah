@@ -38,7 +38,29 @@ class AuthController extends AsyncNotifier<void> {
       return false;
     }
   }
+  Future<bool> verifyOtp(String email, String token) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.verifyOtp(email, token);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
+  }
 
+  Future<bool> submitOnboarding(Map<String, dynamic> data) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.submitOnboarding(data);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
+  }
   Future<void> logout() async {
     await _repository.logout();
     state = const AsyncValue.data(null);

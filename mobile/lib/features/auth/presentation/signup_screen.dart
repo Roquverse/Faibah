@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_controller.dart';
 import 'social_auth_service.dart';
 import '../../shell/presentation/app_shell.dart';
+import 'verify_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -39,9 +40,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   void _handleSuccess(bool success) {
     if (success && mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AppShell()),
-        (route) => false,
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => VerifyScreen(email: _emailController.text.trim()),
+        ),
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -208,18 +210,18 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 child: ElevatedButton(
                   onPressed: (isLoading || !_agreedToTerms) ? null : _signUp,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0C3B2E),
-                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFFFFC107),
+                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    disabledBackgroundColor: const Color(0xFF0C3B2E).withOpacity(0.5),
+                    disabledBackgroundColor: const Color(0xFFFFC107).withOpacity(0.5),
                   ),
                   child: isLoading
                       ? const SizedBox(
                           width: 24,
                           height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
                         )
                       : const Text('Sign Up', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),

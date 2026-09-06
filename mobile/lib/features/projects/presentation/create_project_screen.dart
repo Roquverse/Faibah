@@ -39,13 +39,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> with SingleTi
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Back to Projects',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.7),
-          ),
-        ),
-        titleSpacing: 0,
         actions: [
           TextButton.icon(
             onPressed: () {},
@@ -514,98 +507,117 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> with SingleTi
     const mutedColor = Color(0xFF6B7280);
     const dividerColor = Color(0xFFE5E7EB);
     
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.5),
-                  blurRadius: 24,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header Info
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+    // Check if the current theme is dark to set the outer background
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      color: isDark ? const Color(0xFF121212) : Colors.grey.shade50,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4), // A4 paper usually has sharp edges, a tiny border radius looks neat
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Info
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Avatec Interactives',
+                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: textColor),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'helpdesk@avatecinteractives.dev\n08035212521',
+                              style: theme.textTheme.labelSmall?.copyWith(color: mutedColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            'Avatec Interactives',
+                            'PROPOSAL / ESTIMATE',
+                            style: theme.textTheme.labelSmall?.copyWith(color: mutedColor, letterSpacing: 1.2, fontWeight: FontWeight.bold, fontSize: 8),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '#PRJ-092',
                             style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: textColor),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'helpdesk@avatecinteractives.dev\n08035212521',
-                            style: theme.textTheme.bodySmall?.copyWith(color: mutedColor),
-                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('Arakunrin Cole', style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold, color: textColor)),
+                                Text('Client Recipient', style: theme.textTheme.labelSmall?.copyWith(color: mutedColor, fontSize: 10)),
+                              ],
+                            ),
+                          )
                         ],
                       ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'PROPOSAL / ESTIMATE',
-                          style: theme.textTheme.labelSmall?.copyWith(color: mutedColor, letterSpacing: 1.2, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '#PRJ-092',
-                          style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: textColor),
-                        ),
-                        const SizedBox(height: 24),
-                        Text('Arakunrin Cole', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: textColor)),
-                        Text('Client Recipient', style: theme.textTheme.labelSmall?.copyWith(color: mutedColor)),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-                const Divider(color: dividerColor),
-                const SizedBox(height: 48),
-                
-                Text('Untitled Proposal', style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold, color: textColor)),
-                const SizedBox(height: 48),
-                Text('[Proposal Title]\n[Section Sub-heading]\n[Start typing your paragraph here...]', style: theme.textTheme.bodyMedium?.copyWith(color: mutedColor)),
-                const SizedBox(height: 64),
-                
-                const Divider(color: dividerColor),
-                const SizedBox(height: 48),
-                
-                Text('Investment', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: textColor)),
-                const SizedBox(height: 32),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('DESCRIPTION', style: theme.textTheme.labelSmall?.copyWith(color: mutedColor, letterSpacing: 1.2, fontWeight: FontWeight.bold)),
-                    Text('AMOUNT', style: theme.textTheme.labelSmall?.copyWith(color: mutedColor, letterSpacing: 1.2, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Container(height: 2, color: textColor),
-                const SizedBox(height: 24),
-                
-                _buildPreviewLineItem(theme, 'Concept Development & Scouting', '₦500,000.00', textColor),
-                const Divider(color: dividerColor),
-                _buildPreviewLineItem(theme, '2-Day On-Site Photography & Video', '₦2,500,000.00', textColor),
-                const Divider(color: dividerColor),
-                _buildPreviewLineItem(theme, 'Post-Production Editing', '₦750,000.00', textColor),
-                const SizedBox(height: 48),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                  const Divider(color: dividerColor),
+                  const SizedBox(height: 40),
+                  
+                  Text('Untitled Proposal', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: textColor)),
+                  const SizedBox(height: 32),
+                  Text('[Proposal Title]\n\n[Section Sub-heading]\n\n[Start typing your paragraph here...]', style: theme.textTheme.bodyMedium?.copyWith(color: mutedColor)),
+                  const SizedBox(height: 48),
+                  
+                  const Divider(color: dividerColor),
+                  const SizedBox(height: 40),
+                  
+                  Text('Investment', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: textColor)),
+                  const SizedBox(height: 24),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('DESCRIPTION', style: theme.textTheme.labelSmall?.copyWith(color: mutedColor, letterSpacing: 1.2, fontWeight: FontWeight.bold, fontSize: 10)),
+                      Text('AMOUNT', style: theme.textTheme.labelSmall?.copyWith(color: mutedColor, letterSpacing: 1.2, fontWeight: FontWeight.bold, fontSize: 10)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(height: 1, color: dividerColor),
+                  const SizedBox(height: 16),
+                  
+                  _buildPreviewLineItem(theme, 'Concept Development', '₦500k', textColor),
+                  const Divider(color: dividerColor),
+                  _buildPreviewLineItem(theme, '2-Day On-Site Photography', '₦2.5m', textColor),
+                  const Divider(color: dividerColor),
+                  _buildPreviewLineItem(theme, 'Post-Production Editing', '₦750k', textColor),
+                  const SizedBox(height: 40),
 
                 Align(
                   alignment: Alignment.centerRight,
@@ -661,7 +673,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> with SingleTi
           const SizedBox(height: 100),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildPreviewLineItem(ThemeData theme, String desc, String amount, Color color) {

@@ -66,7 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: 60),
               Text(
                 'Sign in to Faibah',
                 style: theme.textTheme.headlineMedium?.copyWith(
@@ -175,7 +175,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: Text(
                       'Forgot password?',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF0C3B2E),
+                        color: const Color(0xFFFFC107),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -190,8 +190,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0C3B2E),
-                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFFFFC107),
+                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -200,7 +200,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ? const SizedBox(
                           width: 24,
                           height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
                         )
                       : const Text('Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
@@ -241,14 +241,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Using a colored G icon or an image if available. Since it's a mock, using a custom layout.
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.g_mobiledata, color: Colors.black, size: 28),
+                      Image.network(
+                        'https://img.icons8.com/color/48/000000/google-logo.png',
+                        width: 24,
+                        height: 24,
                       ),
                       const SizedBox(width: 8),
                       const Text('Google', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),

@@ -12,7 +12,7 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useTierAccess } from '@/lib/permissions/useTierAccess';
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 
 type Proposal = {
   id: string;
@@ -25,6 +25,7 @@ type Proposal = {
 };
 
 export default function ProposalsPage() {
+  const router = useRouter();
   const { canAccess, loading: tierLoading } = useTierAccess();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +135,7 @@ export default function ProposalsPage() {
       <PageHeader
         title="Proposals"
         description="Create and track proposals sent to clients for project approval."
-        action={{ label: 'New Proposal', onClick: () => setShowCreate(true), icon: <Plus size={15} /> }}
+        action={{ label: 'New Proposal', onClick: () => router.push('/projects/new'), icon: <Plus size={15} /> }}
       />
 
       <div className="p-6 space-y-6">
@@ -162,49 +163,10 @@ export default function ProposalsPage() {
           loading={loading}
           emptyTitle="No proposals yet"
           emptyDescription="Create a proposal for a project to start winning new work."
-          emptyAction={{ label: 'Create Proposal', onClick: () => setShowCreate(true) }}
+          emptyAction={{ label: 'Create Proposal', onClick: () => router.push('/projects/new') }}
         />
       </div>
 
-      {/* Create Modal */}
-      {showCreate && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full shadow-xl border border-gray-100">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h3 className="text-base font-bold text-gray-900">New Proposal</h3>
-              <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100">✕</button>
-            </div>
-            <form onSubmit={handleCreate} className="p-5 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Project</label>
-                <select required value={form.projectId}
-                  onChange={e => setForm({ ...form, projectId: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#FFBA00]"
-                >
-                  <option value="">Select a project...</option>
-                  {projects.map(p => (
-                    <option key={p.id} value={p.id}>{p.name} — {p.client?.name ?? 'No client'}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Proposal Content</label>
-                <textarea required rows={8} value={form.content}
-                  onChange={e => setForm({ ...form, content: e.target.value })}
-                  placeholder="Describe the scope of work, deliverables, timeline, and pricing..."
-                  className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#FFBA00] resize-none"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-1">
-                <Button variant="outline" size="sm" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
-                <Button size="sm" type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : 'Create Proposal'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

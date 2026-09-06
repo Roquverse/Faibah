@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../channels/presentation/chat_screen.dart';
+import '../../../tasks/presentation/tasks_screen.dart';
+import '../../../invoices/presentation/invoices_screen.dart';
+
 class ProjectQuickPanel extends StatelessWidget {
   final Map<String, dynamic> project;
 
@@ -11,9 +15,9 @@ class ProjectQuickPanel extends StatelessWidget {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: const BoxDecoration(
+        color: Color(0xFF050505),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
@@ -44,12 +48,17 @@ class ProjectQuickPanel extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      project['client'],
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    Expanded(
+                      child: Text(
+                        project['client'],
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -72,10 +81,29 @@ class ProjectQuickPanel extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildActionItem(context, Icons.chat_bubble_outline, 'Open Channel', theme.colorScheme.primary)),
-                    Expanded(child: _buildActionItem(context, Icons.add_task_outlined, 'New Task', theme.colorScheme.secondary)),
-                    Expanded(child: _buildActionItem(context, Icons.person_add_outlined, 'Collaborator', theme.colorScheme.onSurface)),
-                    Expanded(child: _buildActionItem(context, Icons.receipt_long_outlined, 'New Invoice', theme.colorScheme.onSurface)),
+                    Expanded(
+                      child: _buildActionItem(context, Icons.chat_bubble_outline, 'Open Channel', theme.colorScheme.primary, () {
+                        Navigator.pop(context);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(channelId: 'placeholder', channelName: project['title'])));
+                      }),
+                    ),
+                    Expanded(
+                      child: _buildActionItem(context, Icons.add_task_outlined, 'New Task', theme.colorScheme.secondary, () {
+                        Navigator.pop(context);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const TasksScreen()));
+                      }),
+                    ),
+                    Expanded(
+                      child: _buildActionItem(context, Icons.person_add_outlined, 'Collaborator', theme.colorScheme.onSurface, () {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collaborator screen coming soon')));
+                      }),
+                    ),
+                    Expanded(
+                      child: _buildActionItem(context, Icons.receipt_long_outlined, 'New Invoice', theme.colorScheme.onSurface, () {
+                        Navigator.pop(context);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const InvoicesScreen()));
+                      }),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 32),
@@ -242,14 +270,10 @@ class ProjectQuickPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildActionItem(BuildContext context, IconData icon, String label, Color color) {
+  Widget _buildActionItem(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
     final theme = Theme.of(context);
     return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$label clicked!')),
-        );
-      },
+      onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.all(4.0),
