@@ -2,21 +2,46 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../../core/providers/dio_provider.dart';
 
-class ChatNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>> {
-  final Ref ref;
-  final String projectId;
+class ChatNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
   IO.Socket? _socket;
+  String? _currentProjectId;
 
-  ChatNotifier(this.ref, this.projectId) : super(const AsyncValue.loading()) {
-    _init();
+  @override
+  Future<List<Map<String, dynamic>>> build() async {
+    ref.onDispose(() {
+      _disconnectSocket();
+    });
+    return [];
   }
 
-  Future<void> _init() async {
-    await fetchMessages();
-    _connectSocket();
+  void _disconnectSocket() {
+    if (_currentProjectId != null) {
+      _socket?.emit('leaveProject', _currentProjectId);
+    }
+    _socket?.disconnect();
+    _socket?.dispose();
+    _socket = null;
   }
 
-  void _connectSocket() {
+  Future<void> initChannel(String projectId) async {
+    if (_currentProjectId == projectId && _socket?.connected == true) {
+      return; // Already initialized for this project
+    }
+
+    _disconnectSocket();
+    _currentProjectId = projectId;
+    state = const AsyncValue.loading();
+
+    try {
+      final messages = await _fetchMessages(projectId);
+      state = AsyncValue.data(messages);
+      _connectSocket(projectId);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  void _connectSocket(String projectId) {
     // Hardcoded production URL as per dio_client.dart
     final String baseUrl = 'https://backend.faibah.com';
 
@@ -28,7 +53,6 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>>
     _socket?.connect();
 
     _socket?.onConnect((_) {
-      print('Connected to Socket.IO for chat');
       _socket?.emit('joinProject', projectId);
     });
 
@@ -37,13 +61,11 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>>
         _handleIncomingMessage(data);
       }
     });
-
-    _socket?.onDisconnect((_) => print('Disconnected from Socket.IO'));
   }
 
   void _handleIncomingMessage(Map<String, dynamic> data) {
     if (state is AsyncData) {
-      final currentList = state.value!;
+      final currentList = state.value ?? [];
       // Prevent duplicates
       final exists = currentList.any((msg) => msg['id'] == data['id']);
       if (!exists) {
@@ -52,40 +74,33 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>>
     }
   }
 
-  Future<void> fetchMessages() async {
-    try {
-      final dioClient = ref.read(dioClientProvider);
-      final response = await dioClient.dio.get('/projects/$projectId/channel');
-      
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data;
-        if (data['messages'] is List) {
-          final List<dynamic> rawMessages = data['messages'];
-          final messages = rawMessages.map((m) => m as Map<String, dynamic>).toList();
-          
-          // Sort messages by createdAt if present
-          messages.sort((a, b) {
-            final aTime = DateTime.tryParse(a['createdAt'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
-            final bTime = DateTime.tryParse(b['createdAt'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
-            return aTime.compareTo(bTime);
-          });
-          
-          state = AsyncValue.data(messages);
-        } else {
-          state = const AsyncValue.data([]);
-        }
-      } else {
-        state = const AsyncValue.data([]);
+  Future<List<Map<String, dynamic>>> _fetchMessages(String projectId) async {
+    final dioClient = ref.read(dioClientProvider);
+    final response = await dioClient.dio.get('/projects/$projectId/channel');
+    
+    if (response.statusCode == 200 && response.data != null) {
+      final data = response.data;
+      if (data['messages'] is List) {
+        final List<dynamic> rawMessages = data['messages'];
+        final messages = rawMessages.map((m) => m as Map<String, dynamic>).toList();
+        
+        // Sort messages by createdAt if present
+        messages.sort((a, b) {
+          final aTime = DateTime.tryParse(a['createdAt'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final bTime = DateTime.tryParse(b['createdAt'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return aTime.compareTo(bTime);
+        });
+        
+        return messages;
       }
-    } catch (e, st) {
-      print('Fetch messages error: $e');
-      state = AsyncValue.error(e, st);
     }
+    return [];
   }
 
   Future<void> sendMessage(String text) async {
-    if (text.trim().isEmpty) return;
+    if (text.trim().isEmpty || _currentProjectId == null) return;
 
+    final projectId = _currentProjectId!;
     try {
       final dioClient = ref.read(dioClientProvider);
       final response = await dioClient.dio.post(
@@ -102,19 +117,11 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>>
         }
       }
     } catch (e) {
-      print('Failed to send message: $e');
+      // Handle error implicitly
     }
-  }
-
-  @override
-  void dispose() {
-    _socket?.emit('leaveProject', projectId);
-    _socket?.disconnect();
-    _socket?.dispose();
-    super.dispose();
   }
 }
 
-final chatProviderFamily = StateNotifierProvider.family<ChatNotifier, AsyncValue<List<Map<String, dynamic>>>, String>((ref, projectId) {
-  return ChatNotifier(ref, projectId);
+final chatProvider = AsyncNotifierProvider<ChatNotifier, List<Map<String, dynamic>>>(() {
+  return ChatNotifier();
 });

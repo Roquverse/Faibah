@@ -29,12 +29,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isRecording = false;
   bool _showActionIcons = false;
-  // Remove mock messages
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the channel connection once when screen is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatProvider.notifier).initChannel(widget.channelId);
+    });
+  }
   
   void _sendMessage() {
     if (_messageController.text.trim().isEmpty) return;
 
-    ref.read(chatProviderFamily(widget.channelId).notifier).sendMessage(_messageController.text);
+    ref.read(chatProvider.notifier).sendMessage(_messageController.text);
     
     _messageController.clear();
   }
@@ -191,7 +199,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ref.watch(chatProviderFamily(widget.channelId)).when(
+            child: ref.watch(chatProvider).when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, st) => Center(child: Text('Error: $e')),
               data: (messages) {
