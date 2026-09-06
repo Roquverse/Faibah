@@ -42,7 +42,7 @@ class ProjectQuickPanel extends StatelessWidget {
               children: [
                 // Header
                 Text(
-                  project['title'],
+                  project['name'] ?? project['title'] ?? 'Unnamed Project',
                   style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -51,7 +51,7 @@ class ProjectQuickPanel extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        project['client'],
+                        (project['client'] is Map ? project['client']['name'] : project['client']) ?? 'No Client',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurface.withOpacity(0.6),
                         ),
@@ -85,7 +85,7 @@ class ProjectQuickPanel extends StatelessWidget {
                     Expanded(
                       child: _buildActionItem(context, Icons.chat_bubble_outline, 'Open Channel', theme.colorScheme.primary, () {
                         Navigator.pop(context);
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(channelId: 'placeholder', channelName: project['title'])));
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(channelId: project['id'] ?? 'placeholder', channelName: project['name'] ?? 'Channel')));
                       }),
                     ),
                     Expanded(
@@ -143,14 +143,14 @@ class ProjectQuickPanel extends StatelessWidget {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text('${project['progress']}%', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                                Text('${project['progressPercent'] ?? project['progress'] ?? 0}%', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                                 const SizedBox(width: 4),
                                 Text('(0/0)', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
                               ],
                             ),
                             const SizedBox(height: 12),
                             LinearProgressIndicator(
-                              value: (project['progress'] as int) / 100,
+                              value: ((project['progressPercent'] ?? project['progress'] ?? 0) as num) / 100,
                               backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(2),
                             ),
@@ -241,9 +241,9 @@ class ProjectQuickPanel extends StatelessWidget {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildFinancialCard(theme, 'INVOICED', project['budget'])),
+                    Expanded(child: _buildFinancialCard(theme, 'INVOICED', project['budget']?.toString() ?? '₦0')),
                     const SizedBox(width: 8),
-                    Expanded(child: _buildFinancialCard(theme, 'OUTSTANDING', project['budget'], borderColor: Colors.orange.withOpacity(0.3))),
+                    Expanded(child: _buildFinancialCard(theme, 'OUTSTANDING', project['budget']?.toString() ?? '₦0', borderColor: Colors.orange.withOpacity(0.3))),
                     const SizedBox(width: 8),
                     Expanded(child: _buildFinancialCard(theme, 'PAID', '₦0', borderColor: Colors.green.withOpacity(0.3))),
                   ],

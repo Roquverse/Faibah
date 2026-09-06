@@ -4,7 +4,10 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'channel_info_screen.dart';
+import '../data/providers/chat_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String channelId;
@@ -26,57 +29,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isRecording = false;
   bool _showActionIcons = false;
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'id': '1',
-      'sender': 'Arakunrin Cole',
-      'role': 'CONTRACTOR',
-      'text': 'Hello\nHi welcome to the project channel',
-      'time': '25 Aug',
-      'isMe': false,
-    },
-    {
-      'id': '2',
-      'sender': 'Oluwadamilola Cole (You)',
-      'role': 'OWNER',
-      'text': '@Oluwadamilola Cole Is this project ready?\n\nhttps://faibah.com',
-      'time': '25 Aug',
-      'isMe': true,
-    },
-    {
-      'id': '3',
-      'sender': 'Oluwadamilola Cole (You)',
-      'role': 'OWNER',
-      'text': 'Attached a file: 228c71510a8e868.png',
-      'image': 'mock_image_path',
-      'time': '26 Aug',
-      'isMe': true,
-    },
-    {
-      'id': '4',
-      'sender': 'Oluwadamilola Cole (You)',
-      'role': 'OWNER',
-      'text': 'Voice Message',
-      'isVoice': true,
-      'time': '26 Aug',
-      'isMe': true,
-    },
-  ];
-
+  // Remove mock messages
+  
   void _sendMessage() {
     if (_messageController.text.trim().isEmpty) return;
 
-    setState(() {
-      _messages.add({
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'sender': 'Oluwadamilola Cole (You)',
-        'role': 'OWNER',
-        'text': _messageController.text,
-        'time': 'Just now',
-        'isMe': true,
-      });
-    });
-
+    ref.read(chatProviderFamily(widget.channelId).notifier).sendMessage(_messageController.text);
+    
     _messageController.clear();
   }
 
@@ -171,17 +130,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final List<XFile> images = await picker.pickMultiImage();
       if (images.isNotEmpty) {
         setState(() {
-          for (var image in images) {
-            _messages.add({
-              'id': DateTime.now().millisecondsSinceEpoch.toString(),
-              'sender': 'Oluwadamilola Cole (You)',
-              'role': 'OWNER',
-              'text': 'Attached an image: ${image.name}',
-              'image': image.path,
-              'time': 'Just now',
-              'isMe': true,
-            });
-          }
+          // Add dummy local attachments to simulate for now
         });
       }
     } catch (e) {
@@ -198,16 +147,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         setState(() {
           _isRecording = false;
           if (path != null) {
-            _messages.add({
-              'id': DateTime.now().millisecondsSinceEpoch.toString(),
-              'sender': 'Oluwadamilola Cole (You)',
-              'role': 'OWNER',
-              'text': 'Voice Message',
-              'isVoice': true,
-              'audioPath': path,
-              'time': 'Just now',
-              'isMe': true,
-            });
+             // Mock add voice
           }
         });
       } else {
@@ -251,12 +191,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildMessageTile(theme, message);
+            child: ref.watch(chatProviderFamily(widget.channelId)).when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Center(child: Text('Error: $e')),
+              data: (messages) {
+                if (messages.isEmpty) {
+                  return const Center(child: Text('No messages yet. Say hello!', style: TextStyle(color: Colors.grey)));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    return _buildMessageTile(theme, message);
+                  },
+                );
               },
             ),
           ),
@@ -352,6 +301,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildMessageTile(ThemeData theme, Map<String, dynamic> message) {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final isMe = message['senderId'] == currentUserId || message['isMe'] == true;
+    
+    final senderName = isMe ? 'You' : (message['senderType'] == 'TEAM' ? 'Team Member' : 'Client');
+    final avatarLetter = senderName.substring(0, 1).toUpperCase();
+    
+    // Parse time
+    String displayTime = message['time'] ?? '';
+    if (message['createdAt'] != null) {
+      final dt = DateTime.tryParse(message['createdAt']);
+      if (dt != null) {
+        displayTime = DateFormat('MMM d, h:mm a').format(dt.toLocal());
+      }
+    }
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Row(
@@ -362,7 +326,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
             foregroundColor: theme.colorScheme.primary,
             child: Text(
-              message['sender'].substring(0, 1).toUpperCase(),
+              avatarLetter,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
@@ -374,12 +338,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 Row(
                   children: [
                     Text(
-                      message['sender'],
+                      senderName,
                       style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      message['time'],
+                      displayTime,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.5),
                       ),
@@ -388,12 +352,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  message['text'],
+                  message['content'] ?? message['text'] ?? '',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.9),
                   ),
                 ),
-                if (message.containsKey('image'))
+                if (message['attachmentUrl'] != null || message.containsKey('image'))
                   Container(
                     margin: const EdgeInsets.only(top: 8),
                     height: 200,
