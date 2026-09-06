@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'widgets/project_quick_panel.dart';
-import 'create_project_screen.dart';
 
 class ProjectsScreen extends ConsumerStatefulWidget {
   const ProjectsScreen({super.key});
@@ -59,10 +58,122 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     );
   }
 
-  void _navigateToCreateProject() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CreateProjectScreen()),
+  void _showCreateProjectModal(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+    String projectName = '';
+    String clientName = '';
+    String projectDetails = '';
+    String dueDate = '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('New Project', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Project Name',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                  onSaved: (val) => projectName = val!,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    labelText: 'Client',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'Acme Corp', child: Text('Acme Corp')),
+                    DropdownMenuItem(value: 'Wayne Enterprises', child: Text('Wayne Enterprises')),
+                  ],
+                  onChanged: (val) {},
+                  onSaved: (val) => clientName = val ?? '',
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Project Details',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                  onSaved: (val) => projectDetails = val ?? '',
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Due Date',
+                    border: OutlineInputBorder(),
+                    suffixIcon: Icon(Icons.calendar_today),
+                  ),
+                  onSaved: (val) => dueDate = val ?? '',
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+                        // Here you'd call ProjectsApi.createProject(...)
+                        // Mocking success
+                        setState(() {
+                          _projects.add({
+                            'id': DateTime.now().millisecondsSinceEpoch.toString(),
+                            'title': projectName,
+                            'client': clientName.isNotEmpty ? clientName : 'Unknown Client',
+                            'status': 'DRAFT',
+                            'progress': 0,
+                            'budget': '₦0',
+                          });
+                        });
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Project created as DRAFT')));
+                      }
+                    },
+                    child: const Text('Create Project', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -82,20 +193,11 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Projects', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text(
-              'Manage your ongoing work and client deliverables.',
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.5)),
-            ),
-          ],
-        ),
+        title: const Text('Projects'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: _navigateToCreateProject,
+            onPressed: () => _showCreateProjectModal(context),
           ),
         ],
       ),
@@ -137,7 +239,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                       icon: const Icon(Icons.add, size: 20),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      onPressed: _navigateToCreateProject,
+                      onPressed: () => _showCreateProjectModal(context),
                     ),
                   ],
                 ),

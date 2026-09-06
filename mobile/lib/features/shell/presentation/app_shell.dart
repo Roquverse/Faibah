@@ -56,23 +56,22 @@ class _AppShellState extends State<AppShell> {
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (context, animation, secondaryAnimation) {
         final List<Map<String, dynamic>> menuItems = [
-          {'icon': Icons.description, 'title': 'Proposals', 'color': Colors.blueAccent, 'screen': const ProposalsScreen()},
-          {'icon': Icons.task_alt, 'title': 'Tasks', 'color': Colors.redAccent, 'screen': const TasksScreen()},
-          {'icon': Icons.calendar_today, 'title': 'Schedule', 'color': Colors.purpleAccent, 'screen': const ScheduleScreen()},
-          {'icon': Icons.people, 'title': 'Team', 'color': Colors.orangeAccent, 'screen': const TeamScreen()},
-          {'icon': Icons.business, 'title': 'Clients', 'color': Colors.pinkAccent, 'screen': const ClientsScreen()},
-          {'icon': Icons.receipt_long, 'title': 'Invoices', 'color': Colors.tealAccent, 'screen': const InvoicesScreen()},
-          {'icon': Icons.receipt, 'title': 'Receipts', 'color': Colors.indigoAccent, 'screen': const ReceiptsScreen()},
-          {'icon': Icons.credit_card, 'title': 'Payments', 'color': Colors.deepOrangeAccent, 'screen': const PaymentsScreen()},
-          {'icon': Icons.sync, 'title': 'Subscriptions', 'color': Colors.cyanAccent, 'screen': const SubscriptionsScreen()},
-          {'icon': Icons.settings, 'title': 'Settings', 'color': Colors.grey, 'screen': const SettingsScreen()},
+          {'icon': Icons.description, 'title': 'Proposals', 'color': const Color(0xFF6C63FF), 'screen': const ProposalsScreen()},
+          {'icon': Icons.task_alt, 'title': 'Tasks', 'color': const Color(0xFFE53935), 'screen': const TasksScreen()},
+          {'icon': Icons.calendar_today, 'title': 'Schedule', 'color': const Color(0xFFFF6D00), 'screen': const ScheduleScreen()},
+          {'icon': Icons.people, 'title': 'Team', 'color': const Color(0xFFFFC107), 'screen': const TeamScreen()},
+          {'icon': Icons.business, 'title': 'Clients', 'color': const Color(0xFF00BCD4), 'screen': const ClientsScreen()},
+          {'icon': Icons.receipt_long, 'title': 'Invoices', 'color': const Color(0xFF43A047), 'screen': const InvoicesScreen()},
+          {'icon': Icons.receipt, 'title': 'Receipts', 'color': const Color(0xFF8E24AA), 'screen': const ReceiptsScreen()},
+          {'icon': Icons.sync, 'title': 'Subscriptions', 'color': const Color(0xFF1E88E5), 'screen': const SubscriptionsScreen()},
+          {'icon': Icons.chat_bubble_outline, 'title': 'Channels', 'color': const Color(0xFF039BE5), 'screen': const ChannelsScreen()},
         ];
 
         return Align(
           alignment: Alignment.bottomLeft,
           child: Container(
-            margin: const EdgeInsets.only(left: 20, right: 90, bottom: 90),
-            padding: const EdgeInsets.all(24),
+            margin: const EdgeInsets.only(left: 16, right: 16, bottom: 90),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: const Color(0xFF141414),
               borderRadius: BorderRadius.circular(32),
@@ -80,48 +79,60 @@ class _AppShellState extends State<AppShell> {
             ),
             child: Material(
               color: Colors.transparent,
-              child: Wrap(
-                spacing: 20,
-                runSpacing: 24,
-                alignment: WrapAlignment.center,
-                children: menuItems.map((item) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context); // Close the popup
-                      if (item['screen'] != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => item['screen'] as Widget),
-                        );
-                      }
-                    },
-                    child: SizedBox(
-                      width: 72,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 3 column grid using rows
+                  for (int row = 0; row < (menuItems.length / 3).ceil(); row++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF242424),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 28),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            item['title'] as String,
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          for (int col = 0; col < 3; col++)
+                            Builder(builder: (context) {
+                              final i = row * 3 + col;
+                              if (i >= menuItems.length) return const Expanded(child: SizedBox());
+                              final item = menuItems[i];
+                              return Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => item['screen'] as Widget),
+                                    );
+                                  },
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 52,
+                                        height: 52,
+                                        decoration: BoxDecoration(
+                                          color: (item['color'] as Color).withOpacity(0.12),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(color: (item['color'] as Color).withOpacity(0.2)),
+                                        ),
+                                        child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 22),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        item['title'] as String,
+                                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
                         ],
                       ),
                     ),
-                  );
-                }).toList(),
+                ],
               ),
             ),
           ),
@@ -210,7 +221,7 @@ class _AppShellState extends State<AppShell> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF050505) : Colors.white,
+      backgroundColor: isDark ? theme.scaffoldBackgroundColor : Colors.white,
       body: Stack(
         children: [
           IndexedStack(

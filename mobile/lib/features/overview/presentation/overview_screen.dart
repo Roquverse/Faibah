@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:math' as math;
 import '../../../core/theme/theme_provider.dart';
 import 'providers/overview_provider.dart';
+import '../../settings/presentation/settings_screen.dart';
+import '../../clients/presentation/clients_screen.dart';
 
 class OverviewScreen extends ConsumerStatefulWidget {
   const OverviewScreen({super.key});
@@ -20,7 +23,7 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
     final overviewAsync = ref.watch(overviewProvider);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF050505) : Colors.white,
+      backgroundColor: isDark ? theme.scaffoldBackgroundColor : Colors.white,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -49,7 +52,7 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFC107), // Faibah Yellow
+                            color: const Color(0xFFFFC107),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           constraints: const BoxConstraints(
@@ -69,10 +72,29 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
                       )
                     ],
                   ),
-                  const SizedBox(width: 8),
-                  const CircleAvatar(
-                    radius: 18,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.settings_outlined, size: 26),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final user = Supabase.instance.client.auth.currentUser;
+                      final metadata = user?.userMetadata ?? {};
+                      final avatarUrl = metadata['avatar_url']?.toString();
+                      final fullName = metadata['full_name']?.toString() ?? user?.email ?? 'User';
+                      final fallbackAvatar = 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(fullName)}&background=random&format=png';
+                      
+                      return CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.blue.shade100,
+                        backgroundImage: NetworkImage(avatarUrl != null && avatarUrl.isNotEmpty ? avatarUrl : fallbackAvatar),
+                      );
+                    }
                   ),
                 ],
               ),
@@ -154,79 +176,78 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.black : Colors.grey.shade50,
+                  color: isDark ? theme.scaffoldBackgroundColor : Colors.grey.shade50,
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                 ),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.only(top: 24, bottom: 120),
-                  child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Metric Cards (Horizontal scroll to fit mobile)
-                    SizedBox(
-                      height: 110,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        children: [
-                          _buildMetricCard('Active Clients', '1', Icons.people_outline, isDark),
-                          const SizedBox(width: 12),
-                          _buildMetricCard('Total Revenue', '₦0.0K', Icons.attach_money, isDark, iconBg: const Color(0xFFFFC107).withOpacity(0.1), iconColor: const Color(0xFFFFB300)),
-                          const SizedBox(width: 12),
-                          _buildMetricCard('Active Projects', '1', Icons.folder_open, isDark),
-                          const SizedBox(width: 12),
-                          _buildMetricCard('Total Closed', '0', Icons.check_circle_outline, isDark),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                child: overviewAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(
+                    child: Text('Error loading overview: $err', style: const TextStyle(color: Colors.red)),
+                  ),
+                  data: (data) => SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(top: 24, bottom: 120),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 1. Metric Cards (Horizontal scroll to fit mobile)
+                        SizedBox(
+                          height: 110,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            children: [
+                              _buildMetricCard('Active Clients', '${data['activeClients'] ?? 0}', Icons.people_outline, isDark),
+                              const SizedBox(width: 12),
+                              _buildMetricCard('Total Revenue', '₦${((data['totalRevenue'] ?? 0) / 1000).toStringAsFixed(1)}K', Icons.attach_money, isDark, iconBg: const Color(0xFFFFC107).withOpacity(0.1), iconColor: const Color(0xFFFFB300)),
+                              const SizedBox(width: 12),
+                              _buildMetricCard('Active Projects', '${data['activeProjects'] ?? 0}', Icons.folder_open, isDark),
+                              const SizedBox(width: 12),
+                              _buildMetricCard('Total Closed', '${data['totalClosed'] ?? 0}', Icons.check_circle_outline, isDark),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
 
-                    // 2. Productivity KPIs Chart
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildKPICard(isDark),
-                    ),
-                    const SizedBox(height: 24),
+                        // 2. Productivity KPIs Chart
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildKPICard(isDark, data),
+                        ),
+                        const SizedBox(height: 24),
 
-                    // 3. Subscriptions & Reminders Row
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: _buildEmptyStateCard('Subscriptions', 'No active subscriptions', isDark, action: 'View All')),
-                          const SizedBox(width: 16),
-                          Expanded(child: _buildEmptyStateCard('Reminders', 'No reminders', isDark, hasArrow: true)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                        // 3. Subscriptions & Reminders Row
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: _buildEmptyStateCard('Subscriptions', (data['subscriptions'] as List?)?.isEmpty ?? true ? 'No active subscriptions' : '${(data['subscriptions'] as List).length} active', isDark, action: 'View All')),
+                              const SizedBox(width: 16),
+                              Expanded(child: _buildEmptyStateCard('Reminders', (data['reminders'] as List?)?.isEmpty ?? true ? 'No reminders' : '${(data['reminders'] as List).length} reminders', isDark, hasArrow: true)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
 
-                    // 4. Calendar Widget
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildCalendarCard(isDark),
-                    ),
-                    const SizedBox(height: 24),
+                        // 5. Top Clients
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildTopClientsCard(context, isDark, data['topClients'] as List? ?? []),
+                        ),
+                        const SizedBox(height: 24),
 
-                    // 5. Top Clients
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildTopClientsCard(isDark),
+                        // 6. Today Task List
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildTodayTaskSection(isDark, data),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-
-                    // 6. Today Task List
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildTodayTaskSection(isDark),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
           ],
         ),
       ),
@@ -275,7 +296,7 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
     );
   }
 
-  Widget _buildKPICard(bool isDark) {
+  Widget _buildKPICard(bool isDark, Map<String, dynamic> data) {
     final bgColor = isDark ? const Color(0xFF050505) : Colors.white;
     final borderColor = isDark ? Colors.white10 : Colors.grey.shade200;
 
@@ -325,13 +346,13 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
               Expanded(
                 child: Column(
                   children: [
-                    _buildLegendItem('Draft', '02', const Color(0xFFFF6B6B)),
+                    _buildLegendItem('Draft', '${data['draftProjects'] ?? 0}', const Color(0xFFFF6B6B)),
                     const SizedBox(height: 12),
-                    _buildLegendItem('Ongoing', '3', const Color(0xFFFFD93D)),
+                    _buildLegendItem('Ongoing', '${data['ongoingProjects'] ?? 0}', const Color(0xFFFFD93D)),
                     const SizedBox(height: 12),
-                    _buildLegendItem('Awaiting payment', '3', const Color(0xFF6BCB77)),
+                    _buildLegendItem('Awaiting payment', '${data['awaitingPaymentProjects'] ?? 0}', const Color(0xFF6BCB77)),
                     const SizedBox(height: 12),
-                    _buildLegendItem('Completed', '3', const Color(0xFF4D96FF)),
+                    _buildLegendItem('Completed', '${data['totalClosed'] ?? 0}', const Color(0xFF4D96FF)),
                   ],
                 ),
               )
@@ -523,8 +544,9 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
     );
   }
 
-  Widget _buildTopClientsCard(bool isDark) {
-    final bgColor = isDark ? const Color(0xFF050505) : Colors.white;
+  Widget _buildTopClientsCard(BuildContext context, bool isDark, List<dynamic> clients) {
+    final theme = Theme.of(context);
+    final bgColor = isDark ? theme.colorScheme.surface : Colors.white;
     final borderColor = isDark ? Colors.white10 : Colors.grey.shade200;
 
     return Container(
@@ -543,38 +565,54 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Top Clients', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              Icon(Icons.arrow_outward, size: 16, color: Colors.grey.shade400),
+              const Text('Latest Clients', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ClientsScreen()));
+                },
+                child: Icon(Icons.arrow_outward, size: 16, color: Colors.grey.shade400),
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.blue.shade100,
-                child: Text('JO', style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Johnson', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                    const SizedBox(height: 2),
-                    Text('Individual', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                  ],
+          if (clients.isEmpty)
+             Center(child: Text('No clients found', style: TextStyle(color: Colors.grey.shade500))),
+          ...clients.map((client) => Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.blue.shade100,
+                  backgroundImage: NetworkImage(
+                    (client['img'] != null && client['img'].toString().contains('ui-avatars.com') && !client['img'].toString().contains('format=png'))
+                        ? '${client['img']}&format=png'
+                        : client['img'] ?? ''
+                  ),
                 ),
-              ),
-              Icon(Icons.phone_outlined, color: Colors.grey.shade400, size: 20),
-            ],
-          )
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(client['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const SizedBox(height: 2),
+                      Text(client['company'] ?? 'Individual', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.phone_outlined, color: Colors.grey.shade400, size: 20),
+              ],
+            ),
+          )).toList(),
         ],
       ),
     );
   }
 
-  Widget _buildTodayTaskSection(bool isDark) {
+  Widget _buildTodayTaskSection(bool isDark, Map<String, dynamic> data) {
+    final tasks = data['tasks'] as List? ?? [];
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -586,18 +624,25 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 220,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            children: [
-              _buildTodayTaskCard(isDark, 'Create mood boards and visual references mobile apps.', 26),
-              const SizedBox(width: 16),
-              _buildTodayTaskCard(isDark, 'Review wireframes for client portal and web app.', 60),
-            ],
+        if (tasks.isEmpty)
+           Center(
+             child: Padding(
+               padding: const EdgeInsets.symmetric(vertical: 32.0),
+               child: Text('No tasks for today', style: TextStyle(color: Colors.grey.shade500)),
+             ),
+           )
+        else
+          SizedBox(
+            height: 220,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              children: tasks.map((task) => Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: _buildTodayTaskCard(isDark, task['title'] ?? 'Task', task['progress'] ?? 0),
+              )).toList(),
+            ),
           ),
-        ),
       ],
     );
   }

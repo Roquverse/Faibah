@@ -5,9 +5,10 @@ import '../../invoices/presentation/invoices_screen.dart';
 import '../../schedule/presentation/schedule_screen.dart';
 import '../../subscriptions/presentation/subscriptions_screen.dart';
 import '../../receipts/presentation/receipts_screen.dart';
-import '../../payments/presentation/payments_screen.dart';
-import '../../settings/presentation/settings_screen.dart';
-
+import '../../team/presentation/team_screen.dart';
+import '../../tasks/presentation/tasks_screen.dart';
+import '../../proposals/presentation/proposals_screen.dart';
+import '../../channels/presentation/channels_screen.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/login_screen.dart';
 
@@ -18,148 +19,96 @@ class MoreScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
+    final items = [
+      _GridItem(icon: Icons.description_outlined, label: 'Proposals', color: const Color(0xFF6C63FF), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProposalsScreen()))),
+      _GridItem(icon: Icons.check_circle_outline, label: 'Tasks', color: const Color(0xFFE53935), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TasksScreen()))),
+      _GridItem(icon: Icons.calendar_month_outlined, label: 'Schedule', color: const Color(0xFFFF6D00), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScheduleScreen()))),
+      _GridItem(icon: Icons.people_outline, label: 'Team', color: const Color(0xFFFFC107), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TeamScreen()))),
+      _GridItem(icon: Icons.person_outline, label: 'Clients', color: const Color(0xFF00BCD4), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClientsScreen()))),
+      _GridItem(icon: Icons.receipt_long_outlined, label: 'Invoices', color: const Color(0xFF43A047), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InvoicesScreen()))),
+      _GridItem(icon: Icons.description_outlined, label: 'Receipts', color: const Color(0xFF8E24AA), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReceiptsScreen()))),
+      _GridItem(icon: Icons.sync, label: 'Subscriptions', color: const Color(0xFF1E88E5), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionsScreen()))),
+      _GridItem(icon: Icons.chat_bubble_outline, label: 'Channels', color: const Color(0xFF039BE5), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChannelsScreen()))),
+      _GridItem(
+        icon: Icons.logout,
+        label: 'Logout',
+        color: theme.colorScheme.error,
+        onTap: () async {
+          await ref.read(authStateProvider.notifier).logout();
+          if (context.mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+            );
+          }
+        },
+      ),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('More'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(20),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 20,
+          childAspectRatio: 0.9,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return _buildGridItem(context, theme, item);
+        },
+      ),
+    );
+  }
+
+  Widget _buildGridItem(BuildContext context, ThemeData theme, _GridItem item) {
+    return GestureDetector(
+      onTap: item.onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildMenuSection(
-            context,
-            'Business',
-            [
-              _MenuOption(
-                icon: Icons.people_outline,
-                title: 'Clients',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClientsScreen())),
-              ),
-              _MenuOption(
-                icon: Icons.calendar_today_outlined,
-                title: 'Schedule',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScheduleScreen())),
-              ),
-              _MenuOption(
-                icon: Icons.sync,
-                title: 'Subscriptions',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionsScreen())),
-              ),
-              _MenuOption(
-                icon: Icons.receipt_long_outlined,
-                title: 'Invoices',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InvoicesScreen())),
-              ),
-              _MenuOption(
-                icon: Icons.description_outlined,
-                title: 'Receipts',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReceiptsScreen())),
-              ),
-              _MenuOption(
-                icon: Icons.payment_outlined,
-                title: 'Payments',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen())),
-              ),
-            ],
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: item.color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: item.color.withOpacity(0.15)),
+            ),
+            child: Icon(item.icon, color: item.color, size: 28),
           ),
-          const SizedBox(height: 24),
-          _buildMenuSection(
-            context,
-            'Preferences',
-            [
-              _MenuOption(
-                icon: Icons.settings_outlined,
-                title: 'Settings',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
-              ),
-              _MenuOption(
-                icon: Icons.logout,
-                title: 'Logout',
-                iconColor: theme.colorScheme.error,
-                textColor: theme.colorScheme.error,
-                onTap: () async {
-                  await ref.read(authStateProvider.notifier).logout();
-                  if (context.mounted) {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                      (route) => false,
-                    );
-                  }
-                },
-              ),
-            ],
+          const SizedBox(height: 10),
+          Text(
+            item.label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
-
-  Widget _buildMenuSection(BuildContext context, String title, List<_MenuOption> options) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            title,
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Card(
-          child: Column(
-            children: options.asMap().entries.map((entry) {
-              final index = entry.key;
-              final option = entry.value;
-              return Column(
-                children: [
-                  ListTile(
-                    leading: Icon(option.icon, color: option.iconColor ?? theme.colorScheme.onSurface),
-                    title: Text(
-                      option.title,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: option.textColor ?? theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    subtitle: option.subtitle != null
-                        ? Text(
-                            option.subtitle!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.5),
-                            ),
-                          )
-                        : null,
-                    trailing: const Icon(Icons.chevron_right, size: 20),
-                    onTap: option.onTap,
-                  ),
-                  if (index < options.length - 1)
-                    Divider(height: 1, indent: 56, color: theme.colorScheme.surfaceContainerHighest),
-                ],
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
-class _MenuOption {
+class _GridItem {
   final IconData icon;
-  final String title;
-  final String? subtitle;
-  final Color? iconColor;
-  final Color? textColor;
+  final String label;
+  final Color color;
   final VoidCallback onTap;
 
-  _MenuOption({
+  _GridItem({
     required this.icon,
-    required this.title,
-    this.subtitle,
-    this.iconColor,
-    this.textColor,
+    required this.label,
+    required this.color,
     required this.onTap,
   });
 }

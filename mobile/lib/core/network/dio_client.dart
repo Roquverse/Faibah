@@ -11,7 +11,7 @@ class DioClient {
   static final String _devUrl = Platform.isAndroid ? 'http://10.0.2.2:3005' : 'http://127.0.0.1:3005';
   static const String _prodUrl = 'https://backend.faibah.com';
   
-  static final String _baseUrl = kReleaseMode ? _prodUrl : _devUrl;
+  static final String _baseUrl = _prodUrl;
 
   DioClient(this._secureStorage)
       : _dio = Dio(

@@ -137,18 +137,14 @@ class InvoicePreviewScreen extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      scrolledUnderElevation: 1,
       titleSpacing: 0,
-      leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF111827), size: 20), onPressed: () => Navigator.pop(context)),
+      leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
       title: Text(
-        invoice.invoiceRef != null ? 'Preview Invoice · ${invoice.invoiceRef}' : 'Preview Invoice',
+        invoice.invoiceRef != null ? 'Preview · ${invoice.invoiceRef}' : 'Preview Invoice',
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: Color(0xFF111827), fontWeight: FontWeight.w700, fontSize: 15),
       ),
       actions: [
-        IconButton(onPressed: () => _downloadPdf(context), icon: const Icon(Icons.download_outlined, color: Color(0xFF374151)), tooltip: 'Download PDF'),
+        IconButton(onPressed: () => _downloadPdf(context), icon: const Icon(Icons.download_outlined), tooltip: 'Download PDF'),
         Padding(
           padding: const EdgeInsets.only(right: 10, top: 8, bottom: 8),
           child: ElevatedButton.icon(

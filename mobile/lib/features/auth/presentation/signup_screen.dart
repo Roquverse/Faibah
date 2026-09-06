@@ -262,13 +262,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.g_mobiledata, color: Colors.black, size: 28),
+                      Image.network(
+                        'https://img.icons8.com/color/48/000000/google-logo.png',
+                        width: 24,
+                        height: 24,
                       ),
                       const SizedBox(width: 8),
                       const Text('Google', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
@@ -286,6 +283,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
+                    side: BorderSide(color: theme.colorScheme.onSurface.withOpacity(0.2)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

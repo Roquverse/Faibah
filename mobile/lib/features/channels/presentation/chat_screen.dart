@@ -233,18 +233,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Icon(Icons.tag, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                widget.channelName,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        title: Text('# ${widget.channelName}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),

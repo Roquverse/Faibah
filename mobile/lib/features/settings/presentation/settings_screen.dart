@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/presentation/auth_controller.dart';
+import '../../auth/presentation/login_screen.dart';
+import '../../payments/presentation/payments_screen.dart';
+import 'profile_settings_screen.dart';
+import 'security_settings_screen.dart';
+import 'company_info_settings_screen.dart';
+import 'appearance_settings_screen.dart';
+import 'notifications_settings_screen.dart';
+import 'bank_accounts_settings_screen.dart';
+import 'connected_apps_settings_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -16,43 +27,56 @@ class SettingsScreen extends StatelessWidget {
         children: [
           _buildSectionHeader('Account', theme),
           _buildSettingsTile(Icons.person_outline, 'Profile', 'Update your personal details', theme, () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile settings coming soon')));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileSettingsScreen()));
           }),
           _buildSettingsTile(Icons.lock_outline, 'Security', 'Password, 2FA, and sessions', theme, () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Security settings coming soon')));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const SecuritySettingsScreen()));
           }),
           _buildSettingsTile(Icons.business, 'Company Info', 'Business name, address, tax info', theme, () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Company info coming soon')));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const CompanyInfoSettingsScreen()));
           }),
           
           const SizedBox(height: 24),
           _buildSectionHeader('Preferences', theme),
           _buildSettingsTile(Icons.palette_outlined, 'Appearance', 'Dark mode, true black', theme, () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appearance settings coming soon')));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const AppearanceSettingsScreen()));
           }),
           _buildSettingsTile(Icons.notifications_outlined, 'Notifications', 'Push and email alerts', theme, () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notifications settings coming soon')));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsSettingsScreen()));
           }),
           
           const SizedBox(height: 24),
           _buildSectionHeader('Integrations', theme),
           _buildSettingsTile(Icons.account_balance, 'Bank Accounts', 'Manage payout accounts', theme, () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bank Accounts coming soon')));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const BankAccountsSettingsScreen()));
           }),
           _buildSettingsTile(Icons.link, 'Connected Apps', 'Google Calendar, Stripe', theme, () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connected Apps coming soon')));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectedAppsSettingsScreen()));
+          }),
+          
+          const SizedBox(height: 24),
+          _buildSectionHeader('Financial', theme),
+          _buildSettingsTile(Icons.payment_outlined, 'Payments', 'View and manage payments', theme, () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen()));
           }),
           
           const SizedBox(height: 32),
           ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sign out feature coming soon')));
+            onPressed: () async {
+              await ref.read(authStateProvider.notifier).logout();
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
             },
             icon: const Icon(Icons.logout),
             label: const Text('Sign Out'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.errorContainer,
-              foregroundColor: theme.colorScheme.onErrorContainer,
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),

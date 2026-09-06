@@ -9,10 +9,10 @@ class AppTheme {
   static const Color yellow = Color(0xFFFFBA00);
 
   // Dark Mode Colors
-  static const Color darkBackground = trueBlack;
-  static const Color darkSurface01 = Color(0xFF111111);
-  static const Color darkSurface02 = Color(0xFF1A1A1A);
-  static const Color darkSurface03 = Color(0xFF242424);
+  static const Color darkBackground = Color(0xFF121212);
+  static const Color darkSurface01 = Color(0xFF1E1E1E);
+  static const Color darkSurface02 = Color(0xFF252525);
+  static const Color darkSurface03 = Color(0xFF2C2C2C);
   static const Color darkTextPrimary = Color(0xFFFFFFFF);
   static const Color darkTextSecondary = Color(0xFFAAAAAA);
 
@@ -54,15 +54,16 @@ class AppTheme {
         labelLarge: GoogleFonts.inter(color: lightTextPrimary, fontWeight: FontWeight.bold),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: lightSurface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
         iconTheme: IconThemeData(color: lightTextPrimary),
         titleTextStyle: TextStyle(
             fontFamily: 'Inter',
             color: lightTextPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.w600),
+            fontSize: 24,
+            fontWeight: FontWeight.bold),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: lightSurface,
@@ -147,15 +148,16 @@ class AppTheme {
         labelLarge: GoogleFonts.inter(color: darkTextPrimary, fontWeight: FontWeight.bold),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: darkBackground,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
         iconTheme: IconThemeData(color: darkTextPrimary),
         titleTextStyle: TextStyle(
             fontFamily: 'Inter',
             color: darkTextPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.w600),
+            fontSize: 24,
+            fontWeight: FontWeight.bold),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: darkSurface01,

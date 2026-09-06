@@ -104,7 +104,7 @@ class _AnimatedSplashScreenState extends ConsumerState<AnimatedSplashScreen>
     final topSectionHeight = screenHeight * 0.55;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: Colors.black,
       body: AnimatedBuilder(
         animation: _collapseController,
         builder: (context, child) {
@@ -144,7 +144,7 @@ class _AnimatedSplashScreenState extends ConsumerState<AnimatedSplashScreen>
                             height: 100,
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E1E1E),
+                              color: Colors.black,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(

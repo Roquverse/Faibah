@@ -113,10 +113,13 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                               children: [
                                 Icon(Icons.email_outlined, size: 14, color: theme.colorScheme.onSurface.withOpacity(0.5)),
                                 const SizedBox(width: 6),
-                                Text(
-                                  client.email!,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                Expanded(
+                                  child: Text(
+                                    client.email!,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
@@ -127,10 +130,13 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                             children: [
                               Icon(Icons.phone_outlined, size: 14, color: theme.colorScheme.onSurface.withOpacity(0.5)),
                               const SizedBox(width: 6),
-                              Text(
-                                client.whatsappNumber!,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                              Expanded(
+                                child: Text(
+                                  client.whatsappNumber!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],

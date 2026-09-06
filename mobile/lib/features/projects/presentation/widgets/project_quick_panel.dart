@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../channels/presentation/chat_screen.dart';
 import '../../../tasks/presentation/tasks_screen.dart';
 import '../../../invoices/presentation/invoices_screen.dart';
+import '../../../proposals/presentation/create_proposal_screen.dart';
 
 class ProjectQuickPanel extends StatelessWidget {
   final Map<String, dynamic> project;
@@ -96,6 +97,12 @@ class ProjectQuickPanel extends StatelessWidget {
                     Expanded(
                       child: _buildActionItem(context, Icons.person_add_outlined, 'Collaborator', theme.colorScheme.onSurface, () {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collaborator screen coming soon')));
+                      }),
+                    ),
+                    Expanded(
+                      child: _buildActionItem(context, Icons.description_outlined, 'New Proposal', theme.colorScheme.onSurface, () {
+                        Navigator.pop(context);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateProposalScreen()));
                       }),
                     ),
                     Expanded(

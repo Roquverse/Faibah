@@ -52,11 +52,15 @@ export class CompanyService {
 
     const companyId = company.id;
 
-    const [activeClients, activeProjects, totalClosed] = await Promise.all([
+    const [activeClients, draftProjects, ongoingProjects, awaitingPaymentProjects, totalClosed] = await Promise.all([
       this.prisma.client.count({ where: { companyId } }),
-      this.prisma.project.count({ where: { client: { companyId }, status: { in: ['ONGOING', 'DRAFT', 'AWAITING_PAYMENT'] } } }),
+      this.prisma.project.count({ where: { client: { companyId }, status: 'DRAFT' } }),
+      this.prisma.project.count({ where: { client: { companyId }, status: 'ONGOING' } }),
+      this.prisma.project.count({ where: { client: { companyId }, status: 'AWAITING_PAYMENT' } }),
       this.prisma.project.count({ where: { client: { companyId }, status: 'COMPLETED' } })
     ]);
+
+    const activeProjects = draftProjects + ongoingProjects + awaitingPaymentProjects;
 
     const revenueAgg = await this.prisma.paymentRecord.aggregate({
       _sum: { amount: true },
@@ -70,13 +74,13 @@ export class CompanyService {
       include: {
         _count: { select: { projects: true } }
       },
-      orderBy: { projects: { _count: 'desc' } }
+      orderBy: { createdAt: 'desc' }
     });
 
     const topClients = topClientsList.map(c => ({
       name: c.name,
       company: c.companyName || 'Individual',
-      img: c.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random`
+      img: c.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random&format=png`
     }));
 
     const currentYear = new Date().getFullYear();
@@ -112,6 +116,9 @@ export class CompanyService {
     return {
       activeClients,
       activeProjects,
+      draftProjects,
+      ongoingProjects,
+      awaitingPaymentProjects,
       totalClosed,
       totalRevenue,
       topClients,

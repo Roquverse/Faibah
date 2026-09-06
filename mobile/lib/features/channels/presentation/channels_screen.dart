@@ -40,14 +40,12 @@ class _ChannelsScreenState extends ConsumerState<ChannelsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('Channels'),
-            const SizedBox(width: 8),
-            Icon(Icons.add, size: 20, color: theme.colorScheme.onSurface.withOpacity(0.6)),
-          ],
-        ),
+        title: const Text('Channels'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {},
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {},

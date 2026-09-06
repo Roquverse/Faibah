@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'create_proposal_screen.dart';
 
 class ProposalsScreen extends StatelessWidget {
   const ProposalsScreen({super.key});
@@ -7,16 +8,19 @@ class ProposalsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final mockProposals = [
-      {'title': 'Website Redesign Proposal', 'client': 'Acme Corp', 'status': 'Pending', 'date': 'Oct 12, 2026'},
-      {'title': 'Mobile App MVP Development', 'client': 'Stark Industries', 'status': 'Approved', 'date': 'Oct 05, 2026'},
-      {'title': 'SEO Optimization Strategy', 'client': 'Wayne Enterprises', 'status': 'Rejected', 'date': 'Sep 28, 2026'},
+      {'title': 'Website Redesign Proposal', 'client': 'Acme Corp', 'status': 'Pending', 'date': 'Oct 12, 2026', 'amount': '₦850,000'},
+      {'title': 'Mobile App MVP Development', 'client': 'Stark Industries', 'status': 'Approved', 'date': 'Oct 05, 2026', 'amount': '₦2,400,000'},
+      {'title': 'SEO Optimization Strategy', 'client': 'Wayne Enterprises', 'status': 'Rejected', 'date': 'Sep 28, 2026', 'amount': '₦320,000'},
     ];
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Proposals'),
         actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateProposalScreen())),
+          ),
         ],
       ),
       body: ListView.builder(
@@ -24,57 +28,103 @@ class ProposalsScreen extends StatelessWidget {
         itemCount: mockProposals.length,
         itemBuilder: (context, index) {
           final prop = mockProposals[index];
-          final isApproved = prop['status'] == 'Approved';
-          final isRejected = prop['status'] == 'Rejected';
+          return _buildCard(context, theme, prop);
+        },
+      ),
+    );
+  }
 
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: theme.colorScheme.onSurface.withOpacity(0.1)),
-            ),
-            color: theme.colorScheme.surface,
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              leading: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.description_outlined, color: theme.colorScheme.primary),
-              ),
-              title: Text(prop['title']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildCard(BuildContext context, ThemeData theme, Map<String, String> prop) {
+    final status = prop['status']!;
+    Color statusColor = status == 'Approved' ? Colors.green : status == 'Rejected' ? Colors.red : Colors.orange;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.08)),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Client: ${prop['client']}'),
-                    const SizedBox(height: 4),
-                    Text('Date: ${prop['date']}', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5), fontSize: 12)),
+                    Expanded(
+                      child: Text(
+                        prop['title']!,
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(prop['amount']!, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   ],
                 ),
-              ),
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isApproved ? Colors.green.withOpacity(0.2) : isRejected ? Colors.red.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(prop['client']!, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7))),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                      ),
+                      child: Text(status.toUpperCase(), style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  prop['status']!,
-                  style: TextStyle(
-                    color: isApproved ? Colors.green : isRejected ? Colors.red : Colors.orange,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+                const SizedBox(height: 4),
+                Text(prop['date']!, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.4))),
+              ],
             ),
-          );
-        },
+          ),
+          Divider(height: 1, color: theme.colorScheme.onSurface.withOpacity(0.08)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                _actionBtn(theme, Icons.visibility_outlined, 'View', () {}),
+                const SizedBox(width: 8),
+                _actionBtn(theme, Icons.edit_outlined, 'Edit', () {}),
+                const Spacer(),
+                IconButton(
+                  icon: Icon(Icons.more_horiz, color: theme.colorScheme.onSurface.withOpacity(0.5)),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionBtn(ThemeData theme, IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onSurface.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: theme.colorScheme.onSurface),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
+          ],
+        ),
       ),
     );
   }
