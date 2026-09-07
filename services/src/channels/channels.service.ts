@@ -92,30 +92,9 @@ export class ChannelsService {
   }
 
   async getChannelForProject(projectId: string, channelName: string = 'general') {
-    let channel: any = await this.prisma.projectChannel.findFirst({
-      where: { projectId, name: channelName },
-      include: {
-        project: {
-          include: {
-            client: true,
-            members: {
-              include: { user: true, clientContact: true }
-            }
-          }
-        },
-        messages: {
-          orderBy: { createdAt: 'asc' },
-          include: {
-            mentions: true,
-            reactions: true,
-          }
-        },
-      },
-    });
-
-    if (!channel) {
-      channel = await this.prisma.projectChannel.create({
-        data: { projectId, name: channelName },
+    try {
+      let channel: any = await this.prisma.projectChannel.findFirst({
+        where: { projectId, name: channelName },
         include: {
           project: {
             include: {
@@ -125,12 +104,39 @@ export class ChannelsService {
               }
             }
           },
-          messages: true
+          messages: {
+            orderBy: { createdAt: 'asc' },
+            include: {
+              mentions: true,
+              reactions: true,
+            }
+          },
         },
       });
-    }
 
-    return channel;
+      if (!channel) {
+        channel = await this.prisma.projectChannel.create({
+          data: { projectId, name: channelName },
+          include: {
+            project: {
+              include: {
+                client: true,
+                members: {
+                  include: { user: true, clientContact: true }
+                }
+              }
+            },
+            messages: true
+          },
+        });
+      }
+
+      return channel;
+    } catch (e: any) {
+      const errorMsg = e.message || e.toString();
+      const InternalServerErrorException = require('@nestjs/common').InternalServerErrorException;
+      throw new InternalServerErrorException(`Failed to get/create channel: ${errorMsg}`);
+    }
   }
 
   async postMessage(projectId: string, data: any) {
