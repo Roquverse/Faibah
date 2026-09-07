@@ -37,6 +37,14 @@ export class ChannelsController {
 export class GlobalChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
+  @Get('debug-test')
+  async debugTest() {
+    const prisma = (this.channelsService as any).prisma;
+    const project = await prisma.project.findFirst();
+    if (!project) return { error: 'No projects found in DB' };
+    return this.channelsService.getChannelForProject(project.id, 'debug-channel');
+  }
+
   @Get()
   async getAllChannels(@Req() req: Request) {
     const userId = (req.user as any)?.userId || (req.user as any)?.sub || (req.user as any)?.id;
