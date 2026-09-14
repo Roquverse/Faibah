@@ -52,7 +52,7 @@ Ensure the financial items breakdown logically covers the scope of work and sums
     let parsedData;
     try {
       const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.6-flash',
         contents: prompt,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
