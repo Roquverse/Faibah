@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Plus, Trash2, Eye, PenTool, Calculator, Loader2, LayoutGrid, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, PenTool, Calculator, Loader2, LayoutGrid, CheckCircle2, Download } from 'lucide-react';
 import { ProjectsApi, InvoicesApi, CompanyApi } from '@/lib/api';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
@@ -143,6 +143,13 @@ export default function ProposalEditPage() {
           })));
           if (inv.taxRate !== undefined) setTaxRate(inv.taxRate);
         }
+        // Check if print query param is present
+        if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('print') === 'true') {
+          setActiveTab('preview');
+          setTimeout(() => {
+            window.print();
+          }, 400);
+        }
       } catch (err) {
         console.error('Failed to load proposal:', err);
         toast.error('Failed to load proposal');
@@ -153,6 +160,13 @@ export default function ProposalEditPage() {
 
     if (id) fetchProposal();
   }, [id]);
+
+  const handleDownloadPDF = () => {
+    setActiveTab('preview');
+    setTimeout(() => {
+      window.print();
+    }, 200);
+  };
 
   const addItem = () => {
     setItems(prev => [
@@ -259,10 +273,10 @@ export default function ProposalEditPage() {
   const companyPhone = company?.companyPhone || company?.phone || '08035212521';
 
   return (
-    <div className="min-h-full font-sans pb-24 relative bg-[#F8F9FA] dark:bg-slate-950">
+    <div className="min-h-full font-sans pb-24 relative bg-[#F8F9FA] dark:bg-slate-950 print:bg-white print:pb-0">
       
       {/* Sticky Top Bar */}
-      <div className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4 print:hidden">
         <button 
           onClick={() => router.push('/proposals')} 
           className="flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors text-sm font-semibold w-full md:w-1/4"
@@ -296,12 +310,19 @@ export default function ProposalEditPage() {
           </button>
         </div>
 
-        {/* Save Button */}
+        {/* Action Buttons */}
         <div className="flex items-center justify-end gap-3 w-full md:w-1/4">
+          <button 
+            onClick={handleDownloadPDF}
+            className="flex items-center justify-center gap-2 px-4 h-10 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm whitespace-nowrap"
+          >
+            <Download className="w-4 h-4" />
+            Download PDF
+          </button>
           <button 
             onClick={handleSaveProposal}
             disabled={isSaving}
-            className="flex items-center justify-center gap-2 px-5 h-10 rounded-xl text-sm font-bold text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:opacity-50 shadow-sm"
+            className="flex items-center justify-center gap-2 px-5 h-10 rounded-xl text-sm font-bold text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:opacity-50 shadow-sm whitespace-nowrap"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {isSaving ? 'Saving...' : 'Save Changes'}
@@ -310,7 +331,7 @@ export default function ProposalEditPage() {
       </div>
 
       {/* Document Canvas */}
-      <div className="max-w-[920px] mx-auto mt-8 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-8 md:p-14 relative shadow-sm">
+      <div className="max-w-[920px] mx-auto mt-8 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-8 md:p-14 relative shadow-sm print:shadow-none print:border-none print:m-0 print:p-0 print:max-w-none print:w-full">
         
         {/* Document Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-8 sm:gap-4 mb-12 pb-8 border-b border-gray-100 dark:border-slate-800">

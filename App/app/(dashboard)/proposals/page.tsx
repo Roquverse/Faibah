@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, FileText, Eye, MoreHorizontal, Trash2, Search } from 'lucide-react';
+import { Plus, FileText, Eye, MoreHorizontal, Trash2, Search, Download } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectsApi, ClientsApi } from '@/lib/api';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -118,7 +118,14 @@ export default function ProposalsPage() {
     {
       key: 'actions', header: '',
       render: p => (
-        <div className="flex items-center justify-end gap-1.5">
+        <div className="flex items-center justify-end gap-2">
+          <Link
+            href={`/proposals/${p.id}?print=true`}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+            title="Download / Print PDF"
+          >
+            <Download size={12} /> PDF
+          </Link>
           <Link
             href={`/proposals/${p.id}`}
             className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
