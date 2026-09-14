@@ -34,7 +34,7 @@ Your job is to generate a highly comprehensive, extremely detailed, and very lon
 Return ONLY a valid JSON object matching this schema exactly, with NO markdown formatting around it (no \`\`\`json):
 {
   "proposalTitle": "String - A catchy, professional title for the proposal",
-  "proposalHTML": "String - The extremely detailed proposal text formatted in HTML. Include <h1>, <h2>, <h3>, <p>, <ul>, <li> tags. You MUST make this section incredibly long and detailed. Expand deeply on every single point. It should read like a 5-10 page document. You MUST include and deeply expand on these sections: Executive Summary, Client Background, Detailed Project Objectives, Comprehensive Scope of Work (broken down into phases), Methodology and Approach, Deliverables, Detailed Timeline, and Conclusion. Use long, descriptive paragraphs.",
+  "proposalHTML": "String - The extremely detailed proposal text formatted strictly in rich HTML. You MUST format the document with HTML tags: use <h2> for each numbered section (e.g. <h2>1. Executive Summary</h2>, <h2>2. Detailed Project Objectives</h2>, <h2>3. Scope of Work</h2>), <h3> for sub-headings, <p> for each separate paragraph with descriptive text, <ul> and <li> for lists, and <strong> for highlighted points and deliverables. NEVER return raw plaintext without HTML tags.",
   "items": [
     {
       "id": "String - unique ID",

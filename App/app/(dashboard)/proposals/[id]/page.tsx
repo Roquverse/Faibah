@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Plus, Trash2, Eye, PenTool, Calculator, Loader2, LayoutGrid, CheckCircle2, Download } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Eye, PenTool, Calculator, Loader2, LayoutGrid, Download, FileText } from 'lucide-react';
 import { ProjectsApi, InvoicesApi, CompanyApi } from '@/lib/api';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
@@ -28,6 +28,86 @@ const cleanNumber = (val: any): number => {
   const cleaned = String(val).replace(/[^0-9.-]+/g, '');
   const num = parseFloat(cleaned);
   return isNaN(num) ? 0 : num;
+};
+
+const formatProposalHTML = (content: string): string => {
+  if (!content) return '';
+
+  // If already well-structured with semantic HTML tags:
+  const hasHtmlTags = /<(h1|h2|h3|p|ul|ol|table)[^>]*>/i.test(content);
+  if (hasHtmlTags) {
+    return content;
+  }
+
+  // Parse plaintext / markdown with smart heuristics
+  const lines = content.split('\n');
+  const formattedBlocks: string[] = [];
+  let inList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) {
+      if (inList) {
+        formattedBlocks.push('</ul>');
+        inList = false;
+      }
+      continue;
+    }
+
+    // Markdown headings
+    if (line.startsWith('### ')) {
+      if (inList) { formattedBlocks.push('</ul>'); inList = false; }
+      formattedBlocks.push(`<h3>${line.replace(/^###\s+/, '')}</h3>`);
+      continue;
+    }
+    if (line.startsWith('## ')) {
+      if (inList) { formattedBlocks.push('</ul>'); inList = false; }
+      formattedBlocks.push(`<h2>${line.replace(/^##\s+/, '')}</h2>`);
+      continue;
+    }
+    if (line.startsWith('# ')) {
+      if (inList) { formattedBlocks.push('</ul>'); inList = false; }
+      formattedBlocks.push(`<h1>${line.replace(/^#\s+/, '')}</h1>`);
+      continue;
+    }
+
+    // Numbered sections: "1. Executive Summary", "2. Detailed Project Objectives"
+    if (/^\d+\.\s+[A-Z]/.test(line)) {
+      if (inList) { formattedBlocks.push('</ul>'); inList = false; }
+      formattedBlocks.push(`<h2>${line}</h2>`);
+      continue;
+    }
+
+    // Bullet points
+    if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')) {
+      if (!inList) {
+        formattedBlocks.push('<ul>');
+        inList = true;
+      }
+      const itemText = line.replace(/^[-*•]\s+/, '').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      formattedBlocks.push(`<li>${itemText}</li>`);
+      continue;
+    }
+
+    if (inList) {
+      formattedBlocks.push('</ul>');
+      inList = false;
+    }
+
+    // Bold tags & prefix highlighting (e.g. "Key Feature: description")
+    let formattedLine = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    if (/^[A-Z][A-Za-z0-9\s&/()-]{2,50}:\s+/.test(formattedLine) && !formattedLine.startsWith('<strong>')) {
+      formattedLine = formattedLine.replace(/^([A-Z][A-Za-z0-9\s&/()-]{2,50}:)/, '<strong>$1</strong>');
+    }
+
+    formattedBlocks.push(`<p>${formattedLine}</p>`);
+  }
+
+  if (inList) {
+    formattedBlocks.push('</ul>');
+  }
+
+  return formattedBlocks.join('\n');
 };
 
 export default function ProposalEditPage() {
@@ -86,7 +166,8 @@ export default function ProposalEditPage() {
             const parsed = JSON.parse(data.content);
             if (parsed && typeof parsed === 'object') {
               const title = parsed.proposalTitle || parsed.title || proj?.name || 'Untitled Proposal';
-              const html = parsed.proposalHTML || parsed.description || '';
+              const rawHtml = parsed.proposalHTML || parsed.description || '';
+              const formattedHtml = formatProposalHTML(rawHtml);
 
               let parsedItems: LineItem[] = [];
               if (Array.isArray(parsed.items) && parsed.items.length > 0) {
@@ -116,7 +197,7 @@ export default function ProposalEditPage() {
               }
 
               setProposalTitle(title);
-              setProposalHTML(html);
+              setProposalHTML(formattedHtml);
               if (parsedItems.length > 0) setItems(parsedItems);
 
               if (parsed.financials) {
@@ -128,7 +209,7 @@ export default function ProposalEditPage() {
             }
           } catch {
             setProposalTitle(proj?.name || 'Untitled Proposal');
-            setProposalHTML(data.content || '');
+            setProposalHTML(formatProposalHTML(data.content || ''));
           }
         } else if (inv?.items?.length > 0) {
           setProposalTitle(proj?.name || 'Untitled Proposal');
@@ -143,12 +224,13 @@ export default function ProposalEditPage() {
           })));
           if (inv.taxRate !== undefined) setTaxRate(inv.taxRate);
         }
-        // Check if print query param is present
+
+        // If ?print=true is in URL, auto-switch to preview and print
         if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('print') === 'true') {
           setActiveTab('preview');
           setTimeout(() => {
             window.print();
-          }, 400);
+          }, 500);
         }
       } catch (err) {
         console.error('Failed to load proposal:', err);
@@ -223,7 +305,7 @@ export default function ProposalEditPage() {
       // 1. Update Proposal in database
       await ProjectsApi.updateProposal(project.id, proposal.id, updatedContent);
 
-      // 2. If an invoice exists on this project, sync line items and taxRate
+      // 2. Sync or auto-create invoice if missing
       if (invoice?.id) {
         try {
           const updatedInvoice = await InvoicesApi.update(invoice.id, {
@@ -233,6 +315,20 @@ export default function ProposalEditPage() {
           if (updatedInvoice) setInvoice(updatedInvoice);
         } catch (invErr) {
           console.error('Failed to sync invoice items:', invErr);
+        }
+      } else if (project?.clientId) {
+        try {
+          const newInv = await InvoicesApi.create({
+            clientId: project.clientId,
+            projectId: project.id,
+            currency: project.currency || 'NGN',
+            taxRate: cleanNumber(taxRate),
+            dueDate: new Date(Date.now() + 14 * 86400 * 1000),
+            items: invoiceItems,
+          });
+          if (newInv) setInvoice(newInv);
+        } catch (invCreateErr) {
+          console.error('Failed to create missing invoice:', invCreateErr);
         }
       }
 
@@ -266,15 +362,199 @@ export default function ProposalEditPage() {
     );
   }
 
-  const invoiceRef = invoice?.invoiceRef || (invoice ? `INV-${invoice.id.slice(0, 4).toUpperCase()}` : (project?.id ? `PRJ-${project.id.slice(0, 4).toUpperCase()}` : 'PRJ-001'));
+  const invoiceRef = invoice?.invoiceRef || (invoice ? `INV-${invoice.id.slice(0, 4).toUpperCase()}` : (project?.id ? `PROP-${project.id.slice(0, 4).toUpperCase()}` : 'PROP-001'));
   const clientName = project?.client?.name || 'Client Recipient';
   const companyName = company?.name || 'Avatec Interactives';
   const companyEmail = company?.companyEmail || company?.email || 'helpdesk@avatecinteractives.dev';
   const companyPhone = company?.companyPhone || company?.phone || '08035212521';
 
   return (
-    <div className="min-h-full font-sans pb-24 relative bg-[#F8F9FA] dark:bg-slate-950 print:bg-white print:pb-0">
+    <div className="min-h-full font-sans pb-24 relative bg-[#F8F9FA] dark:bg-slate-950 print:bg-white print:p-0 print:pb-0">
       
+      {/* Global & Print CSS Overrides */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .quill-custom .ql-toolbar {
+          border: none !important;
+          border-bottom: 1px solid #f3f4f6 !important;
+          padding: 12px 0 !important;
+          margin-bottom: 24px !important;
+        }
+        .dark .quill-custom .ql-toolbar {
+          border-bottom-color: #334155 !important;
+        }
+        .quill-custom .ql-container {
+          border: none !important;
+          font-family: inherit !important;
+        }
+        .quill-custom .ql-editor {
+          padding: 0 !important;
+          min-height: 450px;
+          color: #1f2937;
+          font-family: inherit !important;
+        }
+        .dark .quill-custom .ql-editor {
+          color: #f1f5f9;
+        }
+        .quill-custom .ql-editor h1 {
+          font-size: 2.25rem;
+          font-weight: 800;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          line-height: 1.25;
+          letter-spacing: -0.02em;
+          color: inherit;
+        }
+        .quill-custom .ql-editor h2 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-top: 2.25rem;
+          margin-bottom: 0.85rem;
+          line-height: 1.35;
+          letter-spacing: -0.015em;
+          color: #111827;
+          border-bottom: 1px solid #f1f5f9;
+          padding-bottom: 0.5rem;
+        }
+        .dark .quill-custom .ql-editor h2 {
+          color: #f8fafc;
+          border-bottom-color: #1e293b;
+        }
+        .quill-custom .ql-editor h3 {
+          font-size: 1.2rem;
+          font-weight: 600;
+          margin-top: 1.5rem;
+          margin-bottom: 0.5rem;
+          color: #1f2937;
+        }
+        .dark .quill-custom .ql-editor h3 {
+          color: #e2e8f0;
+        }
+        .quill-custom .ql-editor p {
+          font-size: 1.05rem;
+          line-height: 1.8;
+          margin-bottom: 1.25rem;
+          color: #374151;
+        }
+        .dark .quill-custom .ql-editor p {
+          color: #cbd5e1;
+        }
+        .quill-custom .ql-editor ul, .quill-custom .ql-editor ol {
+          padding-left: 1.75rem;
+          margin-bottom: 1.5rem;
+        }
+        .quill-custom .ql-editor li {
+          font-size: 1.05rem;
+          line-height: 1.75;
+          margin-bottom: 0.5rem;
+          color: #374151;
+        }
+        .dark .quill-custom .ql-editor li {
+          color: #cbd5e1;
+        }
+        .quill-custom .ql-editor strong {
+          font-weight: 700;
+          color: #111827;
+        }
+        .dark .quill-custom .ql-editor strong {
+          color: #f8fafc;
+        }
+        .quill-custom .ql-editor table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.5rem 0;
+        }
+        .quill-custom .ql-editor td, .quill-custom .ql-editor th {
+          border: 1px solid #e2e8f0;
+          padding: 10px 12px;
+          text-align: left;
+        }
+        .dark .quill-custom .ql-editor td, .dark .quill-custom .ql-editor th {
+          border-color: #334155;
+        }
+
+        /* ---------------- PRINT MEDIA STYLES ---------------- */
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 16mm 16mm 18mm 16mm;
+          }
+          html, body {
+            background: #ffffff !important;
+            color: #111827 !important;
+            font-size: 10pt !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          nav, aside, header, .print\\:hidden, #sidebar, .sidebar {
+            display: none !important;
+          }
+          .proposal-card-container {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+          }
+          .quill-custom .ql-editor {
+            padding: 0 !important;
+            color: #111827 !important;
+          }
+          .quill-custom .ql-editor h1 {
+            font-size: 20pt !important;
+            font-weight: 800 !important;
+            margin-top: 14pt !important;
+            margin-bottom: 8pt !important;
+            color: #111827 !important;
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          .quill-custom .ql-editor h2 {
+            font-size: 13.5pt !important;
+            font-weight: 700 !important;
+            margin-top: 18pt !important;
+            margin-bottom: 6pt !important;
+            color: #111827 !important;
+            border-bottom: 1.5px solid #e5e7eb !important;
+            padding-bottom: 4pt !important;
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          .quill-custom .ql-editor h3 {
+            font-size: 11.5pt !important;
+            font-weight: 600 !important;
+            margin-top: 12pt !important;
+            margin-bottom: 4pt !important;
+            color: #1f2937 !important;
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          .quill-custom .ql-editor p {
+            font-size: 9.5pt !important;
+            line-height: 1.6 !important;
+            margin-bottom: 8pt !important;
+            color: #374151 !important;
+            orphans: 3;
+            widows: 3;
+          }
+          .quill-custom .ql-editor li {
+            font-size: 9.5pt !important;
+            line-height: 1.55 !important;
+            margin-bottom: 3pt !important;
+            color: #374151 !important;
+          }
+          .quill-custom .ql-editor strong {
+            font-weight: 700 !important;
+            color: #111827 !important;
+          }
+          .print-avoid-break {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+        }
+      `}} />
+
       {/* Sticky Top Bar */}
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4 print:hidden">
         <button 
@@ -315,6 +595,7 @@ export default function ProposalEditPage() {
           <button 
             onClick={handleDownloadPDF}
             className="flex items-center justify-center gap-2 px-4 h-10 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm whitespace-nowrap"
+            title="Download PDF or Print"
           >
             <Download className="w-4 h-4" />
             Download PDF
@@ -331,7 +612,7 @@ export default function ProposalEditPage() {
       </div>
 
       {/* Document Canvas */}
-      <div className="max-w-[920px] mx-auto mt-8 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-8 md:p-14 relative shadow-sm print:shadow-none print:border-none print:m-0 print:p-0 print:max-w-none print:w-full">
+      <div className="proposal-card-container max-w-[920px] mx-auto mt-8 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-8 md:p-14 relative shadow-sm">
         
         {/* Document Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-8 sm:gap-4 mb-12 pb-8 border-b border-gray-100 dark:border-slate-800">
@@ -343,7 +624,9 @@ export default function ProposalEditPage() {
             </div>
           </div>
           <div className="text-left sm:text-right w-full sm:w-auto">
-            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Proposal / Estimate</div>
+            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+              {invoice ? 'Invoice / Estimate' : 'Proposal / Estimate'}
+            </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-3">#{invoiceRef}</h1>
             <div className="p-3 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl text-left w-64 sm:ml-auto">
               <div className="text-sm font-bold text-gray-900 dark:text-white">{clientName}</div>
@@ -355,37 +638,6 @@ export default function ProposalEditPage() {
         {/* -------------------- PROPOSAL TAB -------------------- */}
         {activeTab === 'proposal' && (
           <div className="animate-in fade-in duration-300">
-            <style dangerouslySetInnerHTML={{__html: `
-              .quill-custom .ql-toolbar {
-                border: none !important;
-                border-bottom: 1px solid #f3f4f6 !important;
-                padding: 12px 0 !important;
-                margin-bottom: 24px !important;
-              }
-              .dark .quill-custom .ql-toolbar {
-                border-bottom-color: #334155 !important;
-              }
-              .quill-custom .ql-container {
-                border: none !important;
-              }
-              .quill-custom .ql-editor {
-                padding: 0 !important;
-                min-height: 450px;
-                color: #1f2937;
-              }
-              .dark .quill-custom .ql-editor {
-                color: #f1f5f9;
-              }
-              .quill-custom .ql-editor h1 { font-size: 2rem; font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-              .quill-custom .ql-editor h2 { font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.75rem; }
-              .quill-custom .ql-editor h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-              .quill-custom .ql-editor p { font-size: 1.05rem; line-height: 1.75; margin-bottom: 1.25rem; }
-              .quill-custom .ql-editor ul, .quill-custom .ql-editor ol { padding-left: 1.5rem; margin-bottom: 1.25rem; }
-              .quill-custom .ql-editor li { font-size: 1.05rem; line-height: 1.75; margin-bottom: 0.5rem; }
-              .quill-custom .ql-editor table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
-              .quill-custom .ql-editor td { border: 1px solid #e5e7eb; padding: 10px; }
-            `}} />
-
             <input 
               type="text"
               value={proposalTitle}
@@ -413,7 +665,7 @@ export default function ProposalEditPage() {
               />
             </div>
 
-            <div className="flex items-center gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-slate-800">
+            <div className="flex items-center gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-slate-800 print:hidden">
               <button 
                 onClick={() => setProposalHTML(prev => prev + '<br/><h2>New Section Title</h2><p>Start typing your content here...</p>')} 
                 className="flex items-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-800 dark:text-indigo-400 px-3.5 py-2 rounded-lg transition-colors"
@@ -434,7 +686,7 @@ export default function ProposalEditPage() {
         {activeTab === 'financials' && (
           <div className="animate-in fade-in duration-300 space-y-8">
             <div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Investment & Deliverables</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Investment & Deliverables</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">These line items sync directly with your project invoice.</p>
 
               <div className="border border-gray-200 dark:border-slate-800 rounded-xl overflow-hidden mb-4">
@@ -550,19 +802,21 @@ export default function ProposalEditPage() {
 
         {/* -------------------- PREVIEW TAB -------------------- */}
         {activeTab === 'preview' && (
-          <div className="animate-in fade-in duration-300 space-y-10">
+          <div className="animate-in fade-in duration-300 space-y-12">
             <div>
-              <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-8 tracking-tight leading-tight">
                 {proposalTitle || 'Untitled Proposal'}
               </h1>
-              <div 
-                className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: proposalHTML || '<p className="text-gray-400">No proposal content written yet.</p>' }}
-              />
+              <div className="quill-custom">
+                <div 
+                  className="ql-editor"
+                  dangerouslySetInnerHTML={{ __html: proposalHTML || '<p className="text-gray-400">No proposal content written yet.</p>' }}
+                />
+              </div>
             </div>
 
-            <div className="pt-8 border-t border-gray-100 dark:border-slate-800">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Investment Summary</h3>
+            <div className="print-avoid-break pt-8 border-t border-gray-200 dark:border-slate-800">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Investment & Deliverables</h3>
               <div className="border border-gray-200 dark:border-slate-800 rounded-xl overflow-hidden mb-6">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
@@ -579,10 +833,10 @@ export default function ProposalEditPage() {
                       const rate = cleanNumber(item.rate);
                       return (
                         <tr key={item.id}>
-                          <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{item.description || 'Deliverable'}</td>
-                          <td className="py-3 px-4 text-center text-gray-600 dark:text-gray-400">{qty}</td>
-                          <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-400">₦{rate.toLocaleString()}</td>
-                          <td className="py-3 px-4 text-right font-bold text-gray-900 dark:text-white">₦{(qty * rate).toLocaleString()}</td>
+                          <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-white">{item.description || 'Deliverable'}</td>
+                          <td className="py-3.5 px-4 text-center text-gray-600 dark:text-gray-400">{qty}</td>
+                          <td className="py-3.5 px-4 text-right text-gray-600 dark:text-gray-400">₦{rate.toLocaleString()}</td>
+                          <td className="py-3.5 px-4 text-right font-bold text-gray-900 dark:text-white">₦{(qty * rate).toLocaleString()}</td>
                         </tr>
                       );
                     })}
@@ -591,7 +845,7 @@ export default function ProposalEditPage() {
               </div>
 
               <div className="flex justify-end">
-                <div className="w-72 space-y-2 text-sm">
+                <div className="w-80 space-y-2.5 text-sm">
                   <div className="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Subtotal:</span>
                     <span className="font-semibold text-gray-900 dark:text-white">₦{subtotal.toLocaleString()}</span>
@@ -602,9 +856,9 @@ export default function ProposalEditPage() {
                       <span className="font-semibold text-gray-900 dark:text-white">₦{taxAmount.toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="border-t border-gray-200 dark:border-slate-700 pt-2 flex justify-between text-base font-bold text-gray-900 dark:text-white">
+                  <div className="border-t border-gray-200 dark:border-slate-700 pt-2.5 flex justify-between text-base font-bold text-gray-900 dark:text-white">
                     <span>Total:</span>
-                    <span className="text-lg text-indigo-600 dark:text-indigo-400">₦{total.toLocaleString()}</span>
+                    <span className="text-xl text-indigo-600 dark:text-indigo-400">₦{total.toLocaleString()}</span>
                   </div>
                   {numericDeposit > 0 && numericDeposit < 100 && (
                     <div className="flex justify-between text-xs text-amber-600 font-semibold pt-1">
