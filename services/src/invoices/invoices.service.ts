@@ -111,12 +111,20 @@ export class InvoicesService {
         taxRate: taxRate || 0,
         dueDate: dueDate ? new Date(dueDate) : null,
         items: {
-          create: (items || []).map(item => ({
-            description: item.description,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            amount: item.amount,
-          })),
+          create: (items || []).map(item => {
+            const rawQty = Number(item.quantity);
+            const qty = isNaN(rawQty) || rawQty <= 0 ? 1 : Math.round(rawQty);
+            const rawUnitPrice = Number(item.unitPrice);
+            const unitPrice = isNaN(rawUnitPrice) ? 0 : rawUnitPrice;
+            const rawAmount = Number(item.amount);
+            const amount = isNaN(rawAmount) ? qty * unitPrice : rawAmount;
+            return {
+              description: item.description || 'Deliverable',
+              quantity: qty,
+              unitPrice: unitPrice,
+              amount: amount,
+            };
+          }),
         },
       },
       include: {
@@ -186,15 +194,19 @@ export class InvoicesService {
     }
 
     if (invoice.client?.email) {
-      const totalAmt = invoice.items.reduce((s, i) => s + i.amount, 0);
-      const formattedTotal = `₦${totalAmt.toLocaleString()}`;
-      await this.mailService.queueInvoiceCreated({
-        clientEmail: invoice.client.email,
-        clientName: invoice.client.name,
-        invoiceRef: invoice.invoiceRef || undefined,
-        amount: formattedTotal,
-        dueDate: invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : undefined,
-      });
+      try {
+        const totalAmt = invoice.items.reduce((s, i) => s + (i.amount || 0), 0);
+        const formattedTotal = `₦${totalAmt.toLocaleString()}`;
+        await this.mailService.queueInvoiceCreated({
+          clientEmail: invoice.client.email,
+          clientName: invoice.client.name,
+          invoiceRef: invoice.invoiceRef || undefined,
+          amount: formattedTotal,
+          dueDate: invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : undefined,
+        });
+      } catch (err) {
+        console.error('Failed to queue invoice created email (BullMQ/Redis):', err);
+      }
     }
 
     return invoice;

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Req, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Req, Patch, HttpException, HttpStatus } from '@nestjs/common';
 import type { Request } from 'express';
 import { InvoicesService } from './invoices.service';
 
@@ -14,7 +14,17 @@ export class InvoicesController {
 
   @Post()
   async createInvoice(@Body() body: any) {
-    return this.invoicesService.createInvoice(body);
+    try {
+      return await this.invoicesService.createInvoice(body);
+    } catch (err: any) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+      throw new HttpException(
+        err.message || 'Failed to create invoice',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get(':id')

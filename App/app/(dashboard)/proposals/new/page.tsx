@@ -105,17 +105,35 @@ export default function NewProjectProposal() {
  setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
  };
 
- const handleGenerateAI = async () => {
- if (!aiPrompt.trim()) return;
- setIsGenerating(true);
- setAiError('');
+  const cleanNumber = (val: any): number => {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    if (!val) return 0;
+    const cleaned = String(val).replace(/[^0-9.-]+/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  };
 
- try {
+  const handleGenerateAI = async () => {
+    if (!aiPrompt.trim()) return;
+    setIsGenerating(true);
+    setAiError('');
+
+    try {
       const data = await AiApi.generateProposal(aiPrompt);
 
       if (data.proposalTitle) setProposalTitle(data.proposalTitle);
       if (data.proposalHTML) setProposalHTML(data.proposalHTML);
-      if (data.items && data.items.length > 0) setItems(data.items);
+      if (data.items && data.items.length > 0) {
+        setItems(data.items.map((item: any, idx: number) => ({
+          id: item.id || Date.now().toString() + idx,
+          description: item.description || '',
+          quantity: cleanNumber(item.quantity) || 1,
+          rate: cleanNumber(item.rate) || 0,
+          isSubscription: false,
+          subscriptionFrequency: 'MONTHLY',
+          subscriptionDate: '',
+        })));
+      }
       
       // Optimistically decrement tokens locally
       setCompany((prev: any) => prev ? { ...prev, aiTokens: prev.aiTokens - 1 } : prev);
@@ -154,15 +172,19 @@ export default function NewProjectProposal() {
       }
       
       // 4. Create Invoice separated for Invoices & Client views
-      const invoiceItems = items.map(item => ({
-        description: item.description || 'Project Deliverable',
-        quantity: Number(item.quantity) || 1,
-        unitPrice: Number(item.rate) || 0,
-        amount: (Number(item.quantity) || 1) * (Number(item.rate) || 0),
-        isSubscription: item.isSubscription || false,
-        subscriptionFrequency: item.subscriptionFrequency,
-        subscriptionDate: item.subscriptionDate ? new Date(item.subscriptionDate).toISOString() : undefined,
-      }));
+      const invoiceItems = items.map(item => {
+        const qty = Math.round(cleanNumber(item.quantity)) || 1;
+        const rate = cleanNumber(item.rate);
+        return {
+          description: item.description || 'Project Deliverable',
+          quantity: qty,
+          unitPrice: rate,
+          amount: qty * rate,
+          isSubscription: item.isSubscription || false,
+          subscriptionFrequency: item.subscriptionFrequency,
+          subscriptionDate: item.subscriptionDate ? new Date(item.subscriptionDate).toISOString() : undefined,
+        };
+      });
 
       await InvoicesApi.create({
         clientId: selectedClientId || project?.clientId,
@@ -180,9 +202,9 @@ export default function NewProjectProposal() {
 
       // 6. Redirect to projects
       router.push('/projects');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send/accept proposal:', error);
-      alert('Failed to process proposal. Make sure a client is selected and backend is running.');
+      alert(error?.message || 'Failed to process proposal. Make sure a client is selected and backend is running.');
     } finally {
       setIsSending(false);
     }
