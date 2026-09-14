@@ -180,6 +180,12 @@ export class ProjectsService {
               include: {
                 company: true
               }
+            },
+            invoices: {
+              include: {
+                items: true,
+              },
+              orderBy: { createdAt: 'desc' }
             }
           }
         }

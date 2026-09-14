@@ -268,7 +268,7 @@ export class InvoicesService {
     if (clientId !== undefined) updateData.clientId = clientId;
     if (projectId !== undefined) updateData.projectId = projectId;
     if (currency !== undefined) updateData.currency = currency;
-    if (taxRate !== undefined) updateData.taxRate = taxRate;
+    if (taxRate !== undefined) updateData.taxRate = typeof taxRate !== 'undefined' && taxRate !== null && !isNaN(Number(taxRate)) ? Number(taxRate) : 0;
     if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null;
 
     if (items) {
@@ -277,12 +277,17 @@ export class InvoicesService {
         where: { invoiceId: id },
       });
       updateData.items = {
-        create: items.map(item => ({
-          description: item.description,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          amount: item.amount,
-        }))
+        create: items.map(item => {
+          const qty = Math.round(Number(item.quantity)) || 1;
+          const unitPrice = Number(item.unitPrice) || 0;
+          const amount = Number(item.amount) || qty * unitPrice;
+          return {
+            description: item.description || 'Deliverable',
+            quantity: qty,
+            unitPrice,
+            amount,
+          };
+        })
       };
     }
 
