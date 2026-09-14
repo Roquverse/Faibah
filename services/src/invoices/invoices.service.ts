@@ -108,7 +108,7 @@ export class InvoicesService {
         clientId: finalClientId,
         projectId: projectId || null,
         currency: currency || 'NGN',
-        taxRate: taxRate || 0,
+        taxRate: typeof taxRate !== 'undefined' && taxRate !== null && !isNaN(Number(taxRate)) ? Number(taxRate) : 0,
         dueDate: dueDate ? new Date(dueDate) : null,
         items: {
           create: (items || []).map(item => {

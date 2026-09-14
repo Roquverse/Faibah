@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { PrismaService } from './prisma.service';
 import { execSync } from 'child_process';
 
 async function bootstrap() {
@@ -15,6 +16,17 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create(AppModule);
+  
+  // Ensure all companies have at least 50 AI tokens
+  try {
+    const prisma = app.get(PrismaService);
+    await prisma.company.updateMany({
+      where: { aiTokens: { lt: 50 } },
+      data: { aiTokens: 50 },
+    });
+  } catch (e) {
+    console.error('Failed to update company tokens on startup:', e);
+  }
   
   // Security Headers
   app.use(helmet());

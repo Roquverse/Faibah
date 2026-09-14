@@ -149,7 +149,7 @@ export default function NewProjectProposal() {
 
   const handleTopUpTokens = async () => {
     try {
-      const result = await AiApi.topUpTokens(5);
+      const result = await AiApi.topUpTokens(25);
       setCompany((prev: any) => prev ? { ...prev, aiTokens: result.aiTokens } : prev);
     } catch (err) {
       console.error('Failed to top up tokens', err);
@@ -164,7 +164,7 @@ export default function NewProjectProposal() {
       const project = await ProjectsApi.create({ clientId: selectedClientId || '', name: proposalTitle || 'Untitled Project' });
       
       // 2. Prepare JSON content
-      const content = JSON.stringify({ proposalTitle: proposalTitle || 'Untitled Project', proposalHTML, items, financials: { subtotal, taxRate, taxAmount, total, deposit, depositAmount } });
+      const content = JSON.stringify({ proposalTitle: proposalTitle || 'Untitled Project', proposalHTML, items, financials: { subtotal, taxRate: cleanNumber(taxRate), taxAmount, total, deposit, depositAmount } });
       
       // 3. Create Proposal attached to project
       if (project?.id) {
@@ -190,7 +190,7 @@ export default function NewProjectProposal() {
         clientId: selectedClientId || project?.clientId,
         projectId: project?.id,
         currency: 'NGN',
-        taxRate,
+        taxRate: cleanNumber(taxRate),
         dueDate: new Date(Date.now() + 14 * 86400 * 1000),
         items: invoiceItems,
       });
