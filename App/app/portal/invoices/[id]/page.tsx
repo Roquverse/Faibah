@@ -34,6 +34,14 @@ export default function ClientInvoicePreviewPage() {
     if (id) fetchInvoice();
   }, [id]);
 
+  // Set page title = invoice ref so browser uses it as the PDF filename
+  useEffect(() => {
+    if (!invoice) return;
+    const ref = invoice.invoiceRef || invoice.id.slice(0, 8).toUpperCase();
+    document.title = ref;
+    return () => { document.title = 'Faibah'; };
+  }, [invoice]);
+
   if (loading) {
     return (
       <div className="flex h-full min-h-[400px] items-center justify-center p-8">

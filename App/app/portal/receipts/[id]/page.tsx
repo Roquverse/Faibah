@@ -66,6 +66,12 @@ export default function ClientReceiptPreviewPage() {
   const rcpRef    = receipt.receiptRef ?? `RCP-${receipt.id.slice(0, 6).toUpperCase()}`;
   const rcpDate   = new Date(receipt.paymentDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
+  // Set page title = receipt ref so browser uses it as the PDF filename
+  useEffect(() => {
+    document.title = rcpRef;
+    return () => { document.title = 'Faibah'; };
+  }, [rcpRef]);
+
   return (
     <div className="min-h-screen bg-gray-100 print:bg-white print:min-h-0">
 
