@@ -247,9 +247,17 @@ export default function ChannelsPage() {
   const [newChannel, setNewChannel] = useState({ name: '', projectId: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // File upload state
+  // File upload & attachment state
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingAttachment, setPendingAttachment] = useState<{
+    file: File;
+    previewUrl: string;
+    name: string;
+    isImage: boolean;
+    isPdf: boolean;
+    sizeFormatted: string;
+  } | null>(null);
 
   // Advanced Input States
   const [showMentions, setShowMentions] = useState(false);
@@ -534,57 +542,122 @@ export default function ChannelsPage() {
     }
   };
 
+  const clearPendingAttachment = () => {
+    if (pendingAttachment?.previewUrl) {
+      URL.revokeObjectURL(pendingAttachment.previewUrl);
+    }
+    setPendingAttachment(null);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const previewUrl = isImage ? URL.createObjectURL(file) : '';
+
+    const formatFileSize = (bytes: number) => {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    };
+
+    setPendingAttachment({
+      file,
+      previewUrl,
+      name: file.name,
+      isImage,
+      isPdf,
+      sizeFormatted: formatFileSize(file.size),
+    });
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const previewUrl = URL.createObjectURL(file);
+          const formatFileSize = (bytes: number) => {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+          };
+          setPendingAttachment({
+            file,
+            previewUrl,
+            name: `image_${Date.now()}.png`,
+            isImage: true,
+            isPdf: false,
+            sizeFormatted: formatFileSize(file.size),
+          });
+          break;
+        }
+      }
+    }
+  };
+
   const handleSendMessage = async () => {
-    if (!messageInput.trim() || !activeChannelData) return;
-    const content = messageInput;
-    setMessageInput('');
+    const trimmed = messageInput.trim();
+    if ((!trimmed && !pendingAttachment) || !activeChannelData || isUploading) return;
     
+    const content = trimmed;
+    const attachmentToUpload = pendingAttachment;
+    
+    setMessageInput('');
+    setPendingAttachment(null);
+    setShowEmojis(false);
+    setShowMentions(false);
+
     try {
+      let attachmentUrl: string | undefined = undefined;
+
+      if (attachmentToUpload) {
+        setIsUploading(true);
+        const uploadCall = attachmentToUpload.isPdf
+          ? UploadApi.uploadPdf(attachmentToUpload.file)
+          : UploadApi.uploadImage(attachmentToUpload.file);
+        const result = await uploadCall;
+        attachmentUrl = result?.url;
+        if (attachmentToUpload.previewUrl) {
+          URL.revokeObjectURL(attachmentToUpload.previewUrl);
+        }
+      }
+
+      const finalContent = content || 'Shared an attachment';
+
       // Optimistic update
       const tempMsg = {
         id: 'temp-' + Date.now(),
-        content,
+        content: finalContent,
+        attachmentUrl,
+        messageType: attachmentUrl ? 'FILE' : 'TEXT',
         createdAt: new Date().toISOString(),
         senderId: currentUser?.id || 'SYS',
-        channelId: activeChannelId
+        channelId: activeChannelId,
       };
       setMessages(prev => [...prev, tempMsg]);
 
       await ChannelsApi.postMessage(activeChannelData.projectId, {
         channelName: activeChannelData.name,
-        content,
+        content: finalContent,
         senderId: currentUser?.id || 'SYS',
+        attachmentUrl,
+        messageType: attachmentUrl ? 'FILE' : undefined,
         mentions: pendingMentions.length > 0 ? pendingMentions : undefined
       });
       setPendingMentions([]);
       // The socket will broadcast the real message back
     } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !activeChannelData) return;
-    
-    try {
-      setIsUploading(true);
-      const isPdf = file.type === 'application/pdf';
-      const result = await (isPdf ? UploadApi.uploadPdf(file) : UploadApi.uploadImage(file));
-      
-      await ChannelsApi.postMessage(activeChannelData.projectId, {
-        channelName: activeChannelData.name,
-        content: `Attached a file: ${file.name}`,
-        senderId: currentUser?.id || 'SYS',
-        attachmentUrl: result.url
-      });
-      
-    } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Failed to upload file');
+      console.error('Failed to send message:', e);
+      alert('Failed to send message');
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -1021,9 +1094,11 @@ export default function ChannelsPage() {
                           </div>
 
                           {/* Content */}
-                          <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap break-words">
-                            {renderFormattedContent(msg.content, activeProjectMembers)}
-                          </div>
+                          {msg.content && !(msg.content === 'Shared an attachment' && msg.attachmentUrl) && (
+                            <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap break-words">
+                              {renderFormattedContent(msg.content, activeProjectMembers)}
+                            </div>
+                          )}
 
                           {/* Attachments & Link Cards */}
                           {msg.attachmentUrl && (
@@ -1087,9 +1162,11 @@ export default function ChannelsPage() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap break-words">
-                          {renderFormattedContent(msg.content, activeProjectMembers)}
-                        </div>
+                        {msg.content && !(msg.content === 'Shared an attachment' && msg.attachmentUrl) && (
+                          <div className="text-[14px] text-gray-800 dark:text-gray-200 leading-normal font-normal whitespace-pre-wrap break-words">
+                            {renderFormattedContent(msg.content, activeProjectMembers)}
+                          </div>
+                        )}
 
                         {/* Attachments */}
                         {msg.attachmentUrl && (
@@ -1123,19 +1200,57 @@ export default function ChannelsPage() {
 
             {/* Input Area */}
             <div className="p-4 bg-white dark:bg-slate-900 shrink-0">
-              <div className="border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 shadow-sm focus-within:border-[#0C3B2E] focus-within:ring-1 focus-within:ring-[#0C3B2E] transition-all flex flex-col">
+              <div className="border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 shadow-sm focus-within:border-[#0C3B2E] focus-within:ring-1 focus-within:ring-[#0C3B2E] transition-all flex flex-col overflow-hidden">
+                {/* Slack-style Pending Attachment Preview */}
+                {pendingAttachment && (
+                  <div className="p-3 bg-gray-50 dark:bg-slate-700/60 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {pendingAttachment.isImage ? (
+                        <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-600 shrink-0 bg-black/5">
+                          <img 
+                            src={pendingAttachment.previewUrl} 
+                            alt={pendingAttachment.name} 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 border border-red-200 dark:border-red-800">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">
+                          {pendingAttachment.name}
+                        </p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                          {pendingAttachment.sizeFormatted} • {pendingAttachment.isImage ? 'Image attachment' : 'Document'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearPendingAttachment}
+                      className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors shrink-0"
+                      title="Remove attachment"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
                 <textarea 
                   rows={2}
                   value={messageInput}
                   onChange={e => setMessageInput(e.target.value)}
+                  onPaste={handlePaste}
                   onKeyDown={e => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
                       handleSendMessage();
                     }
                   }}
-                  placeholder={`Message #${activeChannelData.name}...`}
-                  className="w-full p-3 resize-none outline-none bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-gray-100"
+                  placeholder={pendingAttachment ? "Add a message, caption, or send..." : `Message #${activeChannelData.name}...`}
+                  className="w-full p-3 resize-none outline-none bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-gray-100 text-sm"
                 />
                 <div className="flex items-center justify-between p-2 bg-gray-50/50 dark:bg-slate-700/50 rounded-b-xl border-t border-gray-100 dark:border-slate-700 relative">
                   
@@ -1182,14 +1297,14 @@ export default function ChannelsPage() {
                   <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
                     <button onClick={() => setShowMentions(!showMentions)} className={`p-1.5 rounded transition-colors ${showMentions ? 'bg-[#0C3B2E]/10 text-[#0C3B2E]' : 'hover:bg-gray-200 dark:hover:bg-slate-600'}`} title="Mention"><AtSign className="w-4 h-4" /></button>
                     <button onClick={() => setShowEmojis(!showEmojis)} className={`p-1.5 rounded transition-colors ${showEmojis ? 'bg-[#0C3B2E]/10 text-[#0C3B2E]' : 'hover:bg-gray-200 dark:hover:bg-slate-600'}`} title="Emoji"><Smile className="w-4 h-4" /></button>
-                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept="image/*,application/pdf" />
+                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} accept="image/*,application/pdf" />
                     <button 
                       onClick={() => fileInputRef.current?.click()} 
                       disabled={isUploading || isRecording}
-                      className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors disabled:opacity-50"
-                      title="Attach File"
+                      className={`p-1.5 rounded transition-colors disabled:opacity-50 ${pendingAttachment ? 'text-[#0C3B2E] bg-[#0C3B2E]/10 dark:text-green-400 dark:bg-green-900/30' : 'hover:bg-gray-200 dark:hover:bg-slate-600'}`}
+                      title={pendingAttachment ? "Replace Attachment" : "Attach File"}
                     >
-                      {isUploading ? <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> : <Paperclip className="w-4 h-4" />}
+                      {isUploading ? <Loader2 className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> : <Paperclip className="w-4 h-4" />}
                     </button>
                     
                     {isRecording ? (
@@ -1207,20 +1322,30 @@ export default function ChannelsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    {messageInput.length > 0 && (
+                    {(messageInput.length > 0 || pendingAttachment) && (
                       <button 
-                        onClick={() => setMessageInput('')}
-                        className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors"
+                        onClick={() => {
+                          setMessageInput('');
+                          clearPendingAttachment();
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
                       >
                         Discard
                       </button>
                     )}
                     <button 
                       onClick={handleSendMessage}
-                      disabled={!messageInput.trim()}
+                      disabled={(!messageInput.trim() && !pendingAttachment) || isUploading}
                       className="bg-black text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 disabled:opacity-50 transition-colors flex items-center gap-2"
                     >
-                      Send
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Sending...</span>
+                        </>
+                      ) : (
+                        <span>Send</span>
+                      )}
                     </button>
                   </div>
                 </div>

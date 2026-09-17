@@ -17,7 +17,9 @@ import {
   Smile,
   Hash,
   Eye,
-  Image as ImageIcon
+  Image as ImageIcon,
+  X,
+  Loader2
 } from 'lucide-react';
 import { UploadApi, TasksApi } from '@/lib/api';
 
@@ -160,28 +162,102 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
 
   const filteredMembersForMention = MEMBERS.filter(m => m.name.toLowerCase().includes(mentionQuery));
 
-  const handleSend = () => {
-    if (!draft.trim()) return;
+  // Staged attachment state for Slack-style preview & captioning
+  const [pendingAttachment, setPendingAttachment] = useState<{
+    file: File;
+    previewUrl: string;
+    name: string;
+    isImage: boolean;
+    isPdf: boolean;
+    sizeFormatted: string;
+  } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-    // Optional: detect topic if we implemented a composer dropdown, default to General for now
-    const newMessage: ChannelMessage & { taskId?: string } = {
-      id: `m${Date.now()}`,
-      senderId: isClientView ? 'c1' : 't1',
-      senderName: isClientView ? 'Acme Client' : 'Diana Taylor',
-      senderAvatar: `https://ui-avatars.com/api/?name=${isClientView ? 'Acme+Client' : 'Diana+Taylor'}`,
-      senderType: isClientView ? 'CLIENT' : 'TEAM',
-      content: draft,
-      visibility: isClientView ? 'CLIENT_VISIBLE' : visibility,
-      messageType: 'TEXT',
-      topic: selectedTopicFilter === 'ALL' ? 'General' : selectedTopicFilter,
-      createdAt: new Date().toISOString(),
-      taskId: selectedTaskId || undefined,
+  const clearPendingAttachment = () => {
+    if (pendingAttachment?.previewUrl) {
+      URL.revokeObjectURL(pendingAttachment.previewUrl);
+    }
+    setPendingAttachment(null);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const previewUrl = isImage ? URL.createObjectURL(file) : '';
+
+    const formatFileSize = (bytes: number) => {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     };
 
-    setMessages([...messages, newMessage]);
+    setPendingAttachment({
+      file,
+      previewUrl,
+      name: file.name,
+      isImage,
+      isPdf,
+      sizeFormatted: formatFileSize(file.size),
+    });
+
+    e.target.value = '';
+    textareaRef.current?.focus();
+  };
+
+  const handleSend = async () => {
+    const trimmed = draft.trim();
+    if ((!trimmed && !pendingAttachment) || isUploading) return;
+
+    const content = trimmed;
+    const attachmentToUpload = pendingAttachment;
+
     setDraft('');
+    setPendingAttachment(null);
     setSelectedTaskId(null);
     setShowMentions(false);
+
+    try {
+      let attachmentUrl: string | undefined = undefined;
+
+      if (attachmentToUpload) {
+        setIsUploading(true);
+        const uploadCall = attachmentToUpload.isPdf
+          ? UploadApi.uploadPdf(attachmentToUpload.file)
+          : UploadApi.uploadImage(attachmentToUpload.file);
+        const result = await uploadCall;
+        attachmentUrl = result?.url;
+        if (attachmentToUpload.previewUrl) {
+          URL.revokeObjectURL(attachmentToUpload.previewUrl);
+        }
+      }
+
+      const finalContent = content || (attachmentUrl ? 'Shared an attachment' : '');
+
+      const newMessage: ChannelMessage & { taskId?: string } = {
+        id: `m${Date.now()}`,
+        senderId: isClientView ? 'c1' : 't1',
+        senderName: isClientView ? 'Acme Client' : 'Diana Taylor',
+        senderAvatar: `https://ui-avatars.com/api/?name=${isClientView ? 'Acme+Client' : 'Diana+Taylor'}`,
+        senderType: isClientView ? 'CLIENT' : 'TEAM',
+        content: finalContent,
+        attachmentUrl,
+        visibility: isClientView ? 'CLIENT_VISIBLE' : visibility,
+        messageType: attachmentUrl ? 'FILE' : 'TEXT',
+        topic: selectedTopicFilter === 'ALL' ? 'General' : selectedTopicFilter,
+        createdAt: new Date().toISOString(),
+        taskId: selectedTaskId || undefined,
+      };
+
+      setMessages(prev => [...prev, newMessage]);
+    } catch (error) {
+      console.error('File upload failed', error);
+      alert('Failed to send attachment');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const toggleReaction = (messageId: string, emoji: string = '👍') => {
@@ -435,82 +511,92 @@ export default function ProjectChannel({ projectId, isClientView = false, channe
             </div>
           )}
           
-          <div className={`flex items-end gap-3 rounded-xl border p-2 transition-colors ${visibility === 'INTERNAL' && !isClientView ? 'border-amber-300 bg-amber-50/30 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500' : 'border-gray-200 bg-white focus-within:border-[#6D9773] focus-within:ring-1 focus-within:ring-[#6D9773]'}`}>
-            <div className="flex flex-col gap-2 shrink-0">
-              <label className="p-2.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer w-max">
-                <Paperclip className="w-5 h-5" />
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*,application/pdf"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    try {
-                      const isImage = file.type.includes('image');
-                      const uploadCall = isImage ? UploadApi.uploadImage(file) : UploadApi.uploadPdf(file);
-                      const result = await uploadCall;
-                      if (result?.url) {
-                        const newMessage: ChannelMessage & { taskId?: string } = {
-                          id: `m${Date.now()}`,
-                          senderId: isClientView ? 'c1' : 't1',
-                          senderName: isClientView ? 'Acme Client' : 'Diana Taylor',
-                          senderAvatar: `https://ui-avatars.com/api/?name=${isClientView ? 'Acme+Client' : 'Diana+Taylor'}`,
-                          senderType: isClientView ? 'CLIENT' : 'TEAM',
-                          content: draft || `Attached ${isImage ? 'an image' : 'a file'}`,
-                          attachmentUrl: result.url,
-                          visibility: isClientView ? 'CLIENT_VISIBLE' : visibility,
-                          messageType: 'FILE',
-                          topic: selectedTopicFilter === 'ALL' ? 'General' : selectedTopicFilter,
-                          createdAt: new Date().toISOString(),
-                          taskId: selectedTaskId || undefined,
-                        };
-                        setMessages([...messages, newMessage]);
-                        setDraft('');
-                        setSelectedTaskId(null);
-                      }
-                    } catch (error) {
-                      console.error('File upload failed', error);
-                    }
-                  }}
-                />
-              </label>
-              {tasks.length > 0 && (
-                <select 
-                  value={selectedTaskId || ''} 
-                  onChange={(e) => setSelectedTaskId(e.target.value || null)}
-                  className="text-[10px] max-w-[100px] border border-gray-200 rounded p-1 truncate"
+          <div className={`flex flex-col rounded-xl border transition-colors overflow-hidden ${visibility === 'INTERNAL' && !isClientView ? 'border-amber-300 bg-amber-50/30 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500' : 'border-gray-200 bg-white focus-within:border-[#6D9773] focus-within:ring-1 focus-within:ring-[#6D9773]'}`}>
+            {/* Slack-style Pending Attachment Preview */}
+            {pendingAttachment && (
+              <div className="p-2.5 bg-gray-50/80 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  {pendingAttachment.isImage ? (
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shrink-0 bg-black/5">
+                      <img 
+                        src={pendingAttachment.previewUrl} 
+                        alt={pendingAttachment.name} 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center shrink-0 border border-red-200">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-gray-900 truncate">
+                      {pendingAttachment.name}
+                    </p>
+                    <p className="text-[10px] text-gray-500">
+                      {pendingAttachment.sizeFormatted} • {pendingAttachment.isImage ? 'Image attachment' : 'Document'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearPendingAttachment}
+                  className="p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-200 transition-colors shrink-0"
+                  title="Remove attachment"
                 >
-                  <option value="">No Task</option>
-                  {tasks.map(t => (
-                    <option key={t.id} value={t.id}>{t.title}</option>
-                  ))}
-                </select>
-              )}
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-end gap-3 p-2">
+              <div className="flex flex-col gap-2 shrink-0">
+                <label className={`p-2.5 rounded-lg transition-colors cursor-pointer w-max ${pendingAttachment ? 'text-[#0C3B2E] bg-[#0C3B2E]/10' : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'}`} title={pendingAttachment ? "Change Attachment" : "Attach File"}>
+                  <Paperclip className="w-5 h-5" />
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*,application/pdf"
+                    onChange={handleFileSelect}
+                  />
+                </label>
+                {tasks.length > 0 && (
+                  <select 
+                    value={selectedTaskId || ''} 
+                    onChange={(e) => setSelectedTaskId(e.target.value || null)}
+                    className="text-[10px] max-w-[100px] border border-gray-200 rounded p-1 truncate"
+                  >
+                    <option value="">No Task</option>
+                    {tasks.map(t => (
+                      <option key={t.id} value={t.id}>{t.title}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              
+              <textarea 
+                ref={textareaRef}
+                value={draft}
+                onChange={handleDraftChange}
+                placeholder={pendingAttachment ? "Add a message or caption..." : (visibility === 'INTERNAL' && !isClientView ? "Type an internal note to the team... (use @ to tag)" : "Message the client... (use @ to tag)")}
+                className="flex-1 max-h-32 min-h-[44px] bg-transparent resize-none py-2.5 text-sm text-gray-900 focus:outline-none placeholder:text-gray-400"
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+              />
+              
+              <button 
+                onClick={handleSend}
+                disabled={(!draft.trim() && !pendingAttachment) || isUploading}
+                className="p-2.5 bg-[#FFBA00] text-gray-900 rounded-lg hover:bg-[#E6A700] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-sm flex items-center justify-center min-w-[40px] min-h-[40px]"
+              >
+                {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+              </button>
             </div>
-            
-            <textarea 
-              ref={textareaRef}
-              value={draft}
-              onChange={handleDraftChange}
-              placeholder={visibility === 'INTERNAL' && !isClientView ? "Type an internal note to the team... (use @ to tag)" : "Message the client... (use @ to tag)"}
-              className="flex-1 max-h-32 min-h-[44px] bg-transparent resize-none py-2.5 text-sm text-gray-900 focus:outline-none placeholder:text-gray-400"
-              rows={1}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-            />
-            
-            <button 
-              onClick={handleSend}
-              disabled={!draft.trim()}
-              className="p-2.5 bg-[#FFBA00] text-gray-900 rounded-lg hover:bg-[#E6A700] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-sm"
-            >
-              <Send className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </div>

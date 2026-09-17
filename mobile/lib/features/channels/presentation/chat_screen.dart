@@ -1006,6 +1006,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             ),
                             Expanded(
                               child: TextField(
+                                key: const ValueKey('chat_input_text_field'),
                                 controller: _messageController,
                                 focusNode: _messageFocusNode,
                                 cursorColor: AppTheme.yellow,
@@ -1182,6 +1183,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 if (contentText.isNotEmpty &&
                     !(contentText == 'Shared an attachment' &&
+                        attachmentUrl != null) &&
+                    !(contentText.startsWith('Attached a file:') &&
                         attachmentUrl != null)) ...[
                   const SizedBox(height: 4),
                   Text(
