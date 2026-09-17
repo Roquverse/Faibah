@@ -8,7 +8,6 @@ import '../../receipts/presentation/receipts_screen.dart';
 import '../../team/presentation/team_screen.dart';
 import '../../tasks/presentation/tasks_screen.dart';
 import '../../proposals/presentation/proposals_screen.dart';
-import '../../channels/presentation/channels_screen.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/login_screen.dart';
 
@@ -28,7 +27,6 @@ class MoreScreen extends ConsumerWidget {
       _GridItem(icon: Icons.receipt_long_outlined, label: 'Invoices', color: const Color(0xFF43A047), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InvoicesScreen()))),
       _GridItem(icon: Icons.description_outlined, label: 'Receipts', color: const Color(0xFF8E24AA), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReceiptsScreen()))),
       _GridItem(icon: Icons.sync, label: 'Subscriptions', color: const Color(0xFF1E88E5), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionsScreen()))),
-      _GridItem(icon: Icons.chat_bubble_outline, label: 'Channels', color: const Color(0xFF039BE5), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChannelsScreen()))),
       _GridItem(
         icon: Icons.logout,
         label: 'Logout',

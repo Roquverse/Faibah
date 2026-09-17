@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../../channels/presentation/chat_screen.dart';
 import '../../../tasks/presentation/tasks_screen.dart';
 import '../../../invoices/presentation/invoices_screen.dart';
@@ -13,12 +14,20 @@ class ProjectQuickPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final sheetBg = isDark ? const Color(0xFF141414) : Colors.white;
+    final cardBg = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB);
+    final cardBorder = isDark ? Colors.white10 : const Color(0xFFE5E7EB);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF111827);
+    final textSecondary = isDark ? Colors.white60 : const Color(0xFF6B7280);
+    final textMuted = isDark ? Colors.white38 : const Color(0xFF9CA3AF);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
-      decoration: const BoxDecoration(
-        color: Color(0xFF050505),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
@@ -29,7 +38,7 @@ class ProjectQuickPanel extends StatelessWidget {
               width: 48,
               height: 4,
               decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withOpacity(0.2),
+                color: isDark ? Colors.white24 : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -43,7 +52,10 @@ class ProjectQuickPanel extends StatelessWidget {
                 // Header
                 Text(
                   project['name'] ?? project['title'] ?? 'Unnamed Project',
-                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -53,7 +65,7 @@ class ProjectQuickPanel extends StatelessWidget {
                       child: Text(
                         (project['client'] is Map ? project['client']['name'] : project['client']) ?? 'No Client',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          color: textSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -63,13 +75,13 @@ class ProjectQuickPanel extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: AppTheme.primaryGreen.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        project['status'],
+                        project['status'] ?? 'Active',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                          color: AppTheme.primaryGreen,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -83,30 +95,30 @@ class ProjectQuickPanel extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: _buildActionItem(context, Icons.chat_bubble_outline, 'Open Channel', theme.colorScheme.primary, () {
+                      child: _buildActionItem(context, isDark, Icons.chat_bubble_outline, 'Open Channel', () {
                         Navigator.pop(context);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(channelId: project['id'] ?? 'placeholder', channelName: project['name'] ?? 'Channel')));
                       }),
                     ),
                     Expanded(
-                      child: _buildActionItem(context, Icons.add_task_outlined, 'New Task', theme.colorScheme.secondary, () {
+                      child: _buildActionItem(context, isDark, Icons.add_task_outlined, 'New Task', () {
                         Navigator.pop(context);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const TasksScreen()));
                       }),
                     ),
                     Expanded(
-                      child: _buildActionItem(context, Icons.person_add_outlined, 'Collaborator', theme.colorScheme.onSurface, () {
+                      child: _buildActionItem(context, isDark, Icons.person_add_outlined, 'Collaborator', () {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collaborator screen coming soon')));
                       }),
                     ),
                     Expanded(
-                      child: _buildActionItem(context, Icons.description_outlined, 'New Proposal', theme.colorScheme.onSurface, () {
+                      child: _buildActionItem(context, isDark, Icons.description_outlined, 'New Proposal', () {
                         Navigator.pop(context);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateProposalScreen()));
                       }),
                     ),
                     Expanded(
-                      child: _buildActionItem(context, Icons.receipt_long_outlined, 'New Invoice', theme.colorScheme.onSurface, () {
+                      child: _buildActionItem(context, isDark, Icons.receipt_long_outlined, 'New Invoice', () {
                         Navigator.pop(context);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const InvoicesScreen()));
                       }),
@@ -119,7 +131,7 @@ class ProjectQuickPanel extends StatelessWidget {
                 Text(
                   'AT A GLANCE',
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    color: textSecondary,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
                   ),
@@ -132,26 +144,40 @@ class ProjectQuickPanel extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.onSurface.withOpacity(0.05),
+                          color: cardBg,
+                          border: Border.all(color: cardBorder),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Task Completion', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+                            Text(
+                              'Task Completion',
+                              style: theme.textTheme.bodySmall?.copyWith(color: textSecondary),
+                            ),
                             const SizedBox(height: 8),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text('${project['progressPercent'] ?? project['progress'] ?? 0}%', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                                Text(
+                                  '${project['progressPercent'] ?? project['progress'] ?? 0}%',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: textPrimary,
+                                  ),
+                                ),
                                 const SizedBox(width: 4),
-                                Text('(0/0)', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+                                Text(
+                                  '(0/0)',
+                                  style: theme.textTheme.bodySmall?.copyWith(color: textSecondary),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 12),
                             LinearProgressIndicator(
                               value: ((project['progressPercent'] ?? project['progress'] ?? 0) as num) / 100,
-                              backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
+                              backgroundColor: isDark ? Colors.white10 : const Color(0xFFE5E7EB),
+                              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen),
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ],
@@ -163,17 +189,18 @@ class ProjectQuickPanel extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.onSurface.withOpacity(0.05),
+                          color: cardBg,
+                          border: Border.all(color: cardBorder),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildMiniRow(theme, 'Quotation:', 'Accepted'),
+                            _buildMiniRow(theme, isDark, 'Quotation:', 'Accepted'),
                             const SizedBox(height: 8),
-                            _buildMiniRow(theme, 'Latest Invoice:', 'DRAFT', highlight: true),
+                            _buildMiniRow(theme, isDark, 'Latest Invoice:', 'DRAFT', highlight: true),
                             const SizedBox(height: 8),
-                            _buildMiniRow(theme, 'Created:', '24/08/2026'),
+                            _buildMiniRow(theme, isDark, 'Created:', '24/08/2026'),
                           ],
                         ),
                       ),
@@ -189,14 +216,17 @@ class ProjectQuickPanel extends StatelessWidget {
                     Text(
                       'UPCOMING SCHEDULE',
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        color: textSecondary,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
                       ),
                     ),
                     Text(
                       'View Full Schedule >',
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryGreen,
+                      ),
                     ),
                   ],
                 ),
@@ -205,15 +235,15 @@ class ProjectQuickPanel extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurface.withOpacity(0.02),
-                    border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.1), style: BorderStyle.solid),
+                    color: cardBg,
+                    border: Border.all(color: cardBorder),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     'No upcoming schedule events for this project.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.4),
+                      color: textMuted,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -227,31 +257,34 @@ class ProjectQuickPanel extends StatelessWidget {
                     Text(
                       'FINANCIALS',
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        color: textSecondary,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
                       ),
                     ),
                     Text(
                       'View All Invoices >',
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryGreen,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildFinancialCard(theme, 'INVOICED', project['budget']?.toString() ?? '₦0')),
+                    Expanded(child: _buildFinancialCard(theme, isDark, 'INVOICED', project['budget']?.toString() ?? '₦0')),
                     const SizedBox(width: 8),
-                    Expanded(child: _buildFinancialCard(theme, 'OUTSTANDING', project['budget']?.toString() ?? '₦0', borderColor: Colors.orange.withOpacity(0.3))),
+                    Expanded(child: _buildFinancialCard(theme, isDark, 'OUTSTANDING', project['budget']?.toString() ?? '₦0', borderColor: Colors.orange.withOpacity(0.4))),
                     const SizedBox(width: 8),
-                    Expanded(child: _buildFinancialCard(theme, 'PAID', '₦0', borderColor: Colors.green.withOpacity(0.3))),
+                    Expanded(child: _buildFinancialCard(theme, isDark, 'PAID', '₦0', borderColor: const Color(0xFF10B981).withOpacity(0.4))),
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildInvoiceItem(theme, 'Invoice #aec8ff6a', '₦61,275', 'DRAFT'),
+                _buildInvoiceItem(theme, isDark, 'Invoice #aec8ff6a', '₦61,275', 'DRAFT'),
                 const SizedBox(height: 8),
-                _buildInvoiceItem(theme, 'Invoice #be66a633', '₦806,250', 'DRAFT'),
+                _buildInvoiceItem(theme, isDark, 'Invoice #be66a633', '₦806,250', 'DRAFT'),
                 
                 const SizedBox(height: 32),
                 ElevatedButton(
@@ -259,7 +292,7 @@ class ProjectQuickPanel extends StatelessWidget {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0C3B2E),
+                    backgroundColor: isDark ? AppTheme.primaryGreen : const Color(0xFF111827),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -277,7 +310,7 @@ class ProjectQuickPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildActionItem(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildActionItem(BuildContext context, bool isDark, IconData icon, String label, VoidCallback onTap) {
     final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
@@ -289,18 +322,27 @@ class ProjectQuickPanel extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withOpacity(0.05),
+                color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.1)),
+                border: Border.all(
+                  color: isDark ? Colors.white10 : const Color(0xFFE5E7EB),
+                ),
               ),
-              child: Icon(icon, color: theme.colorScheme.onSurface),
+              child: Icon(
+                icon,
+                color: isDark ? Colors.white : const Color(0xFF111827),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
               maxLines: 2,
-              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 10),
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                color: isDark ? Colors.white70 : const Color(0xFF374151),
+              ),
             ),
           ],
         ),
@@ -308,69 +350,113 @@ class ProjectQuickPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildMiniRow(ThemeData theme, String label, String value, {bool highlight = false}) {
+  Widget _buildMiniRow(ThemeData theme, bool isDark, String label, String value, {bool highlight = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: isDark ? Colors.white60 : const Color(0xFF6B7280),
+          ),
+        ),
         Text(
           value,
           style: theme.textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: highlight ? Colors.green : theme.colorScheme.onSurface,
+            color: highlight
+                ? const Color(0xFF10B981)
+                : (isDark ? Colors.white : const Color(0xFF111827)),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildFinancialCard(ThemeData theme, String label, String value, {Color? borderColor}) {
+  Widget _buildFinancialCard(ThemeData theme, bool isDark, String label, String value, {Color? borderColor}) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onSurface.withOpacity(0.02),
-        border: Border.all(color: borderColor ?? theme.colorScheme.onSurface.withOpacity(0.1)),
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
+        border: Border.all(
+          color: borderColor ?? (isDark ? Colors.white10 : const Color(0xFFE5E7EB)),
+        ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.5))),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: isDark ? Colors.white54 : const Color(0xFF6B7280),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF111827),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildInvoiceItem(ThemeData theme, String title, String amount, String status) {
+  Widget _buildInvoiceItem(ThemeData theme, bool isDark, String title, String amount, String status) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onSurface.withOpacity(0.02),
-        border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.1)),
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
+        border: Border.all(
+          color: isDark ? Colors.white10 : const Color(0xFFE5E7EB),
+        ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          Icon(Icons.receipt_long_outlined, color: theme.colorScheme.onSurface.withOpacity(0.5)),
+          Icon(
+            Icons.receipt_long_outlined,
+            color: isDark ? Colors.white60 : const Color(0xFF6B7280),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                Text(amount, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.5))),
+                Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF111827),
+                  ),
+                ),
+                Text(
+                  amount,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isDark ? Colors.white54 : const Color(0xFF6B7280),
+                  ),
+                ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
+              color: Colors.orange.withOpacity(0.15),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(status, style: theme.textTheme.bodySmall?.copyWith(color: Colors.orange, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'DRAFT',
+              style: TextStyle(
+                color: Colors.orange,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
           ),
         ],
       ),

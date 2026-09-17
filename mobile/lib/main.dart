@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -9,6 +10,7 @@ import 'features/splash/presentation/splash_screen.dart';
 import 'core/network/offline_queue_service.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +45,20 @@ class FaibaApp extends ConsumerWidget {
     ref.watch(authCheckProvider);
     
     final themeMode = ref.watch(themeModeProvider);
+
+    // Determine if dark mode is active
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+
+    // Set status bar icon brightness dynamically
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light, // iOS
+      systemNavigationBarColor: isDark ? AppTheme.darkSurface01 : AppTheme.lightSurface,
+      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    ));
 
     return MaterialApp(
       title: 'Faiba',

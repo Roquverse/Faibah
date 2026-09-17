@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/login_screen.dart';
 import '../../payments/presentation/payments_screen.dart';
@@ -16,50 +17,74 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
     return Scaffold(
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: const Text('Settings'),
+        backgroundColor: context.backgroundColor,
+        elevation: 0,
+        title: Text(
+          'Settings',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: context.textPrimary,
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new,
+              size: 20, color: context.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildSectionHeader('Account', theme),
-          _buildSettingsTile(Icons.person_outline, 'Profile', 'Update your personal details', theme, () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileSettingsScreen()));
+          _buildSectionHeader('Account', context),
+          _buildSettingsTile(
+              context, Icons.person_outline, 'Profile', 'Update your personal details', () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ProfileSettingsScreen()));
           }),
-          _buildSettingsTile(Icons.lock_outline, 'Security', 'Password, 2FA, and sessions', theme, () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const SecuritySettingsScreen()));
+          _buildSettingsTile(context, Icons.lock_outline, 'Security',
+              'Password, 2FA, and sessions', () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const SecuritySettingsScreen()));
           }),
-          _buildSettingsTile(Icons.business, 'Company Info', 'Business name, address, tax info', theme, () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const CompanyInfoSettingsScreen()));
+          _buildSettingsTile(context, Icons.business, 'Company Info',
+              'Business name, address, brand logo', () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const CompanyInfoSettingsScreen()));
           }),
-          
           const SizedBox(height: 24),
-          _buildSectionHeader('Preferences', theme),
-          _buildSettingsTile(Icons.palette_outlined, 'Appearance', 'Dark mode, true black', theme, () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const AppearanceSettingsScreen()));
+          _buildSectionHeader('Preferences', context),
+          _buildSettingsTile(context, Icons.palette_outlined, 'Appearance',
+              'Light mode, dark mode, system default', () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const AppearanceSettingsScreen()));
           }),
-          _buildSettingsTile(Icons.notifications_outlined, 'Notifications', 'Push and email alerts', theme, () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsSettingsScreen()));
+          _buildSettingsTile(context, Icons.notifications_outlined,
+              'Notifications', 'Push and email alerts', () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const NotificationsSettingsScreen()));
           }),
-          
           const SizedBox(height: 24),
-          _buildSectionHeader('Integrations', theme),
-          _buildSettingsTile(Icons.account_balance, 'Bank Accounts', 'Manage payout accounts', theme, () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const BankAccountsSettingsScreen()));
+          _buildSectionHeader('Integrations', context),
+          _buildSettingsTile(context, Icons.account_balance, 'Bank Accounts',
+              'Manage payout accounts', () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const BankAccountsSettingsScreen()));
           }),
-          _buildSettingsTile(Icons.link, 'Connected Apps', 'Google Calendar, Stripe', theme, () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectedAppsSettingsScreen()));
+          _buildSettingsTile(context, Icons.link, 'Connected Apps',
+              'Google Calendar, Paystack, Stripe', () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ConnectedAppsSettingsScreen()));
           }),
-          
           const SizedBox(height: 24),
-          _buildSectionHeader('Financial', theme),
-          _buildSettingsTile(Icons.payment_outlined, 'Payments', 'View and manage payments', theme, () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen()));
+          _buildSectionHeader('Financial', context),
+          _buildSettingsTile(context, Icons.payment_outlined, 'Payments',
+              'View and record payments', () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const PaymentsScreen()));
           }),
-          
           const SizedBox(height: 32),
           ElevatedButton.icon(
             onPressed: () async {
@@ -75,9 +100,13 @@ class SettingsScreen extends ConsumerWidget {
             icon: const Icon(Icons.logout),
             label: const Text('Sign Out'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
+              backgroundColor: AppTheme.yellow,
               foregroundColor: Colors.black,
               padding: const EdgeInsets.symmetric(vertical: 16),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ],
@@ -85,34 +114,50 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title, ThemeData theme) {
+  Widget _buildSectionHeader(String title, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 4),
       child: Text(
         title.toUpperCase(),
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: theme.colorScheme.primary,
+        style: TextStyle(
+          color: context.textSecondary,
           fontWeight: FontWeight.bold,
+          fontSize: 12,
           letterSpacing: 1.2,
         ),
       ),
     );
   }
 
-  Widget _buildSettingsTile(IconData icon, String title, String subtitle, ThemeData theme, VoidCallback onTap) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: Icon(icon, color: theme.colorScheme.onSurface),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+  Widget _buildSettingsTile(BuildContext context, IconData icon, String title,
+      String subtitle, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Material(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          leading: Icon(icon, color: AppTheme.yellow),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: context.textPrimary,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(color: context.textSecondary, fontSize: 13),
+          ),
+          trailing: Icon(Icons.chevron_right, size: 20, color: context.textSecondary),
+          onTap: onTap,
         ),
-        trailing: const Icon(Icons.chevron_right, size: 20),
-        onTap: onTap,
       ),
     );
   }

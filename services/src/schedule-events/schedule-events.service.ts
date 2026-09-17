@@ -77,7 +77,7 @@ export class ScheduleEventsService {
           select: { id: true, name: true }
         },
         linkedTask: {
-          select: { id: true, title: true }
+          select: { id: true, title: true, status: true }
         }
       },
       orderBy: { startTime: 'asc' }
@@ -112,7 +112,7 @@ export class ScheduleEventsService {
           select: { id: true, name: true }
         },
         linkedTask: {
-          select: { id: true, title: true }
+          select: { id: true, title: true, status: true }
         }
       }
     });
@@ -147,7 +147,7 @@ export class ScheduleEventsService {
           select: { id: true, name: true }
         },
         linkedTask: {
-          select: { id: true, title: true }
+          select: { id: true, title: true, status: true }
         }
       }
     });

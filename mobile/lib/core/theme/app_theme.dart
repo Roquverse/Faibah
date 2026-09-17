@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
@@ -59,6 +60,11 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         iconTheme: IconThemeData(color: lightTextPrimary),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
         titleTextStyle: TextStyle(
             fontFamily: 'Inter',
             color: lightTextPrimary,
@@ -153,6 +159,11 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         iconTheme: IconThemeData(color: darkTextPrimary),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
         titleTextStyle: TextStyle(
             fontFamily: 'Inter',
             color: darkTextPrimary,
@@ -215,4 +226,24 @@ class AppTheme {
       dividerTheme: const DividerThemeData(color: darkSurface03, thickness: 1),
     );
   }
+}
+
+extension ThemeContext on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+  Color get surfaceColor => isDark ? AppTheme.darkSurface01 : Colors.white;
+  Color get surface02Color =>
+      isDark ? AppTheme.darkSurface02 : const Color(0xFFF3F4F6);
+  Color get backgroundColor =>
+      isDark ? AppTheme.darkBackground : const Color(0xFFF8F9FA);
+  Color get textPrimary => isDark ? Colors.white : const Color(0xFF111827);
+  Color get textSecondary =>
+      isDark ? Colors.white.withValues(alpha: 0.6) : const Color(0xFF6B7280);
+  Color get textTertiary =>
+      isDark ? Colors.white.withValues(alpha: 0.4) : const Color(0xFF9CA3AF);
+  Color get borderColor => isDark
+      ? Colors.white.withValues(alpha: 0.08)
+      : const Color(0xFFE5E7EB);
+  Color get inputFillColor =>
+      isDark ? AppTheme.darkSurface02 : const Color(0xFFF9FAFB);
+  Color get cardColor => isDark ? AppTheme.darkSurface01 : Colors.white;
 }

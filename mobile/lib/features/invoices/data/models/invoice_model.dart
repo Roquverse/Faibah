@@ -62,6 +62,38 @@ class InvoiceModel {
       'items': items.map((i) => i.toJson()).toList(),
     };
   }
+
+  InvoiceModel copyWith({
+    String? id,
+    String? invoiceRef,
+    String? status,
+    DateTime? dueDate,
+    String? projectId,
+    dynamic project,
+    String? clientId,
+    ClientModel? client,
+    String? currency,
+    double? taxRate,
+    DateTime? sentAt,
+    DateTime? createdAt,
+    List<InvoiceItemModel>? items,
+  }) {
+    return InvoiceModel(
+      id: id ?? this.id,
+      invoiceRef: invoiceRef ?? this.invoiceRef,
+      status: status ?? this.status,
+      dueDate: dueDate ?? this.dueDate,
+      projectId: projectId ?? this.projectId,
+      project: project ?? this.project,
+      clientId: clientId ?? this.clientId,
+      client: client ?? this.client,
+      currency: currency ?? this.currency,
+      taxRate: taxRate ?? this.taxRate,
+      sentAt: sentAt ?? this.sentAt,
+      createdAt: createdAt ?? this.createdAt,
+      items: items ?? this.items,
+    );
+  }
 }
 
 class InvoiceItemModel {

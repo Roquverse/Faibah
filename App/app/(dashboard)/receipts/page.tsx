@@ -156,120 +156,193 @@ export default function ReceiptsPage() {
       </div>
 
       {/* Record Modal */}
-      {showCreate && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100">
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-base font-bold text-gray-900">Record Payment Receipt</h3>
-              <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
-            </div>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Invoice</label>
-                <select required value={form.invoiceId}
-                  onChange={e => {
-                    const inv = invoices.find(i => i.id === e.target.value);
-                    const total = inv?.items?.reduce((s: number, item: any) => s + item.amount, 0);
-                    setForm({ ...form, invoiceId: e.target.value, amountPaid: total ? String(total) : form.amountPaid });
-                  }}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#FFBA00]"
-                >
-                  <option value="">Select Invoice...</option>
-                  {invoices.map(inv => (
-                    <option key={inv.id} value={inv.id}>
-                      {inv.invoiceRef ?? `INV-${inv.id.slice(0, 6)}`} — {inv.client?.name ?? 'Client'} ({inv.status})
-                    </option>
-                  ))}
-                </select>
+      {showCreate && (() => {
+        const selectedInv = invoices.find(i => i.id === form.invoiceId);
+        const invSubtotal = selectedInv?.items?.reduce((s: number, item: any) => s + (item.amount || 0), 0) || 0;
+        const invTax = invSubtotal * ((selectedInv?.taxRate || 0) / 100);
+        const invTotal = invSubtotal + invTax;
+        const invPrevPaid = selectedInv?.receipts?.reduce((s: number, r: any) => s + (r.amountPaid || 0), 0) || 0;
+        const invEnteredPaid = Math.max(0, parseFloat(form.amountPaid) || 0);
+        const invEffectivePaid = invPrevPaid + invEnteredPaid;
+        const invBalance = Math.max(0, invTotal - invEffectivePaid);
+        const invSym = selectedInv?.currency === 'USD' ? '$' : '₦';
+
+        return (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100">
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-base font-bold text-gray-900">Record Payment Receipt</h3>
+                <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Amount Paid</label>
-                <input type="number" required step="0.01" placeholder="0.00" value={form.amountPaid}
-                  onChange={e => setForm({ ...form, amountPaid: e.target.value })}
-                  className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#FFBA00]" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleCreate} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Method</label>
-                  <select value={form.paymentMethod} onChange={e => setForm({ ...form, paymentMethod: e.target.value })}
-                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#FFBA00]">
-                    {['Bank Transfer','Paystack','Card','Cash','Cheque'].map(m => <option key={m}>{m}</option>)}
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Invoice</label>
+                  <select required value={form.invoiceId}
+                    onChange={e => {
+                      const inv = invoices.find(i => i.id === e.target.value);
+                      const sub = inv?.items?.reduce((s: number, item: any) => s + (item.amount || 0), 0) || 0;
+                      const tot = sub + (sub * ((inv?.taxRate || 0) / 100));
+                      const pd = inv?.receipts?.reduce((s: number, r: any) => s + (r.amountPaid || 0), 0) || 0;
+                      const rem = Math.max(0, tot - pd);
+                      setForm({ ...form, invoiceId: e.target.value, amountPaid: rem > 0 ? String(rem) : (tot > 0 ? String(tot) : '') });
+                    }}
+                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#FFBA00]"
+                  >
+                    <option value="">Select Invoice...</option>
+                    {invoices.map(inv => (
+                      <option key={inv.id} value={inv.id}>
+                        {inv.invoiceRef ?? `INV-${inv.id.slice(0, 6)}`} — {inv.client?.name ?? 'Client'} ({inv.status})
+                      </option>
+                    ))}
                   </select>
                 </div>
+
+                {selectedInv && (
+                  <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100 text-xs space-y-2">
+                    <div className="flex justify-between items-center text-gray-500">
+                      <span>Total Invoice Amount:</span>
+                      <span className="font-bold text-gray-900">{invSym}{invTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <div className="flex flex-col">
+                        <span className="text-[11px] text-gray-500">Amount Paid</span>
+                        <span className="font-bold text-green-600 text-sm">
+                          {invSym}{invEffectivePaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                        {invPrevPaid > 0 && invEnteredPaid > 0 && (
+                          <span className="text-[10px] text-gray-400">
+                            ({invSym}{invEnteredPaid.toLocaleString()} new + {invSym}{invPrevPaid.toLocaleString()} prev)
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-col text-right">
+                        <span className="text-[11px] text-gray-500">Balance Remaining</span>
+                        <span className="font-bold text-red-600 text-sm">
+                          {invSym}{invBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Date</label>
-                  <input type="date" required value={form.paymentDate} onChange={e => setForm({ ...form, paymentDate: e.target.value })}
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Amount Paid</label>
+                  <input type="number" required step="0.01" min="0.01" placeholder="0.00" value={form.amountPaid}
+                    onChange={e => setForm({ ...form, amountPaid: e.target.value })}
                     className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#FFBA00]" />
                 </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" size="sm" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
-                <Button size="sm" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Recording...' : 'Record Receipt'}</Button>
-              </div>
-            </form>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Method</label>
+                    <select value={form.paymentMethod} onChange={e => setForm({ ...form, paymentMethod: e.target.value })}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#FFBA00]">
+                      {['Bank Transfer','Paystack','Card','Cash','Cheque'].map(m => <option key={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Date</label>
+                    <input type="date" required value={form.paymentDate} onChange={e => setForm({ ...form, paymentDate: e.target.value })}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#FFBA00]" />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" size="sm" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
+                  <Button size="sm" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Recording...' : 'Record Receipt'}</Button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* View / Print Modal — preserved exactly */}
-      {selectedReceipt && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-gray-100 relative max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6 print:hidden">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Official Payment Receipt</span>
-              <div className="flex items-center gap-2">
-                <ShareDropdown
-                  itemType="Receipt"
-                  itemRef={selectedReceipt.receiptRef ?? `RCP-${selectedReceipt.id.slice(0, 6).toUpperCase()}`}
-                  publicUrl={typeof window !== 'undefined' ? `${window.location.origin}/portal/receipts/${selectedReceipt.id}` : ''}
-                  client={selectedReceipt.invoice?.client}
-                  triggerClassName="!bg-white !text-gray-700 !border-gray-200 hover:!bg-gray-50 !py-1.5"
-                />
-                <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0C3B2E] text-white rounded-lg text-xs font-bold hover:bg-[#082B21] transition-colors">
-                  <Printer size={13} /> Print / PDF
-                </button>
-                <button onClick={() => setSelectedReceipt(null)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg"><X size={18} /></button>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <div className="flex justify-between items-start border-b border-gray-200 pb-6">
-                <div>
-                  <div className="text-xl font-extrabold text-[#0C3B2E] tracking-tight">FAIBAH PLATFORM</div>
-                  <div className="text-xs text-gray-500 mt-1">Payment Confirmation Receipt</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-base font-bold text-gray-900">{selectedReceipt.receiptRef ?? `RCP-${selectedReceipt.id.slice(0, 6).toUpperCase()}`}</div>
-                  <div className="text-xs text-gray-500 font-semibold mt-0.5">Date: {new Date(selectedReceipt.paymentDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+      {selectedReceipt && (() => {
+        const rcptInvSubtotal = selectedReceipt.invoice?.items?.reduce((s: number, item: any) => s + (item.amount || 0), 0) || 0;
+        const rcptInvTax = rcptInvSubtotal * ((selectedReceipt.invoice?.taxRate || 0) / 100);
+        const rcptInvTotal = rcptInvSubtotal + rcptInvTax;
+        const rcptTotalPaid = selectedReceipt.invoice?.receipts?.reduce((s: number, r: any) => s + (r.amountPaid || 0), 0) || Number(selectedReceipt.amountPaid);
+        const rcptRemainingBalance = Math.max(0, rcptInvTotal - rcptTotalPaid);
+        const rcptSym = selectedReceipt.invoice?.currency === 'USD' ? '$' : '₦';
+
+        return (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-gray-100 relative max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6 print:hidden">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Official Payment Receipt</span>
+                <div className="flex items-center gap-2">
+                  <ShareDropdown
+                    itemType="Receipt"
+                    itemRef={selectedReceipt.receiptRef ?? `RCP-${selectedReceipt.id.slice(0, 6).toUpperCase()}`}
+                    publicUrl={typeof window !== 'undefined' ? `${window.location.origin}/portal/receipts/${selectedReceipt.id}` : ''}
+                    client={selectedReceipt.invoice?.client}
+                    triggerClassName="!bg-white !text-gray-700 !border-gray-200 hover:!bg-gray-50 !py-1.5"
+                  />
+                  <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0C3B2E] text-white rounded-lg text-xs font-bold hover:bg-[#082B21] transition-colors">
+                    <Printer size={13} /> Print / PDF
+                  </button>
+                  <button onClick={() => setSelectedReceipt(null)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg"><X size={18} /></button>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
-                <div>
-                  <span className="text-gray-400 font-semibold block mb-1">Received From:</span>
-                  <span className="font-bold text-gray-900 text-sm block">{selectedReceipt.invoice?.client?.name ?? 'Valued Client'}</span>
-                  <span className="text-gray-500">{selectedReceipt.invoice?.client?.email ?? ''}</span>
+              <div className="space-y-6">
+                <div className="flex justify-between items-start border-b border-gray-200 pb-6">
+                  <div>
+                    <div className="text-xl font-extrabold text-[#0C3B2E] tracking-tight">FAIBAH PLATFORM</div>
+                    <div className="text-xs text-gray-500 mt-1">Payment Confirmation Receipt</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-bold text-gray-900">{selectedReceipt.receiptRef ?? `RCP-${selectedReceipt.id.slice(0, 6).toUpperCase()}`}</div>
+                    <div className="text-xs text-gray-500 font-semibold mt-0.5">Date: {new Date(selectedReceipt.paymentDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-gray-400 font-semibold block mb-1">Invoice Reference:</span>
-                  <span className="font-bold text-gray-900 text-sm block">#{selectedReceipt.invoice?.invoiceRef ?? selectedReceipt.invoiceId?.slice(0, 8)}</span>
-                  <span className="text-gray-500">Payment Method: {selectedReceipt.paymentMethod ?? 'Bank Transfer'}</span>
+                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
+                  <div>
+                    <span className="text-gray-400 font-semibold block mb-1">Received From:</span>
+                    <span className="font-bold text-gray-900 text-sm block">{selectedReceipt.invoice?.client?.name ?? 'Valued Client'}</span>
+                    <span className="text-gray-500">{selectedReceipt.invoice?.client?.email ?? ''}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 font-semibold block mb-1">Invoice Reference:</span>
+                    <span className="font-bold text-gray-900 text-sm block">#{selectedReceipt.invoice?.invoiceRef ?? selectedReceipt.invoiceId?.slice(0, 8)}</span>
+                    <span className="text-gray-500">Payment Method: {selectedReceipt.paymentMethod ?? 'Bank Transfer'}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="bg-green-50/70 border border-green-200/80 p-6 rounded-2xl text-center">
-                <div className="text-xs font-bold text-green-800 uppercase tracking-wider mb-1">Total Amount Received</div>
-                <div className="text-3xl font-extrabold text-green-900">
-                  {selectedReceipt.invoice?.currency === 'USD' ? '$' : '₦'}{Number(selectedReceipt.amountPaid).toLocaleString()}
+                <div className="bg-green-50/70 border border-green-200/80 p-6 rounded-2xl text-center">
+                  <div className="text-xs font-bold text-green-800 uppercase tracking-wider mb-1">Amount Paid</div>
+                  <div className="text-3xl font-extrabold text-green-900">
+                    {rcptSym}{Number(selectedReceipt.amountPaid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                  <div className="inline-flex items-center gap-1 mt-3 px-3 py-1 bg-green-600 text-white text-[11px] font-bold rounded-full">
+                    <CheckCircle2 size={12} /> Payment Successful
+                  </div>
                 </div>
-                <div className="inline-flex items-center gap-1 mt-3 px-3 py-1 bg-green-600 text-white text-[11px] font-bold rounded-full">
-                  <CheckCircle2 size={12} /> Payment Successful
+
+                {rcptInvTotal > 0 && (
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs space-y-2">
+                    <div className="flex justify-between items-center text-gray-600">
+                      <span>Total Invoice Amount</span>
+                      <span className="font-semibold text-gray-900">{rcptSym}{rcptInvTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-gray-600">
+                      <span>Total Paid to Date</span>
+                      <span className="font-semibold text-green-700">{rcptSym}{rcptTotalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200 font-bold">
+                      <span className="text-gray-900">Balance Remaining</span>
+                      <span className={rcptRemainingBalance > 0 ? 'text-red-600' : 'text-green-700'}>
+                        {rcptRemainingBalance > 0 ? `${rcptSym}${rcptRemainingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Fully Paid (₦0.00)'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-6 border-t border-gray-100 text-center text-xs text-gray-400">
+                  Thank you for your business! This is an official computer-generated payment receipt.
                 </div>
-              </div>
-              <div className="pt-6 border-t border-gray-100 text-center text-xs text-gray-400">
-                Thank you for your business! This is an official computer-generated payment receipt.
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

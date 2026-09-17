@@ -253,6 +253,7 @@ export class InvoicesService {
     currency?: string;
     taxRate?: number;
     dueDate?: Date | string;
+    status?: any;
     items?: { 
       description: string; 
       quantity: number; 
@@ -260,7 +261,7 @@ export class InvoicesService {
       amount: number;
     }[];
   }) {
-    const { clientId, projectId, currency, taxRate, dueDate, items } = data;
+    const { clientId, projectId, currency, taxRate, dueDate, status, items } = data;
     const invoice = await this.prisma.invoice.findUnique({ where: { id } });
     if (!invoice) throw new NotFoundException(`Invoice with ID ${id} not found`);
 
@@ -270,6 +271,7 @@ export class InvoicesService {
     if (currency !== undefined) updateData.currency = currency;
     if (taxRate !== undefined) updateData.taxRate = typeof taxRate !== 'undefined' && taxRate !== null && !isNaN(Number(taxRate)) ? Number(taxRate) : 0;
     if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null;
+    if (status !== undefined) updateData.status = status;
 
     if (items) {
       // Replace all items

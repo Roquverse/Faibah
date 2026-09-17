@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Eye, Receipt, FileText, Trash2, MoreHorizontal, Search, DollarSign, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Eye, Receipt, FileText, Trash2, MoreHorizontal, Search, DollarSign, AlertTriangle, TrendingUp, Clock, CheckCircle2, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { InvoicesApi } from '@/lib/api';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -158,6 +158,29 @@ export default function InvoicesPage() {
             </button>
             {openMenuId === inv.id && (
               <div className="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1">
+                {inv.status !== 'PAID' ? (
+                  <button
+                    onClick={async () => {
+                      setOpenMenuId(null);
+                      await InvoicesApi.update(inv.id, { status: 'PAID' });
+                      fetchInvoices();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-green-700 hover:bg-green-50 font-medium"
+                  >
+                    <CheckCircle2 size={14} className="text-green-600" /> Mark as Paid
+                  </button>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      setOpenMenuId(null);
+                      await InvoicesApi.update(inv.id, { status: 'SENT' });
+                      fetchInvoices();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium"
+                  >
+                    <RotateCcw size={14} className="text-gray-500" /> Mark as Unpaid
+                  </button>
+                )}
                 <button
                   onClick={() => { setInvoiceToEdit(inv); setIsNewOpen(true); setOpenMenuId(null); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -231,7 +254,7 @@ export default function InvoicesPage() {
         isOpen={!!receiptInvoice}
         invoice={receiptInvoice}
         onClose={() => setReceiptInvoice(null)}
-        onSuccess={() => setReceiptInvoice(null)}
+        onSuccess={() => { setReceiptInvoice(null); fetchInvoices(); }}
       />
     </div>
   );

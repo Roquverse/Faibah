@@ -33,11 +33,28 @@ export class ReceiptsService {
       where: whereClause,
       include: {
         invoice: {
-          include: { client: true, project: true }
+          include: { client: true, project: true, items: true, receipts: true }
         }
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async getReceiptById(id: string) {
+    const receipt = await this.prisma.receipt.findUnique({
+      where: { id },
+      include: {
+        invoice: {
+          include: { client: true, project: true, items: true, receipts: true }
+        }
+      }
+    });
+
+    if (!receipt) {
+      throw new NotFoundException(`Receipt with ID ${id} not found`);
+    }
+
+    return receipt;
   }
 
   async createReceipt(data: {
@@ -61,15 +78,33 @@ export class ReceiptsService {
       },
       include: {
         invoice: {
-          include: { client: true }
+          include: { client: true, project: true, items: true, receipts: true }
         }
       }
     });
 
-    await this.prisma.invoice.update({
+    const invoice = await this.prisma.invoice.findUnique({
       where: { id: invoiceId },
-      data: { status: 'PAID' }
+      include: { items: true, receipts: true },
     });
+
+    if (invoice) {
+      const subtotal = invoice.items.reduce((sum, item) => sum + (item.amount || 0), 0);
+      const totalAmount = subtotal + (subtotal * ((invoice.taxRate || 0) / 100));
+      const totalPaid = invoice.receipts.reduce((sum, r) => sum + (r.amountPaid || 0), 0);
+
+      if (totalPaid >= totalAmount) {
+        await this.prisma.invoice.update({
+          where: { id: invoiceId },
+          data: { status: 'PAID' }
+        });
+      } else if (invoice.status === 'DRAFT') {
+        await this.prisma.invoice.update({
+          where: { id: invoiceId },
+          data: { status: 'SENT' }
+        });
+      }
+    }
 
     if (receipt.invoice?.client?.email) {
       await this.mailService.queuePaymentReceipt({

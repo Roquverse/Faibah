@@ -89,7 +89,9 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
             children: [
               const SizedBox(height: 24),
               Image.asset(
-                'assets/images/logo.png',
+                theme.brightness == Brightness.dark
+                    ? 'assets/images/logo.png'
+                    : 'assets/images/logo-dark.png',
                 width: 120,
                 height: 40,
                 fit: BoxFit.contain,

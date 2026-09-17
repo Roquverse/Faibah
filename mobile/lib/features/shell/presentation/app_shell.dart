@@ -11,9 +11,11 @@ import '../../team/presentation/team_screen.dart';
 import '../../clients/presentation/clients_screen.dart';
 import '../../invoices/presentation/invoices_screen.dart';
 import '../../receipts/presentation/receipts_screen.dart';
-import '../../payments/presentation/payments_screen.dart';
 import '../../subscriptions/presentation/subscriptions_screen.dart';
-import 'more_screen.dart';
+import '../../projects/presentation/create_project_screen.dart';
+import '../../invoices/presentation/create_invoice_screen.dart';
+import '../../clients/presentation/create_edit_client_screen.dart';
+import '../../tasks/presentation/create_task_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -48,11 +50,14 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _showMoreMenu(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss',
-      barrierColor: Colors.black54,
+      barrierColor: isDark ? Colors.black54 : Colors.black26,
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (context, animation, secondaryAnimation) {
         final List<Map<String, dynamic>> menuItems = [
@@ -64,7 +69,6 @@ class _AppShellState extends State<AppShell> {
           {'icon': Icons.receipt_long, 'title': 'Invoices', 'color': const Color(0xFF43A047), 'screen': const InvoicesScreen()},
           {'icon': Icons.receipt, 'title': 'Receipts', 'color': const Color(0xFF8E24AA), 'screen': const ReceiptsScreen()},
           {'icon': Icons.sync, 'title': 'Subscriptions', 'color': const Color(0xFF1E88E5), 'screen': const SubscriptionsScreen()},
-          {'icon': Icons.chat_bubble_outline, 'title': 'Channels', 'color': const Color(0xFF039BE5), 'screen': const ChannelsScreen()},
         ];
 
         return Align(
@@ -73,9 +77,18 @@ class _AppShellState extends State<AppShell> {
             margin: const EdgeInsets.only(left: 16, right: 16, bottom: 90),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF141414),
+              color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
               borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(
+                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
             child: Material(
               color: Colors.transparent,
@@ -110,16 +123,20 @@ class _AppShellState extends State<AppShell> {
                                         width: 52,
                                         height: 52,
                                         decoration: BoxDecoration(
-                                          color: (item['color'] as Color).withOpacity(0.12),
+                                          color: (item['color'] as Color).withValues(alpha: 0.12),
                                           borderRadius: BorderRadius.circular(16),
-                                          border: Border.all(color: (item['color'] as Color).withOpacity(0.2)),
+                                          border: Border.all(color: (item['color'] as Color).withValues(alpha: 0.2)),
                                         ),
                                         child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 22),
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
                                         item['title'] as String,
-                                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500),
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white70 : Colors.black87,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                         textAlign: TextAlign.center,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -149,11 +166,14 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _showCreateMenu(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss',
-      barrierColor: Colors.black54,
+      barrierColor: isDark ? Colors.black54 : Colors.black26,
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
@@ -162,8 +182,18 @@ class _AppShellState extends State<AppShell> {
             margin: const EdgeInsets.only(right: 20, bottom: 100),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
             child: Material(
               color: Colors.transparent,
@@ -171,13 +201,37 @@ class _AppShellState extends State<AppShell> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _buildCreateItem(context, Icons.folder_outlined, 'New Project'),
+                  _buildCreateItem(
+                    context,
+                    Icons.folder_outlined,
+                    'New Project',
+                    () => const CreateProjectScreen(),
+                    isDark,
+                  ),
                   const SizedBox(height: 16),
-                  _buildCreateItem(context, Icons.receipt_long, 'New Invoice'),
+                  _buildCreateItem(
+                    context,
+                    Icons.receipt_long,
+                    'New Invoice',
+                    () => const CreateInvoiceScreen(),
+                    isDark,
+                  ),
                   const SizedBox(height: 16),
-                  _buildCreateItem(context, Icons.business, 'New Client'),
+                  _buildCreateItem(
+                    context,
+                    Icons.business,
+                    'New Client',
+                    () => const CreateEditClientScreen(),
+                    isDark,
+                  ),
                   const SizedBox(height: 16),
-                  _buildCreateItem(context, Icons.task_alt, 'New Task'),
+                  _buildCreateItem(
+                    context,
+                    Icons.task_alt,
+                    'New Task',
+                    () => const CreateTaskScreen(),
+                    isDark,
+                  ),
                 ],
               ),
             ),
@@ -194,21 +248,40 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
-  Widget _buildCreateItem(BuildContext context, IconData icon, String title) {
+  Widget _buildCreateItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Widget Function() screenBuilder,
+    bool isDark,
+  ) {
     return GestureDetector(
-      onTap: () => Navigator.pop(context),
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => screenBuilder()),
+        );
+      },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(width: 16),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF2A2A2A),
+              color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF0F0F0),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: isDark ? Colors.white : Colors.black87, size: 20),
           ),
         ],
       ),
@@ -221,7 +294,7 @@ class _AppShellState extends State<AppShell> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? theme.scaffoldBackgroundColor : Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
           IndexedStack(
@@ -238,16 +311,27 @@ class _AppShellState extends State<AppShell> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(32),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                       child: Container(
                         height: 64,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.05),
+                          color: isDark
+                              ? const Color(0xFF1E1E1E).withValues(alpha: 0.85)
+                              : Colors.white.withValues(alpha: 0.92),
                           borderRadius: BorderRadius.circular(32),
                           border: Border.all(
-                            color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.1)
+                                : Colors.black.withValues(alpha: 0.08),
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -268,18 +352,33 @@ class _AppShellState extends State<AppShell> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(32),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                       child: Container(
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.05),
+                          color: isDark
+                              ? const Color(0xFF1E1E1E).withValues(alpha: 0.85)
+                              : Colors.white.withValues(alpha: 0.92),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.1)
+                                : Colors.black.withValues(alpha: 0.08),
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: const Icon(Icons.add, color: Colors.white, size: 28),
+                        child: Icon(
+                          Icons.add,
+                          color: isDark ? Colors.white : Colors.black87,
+                          size: 28,
+                        ),
                       ),
                     ),
                   ),
@@ -306,7 +405,7 @@ class _AppShellState extends State<AppShell> {
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withOpacity(0.15) : Colors.transparent,
+          color: isSelected ? activeColor.withValues(alpha: 0.15) : Colors.transparent,
           shape: BoxShape.circle,
         ),
         child: Icon(

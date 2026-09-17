@@ -16,34 +16,38 @@ export default function GenerateReceiptModal({
   invoice: any
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [amountPaid, setAmountPaid] = useState<number>(0);
+  const [amountPaid, setAmountPaid] = useState<string | number>('');
   const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
 
   const [totalInvoiceAmount, setTotalInvoiceAmount] = useState(0);
-  const [totalPaid, setTotalPaid] = useState(0);
-  const [balance, setBalance] = useState(0);
+  const [previouslyPaid, setPreviouslyPaid] = useState(0);
 
   // Set default amount when modal opens and invoice changes
   React.useEffect(() => {
     if (isOpen && invoice) {
-      const totalAmt = invoice.items?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
+      const totalAmt = invoice.items?.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0) || 0;
       const formattedTotal = totalAmt + (totalAmt * ((invoice.taxRate || 0) / 100));
-      const paid = invoice.receipts?.reduce((acc: number, curr: any) => acc + curr.amountPaid, 0) || 0;
+      const paid = invoice.receipts?.reduce((acc: number, curr: any) => acc + (curr.amountPaid || 0), 0) || 0;
       const remaining = Math.max(0, formattedTotal - paid);
 
       setTotalInvoiceAmount(formattedTotal);
-      setTotalPaid(paid);
-      setBalance(remaining);
-      setAmountPaid(remaining > 0 ? remaining : 0);
+      setPreviouslyPaid(paid);
+      setAmountPaid(remaining > 0 ? remaining : '');
     }
   }, [isOpen, invoice]);
 
   if (!isOpen || !invoice) return null;
 
+  const currSym = invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency;
+  const numericEntered = Math.max(0, parseFloat(String(amountPaid)) || 0);
+  const effectiveTotalPaid = previouslyPaid + numericEntered;
+  const balanceRemaining = Math.max(0, totalInvoiceAmount - effectiveTotalPaid);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (amountPaid <= 0) {
+    const paidVal = parseFloat(String(amountPaid)) || 0;
+    if (paidVal <= 0) {
       alert("Amount paid must be greater than 0");
       return;
     }
@@ -52,7 +56,7 @@ export default function GenerateReceiptModal({
     try {
       await ReceiptsApi.create({
         invoiceId: invoice.id,
-        amountPaid: Number(amountPaid),
+        amountPaid: paidVal,
         paymentMethod,
         paymentDate: new Date(paymentDate).toISOString()
       });
@@ -86,18 +90,25 @@ export default function GenerateReceiptModal({
               </div>
               <div className="text-right">
                 <div className="text-xs text-gray-500 mb-0.5">Total Amount</div>
-                <div className="font-bold text-gray-900">{invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}{totalInvoiceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                <div className="font-bold text-gray-900">{currSym}{totalInvoiceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
               </div>
             </div>
             
             <div className="flex justify-between items-center pt-3 border-t border-gray-200">
               <div className="flex flex-col">
                 <span className="text-xs text-gray-500 mb-0.5">Amount Paid</span>
-                <span className="text-sm font-semibold text-green-600">{invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}{totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="text-sm font-semibold text-green-600">
+                  {currSym}{effectiveTotalPaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                {previouslyPaid > 0 && numericEntered > 0 && (
+                  <span className="text-[10px] text-gray-400 mt-0.5">
+                    ({currSym}{numericEntered.toLocaleString(undefined, { minimumFractionDigits: 2 })} new + {currSym}{previouslyPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })} prev)
+                  </span>
+                )}
               </div>
               <div className="flex flex-col text-right">
                 <span className="text-xs text-gray-500 mb-0.5">Balance Remaining</span>
-                <span className="text-sm font-bold text-red-600">{invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="text-sm font-bold text-red-600">{currSym}{balanceRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
@@ -108,14 +119,14 @@ export default function GenerateReceiptModal({
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Amount Paid</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                  {invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}
+                  {currSym}
                 </span>
                 <input 
                   type="number" 
                   min="0"
                   step="0.01"
                   value={amountPaid}
-                  onChange={e => setAmountPaid(Number(e.target.value))}
+                  onChange={e => setAmountPaid(e.target.value)}
                   className="w-full pl-8 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
                   required
                 />

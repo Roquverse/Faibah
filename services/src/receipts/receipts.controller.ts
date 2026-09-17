@@ -14,6 +14,11 @@ export class ReceiptsController {
     return this.receiptsService.getAllReceipts(userId);
   }
 
+  @Get(':id')
+  async getReceiptById(@Param('id') id: string) {
+    return this.receiptsService.getReceiptById(id);
+  }
+
   @Post()
   async createReceipt(@Body() data: any) {
     return this.receiptsService.createReceipt(data);

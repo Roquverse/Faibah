@@ -21,8 +21,8 @@ async function bootstrap() {
   try {
     const prisma = app.get(PrismaService);
     await prisma.company.updateMany({
-      where: { aiTokens: { lt: 50 } },
-      data: { aiTokens: 50 },
+      where: { aiTokens: { gt: 3 } },
+      data: { aiTokens: 3 },
     });
   } catch (e) {
     console.error('Failed to update company tokens on startup:', e);

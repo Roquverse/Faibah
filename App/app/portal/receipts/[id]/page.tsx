@@ -114,15 +114,45 @@ export default function ClientReceiptPreviewPage() {
 
           {/* Amount Box */}
           <div className="bg-emerald-50/70 border border-emerald-200/80 p-6 rounded-2xl text-center">
-            <div className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">Total Amount Received</div>
+            <div className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">Amount Paid</div>
             <div className="text-3xl font-extrabold text-emerald-900">
               {selectedReceipt.invoice?.currency === 'USD' ? '$' : '₦'}
-              {Number(selectedReceipt.amountPaid).toLocaleString()}
+              {Number(selectedReceipt.amountPaid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <div className="inline-flex items-center gap-1 mt-3 px-3 py-1 bg-emerald-600 text-white text-[11px] font-bold rounded-full">
               <CheckCircle2 className="w-3.5 h-3.5" /> Payment Successful
             </div>
           </div>
+
+          {(() => {
+            const rcptSubtotal = selectedReceipt.invoice?.items?.reduce((s: number, item: any) => s + (item.amount || 0), 0) || 0;
+            const rcptTax = rcptSubtotal * ((selectedReceipt.invoice?.taxRate || 0) / 100);
+            const rcptTotal = rcptSubtotal + rcptTax;
+            const rcptPaid = selectedReceipt.invoice?.receipts?.reduce((s: number, r: any) => s + (r.amountPaid || 0), 0) || Number(selectedReceipt.amountPaid);
+            const rcptBalance = Math.max(0, rcptTotal - rcptPaid);
+            const sym = selectedReceipt.invoice?.currency === 'USD' ? '$' : '₦';
+
+            if (rcptTotal <= 0) return null;
+
+            return (
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs space-y-2">
+                <div className="flex justify-between items-center text-gray-600">
+                  <span>Total Invoice Amount</span>
+                  <span className="font-semibold text-gray-900">{sym}{rcptTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between items-center text-gray-600">
+                  <span>Total Paid to Date</span>
+                  <span className="font-semibold text-green-700">{sym}{rcptPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-gray-200 font-bold">
+                  <span className="text-gray-900">Balance Remaining</span>
+                  <span className={rcptBalance > 0 ? 'text-red-600' : 'text-green-700'}>
+                    {rcptBalance > 0 ? `${sym}${rcptBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Fully Paid (₦0.00)'}
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Footer Note */}
           <div className="pt-6 border-t border-gray-100 text-center text-xs text-gray-400">

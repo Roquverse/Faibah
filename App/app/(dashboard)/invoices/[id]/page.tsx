@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Download, Send, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Download, Send, RefreshCcw, CheckCircle2, Receipt as ReceiptIcon, RotateCcw } from 'lucide-react';
 import { InvoicesApi, CompanyApi } from '@/lib/api';
 import VariantOne from '@/components/invoices/VariantOne';
 import VariantTwo from '@/components/invoices/VariantTwo';
 import VariantThree from '@/components/invoices/VariantThree';
 import ShareDropdown from '@/components/shared/ShareDropdown';
+import GenerateReceiptModal from '@/components/dashboard/GenerateReceiptModal';
 
 export default function InvoicePreviewPage() {
   const { id } = useParams();
@@ -17,6 +18,8 @@ export default function InvoicePreviewPage() {
   const [company, setCompany] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [variant, setVariant] = useState<1 | 2 | 3>(3);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     const fetchInvoice = async () => {
@@ -36,6 +39,32 @@ export default function InvoicePreviewPage() {
     if (id) fetchInvoice();
   }, [id]);
 
+  const handleMarkAsPaid = async () => {
+    setIsUpdatingStatus(true);
+    try {
+      const updated = await InvoicesApi.update(id as string, { status: 'PAID' });
+      setInvoice((prev: any) => ({ ...prev, status: 'PAID', ...updated }));
+    } catch (e) {
+      console.error(e);
+      alert('Failed to update invoice to Paid');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleMarkAsUnpaid = async () => {
+    setIsUpdatingStatus(true);
+    try {
+      const updated = await InvoicesApi.update(id as string, { status: 'SENT' });
+      setInvoice((prev: any) => ({ ...prev, status: 'SENT', ...updated }));
+    } catch (e) {
+      console.error(e);
+      alert('Failed to update invoice');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center p-8 bg-gray-50/50">
@@ -54,6 +83,8 @@ export default function InvoicePreviewPage() {
       </div>
     );
   }
+
+  const isPaid = invoice.status === 'PAID';
 
   return (
     <div className="w-full flex flex-col min-h-screen print:!min-h-0 bg-gray-100 pb-12 print:!p-0 print:!bg-white print:!block">
@@ -101,7 +132,40 @@ export default function InvoicePreviewPage() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 flex-wrap">
+            {!isPaid ? (
+              <>
+                <button
+                  onClick={handleMarkAsPaid}
+                  disabled={isUpdatingStatus}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-green-600 text-white px-3.5 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors shadow-sm disabled:opacity-50"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Mark as Paid
+                </button>
+                <button
+                  onClick={() => setIsReceiptOpen(true)}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-gray-100 text-gray-700 px-3.5 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors border border-gray-200"
+                >
+                  <ReceiptIcon className="w-4 h-4" />
+                  Record Receipt
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-green-100 text-green-800 border border-green-200">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" /> Paid
+                </span>
+                <button
+                  onClick={handleMarkAsUnpaid}
+                  disabled={isUpdatingStatus}
+                  title="Mark as Unpaid"
+                  className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
+            )}
             <button onClick={() => window.print()} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors border border-gray-300">
               <Download className="w-4 h-4" />
               Download PDF
@@ -141,6 +205,16 @@ export default function InvoicePreviewPage() {
         )}
       </div>
 
+      <GenerateReceiptModal
+        isOpen={isReceiptOpen}
+        invoice={invoice}
+        onClose={() => setIsReceiptOpen(false)}
+        onSuccess={async () => {
+          setIsReceiptOpen(false);
+          const updated = await InvoicesApi.getById(id as string);
+          setInvoice(updated);
+        }}
+      />
     </div>
   );
 }

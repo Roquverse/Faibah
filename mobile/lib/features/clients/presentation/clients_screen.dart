@@ -41,33 +41,45 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
       body: clientsState.when(
         data: (clients) {
           if (clients.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            return RefreshIndicator(
+              onRefresh: () => ref.read(clientsProvider.notifier).fetchClients(),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  Icon(Icons.people_outline, size: 64, color: theme.colorScheme.onSurface.withOpacity(0.2)),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No clients found',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.people_outline, size: 64, color: theme.colorScheme.onSurface.withOpacity(0.2)),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No clients found\n(Pull to refresh)',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const CreateEditClientScreen()),
+                              );
+                            },
+                            icon: const Icon(Icons.add),
+                            label: const Text('Add Client'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CreateEditClientScreen()),
-                      );
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Client'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                    ),
-                  )
                 ],
               ),
             );
@@ -76,6 +88,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
           return RefreshIndicator(
             onRefresh: () => ref.read(clientsProvider.notifier).fetchClients(),
             child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               itemCount: clients.length,
               itemBuilder: (context, index) {

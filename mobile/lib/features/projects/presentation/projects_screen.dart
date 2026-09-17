@@ -251,32 +251,43 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: columnProjects.isEmpty
-                            ? Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.1),
-                                    style: BorderStyle.solid,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            ref.invalidate(projectsProvider);
+                          },
+                          child: columnProjects.isEmpty
+                              ? ListView(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(24),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: theme.colorScheme.onSurface.withOpacity(0.1),
+                                          style: BorderStyle.solid,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        'Drop projects here\n(Pull to refresh)',
+                                        textAlign: TextAlign.center,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          color: theme.colorScheme.onSurface.withOpacity(0.4),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                )
+                              : ListView.builder(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  itemCount: columnProjects.length,
+                                  itemBuilder: (context, pIndex) {
+                                    final project = columnProjects[pIndex];
+                                    return _buildProjectCard(project, theme);
+                                  },
                                 ),
-                                child: Text(
-                                  'Drop projects here',
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.4),
-                                  ),
-                                ),
-                              )
-                            : ListView.builder(
-                                itemCount: columnProjects.length,
-                                itemBuilder: (context, pIndex) {
-                                  final project = columnProjects[pIndex];
-                                  return _buildProjectCard(project, theme);
-                                },
-                              ),
+                        ),
                       );
                     },
                   ),

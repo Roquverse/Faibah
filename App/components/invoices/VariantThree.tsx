@@ -11,7 +11,10 @@ export default function VariantThree({ invoice, company }: { invoice: any, compa
   };
 
   const isPaid = invoice.status === 'PAID';
-  const progressPercent = isPaid ? 100 : invoice.status === 'SENT' ? 25 : 0;
+  const receiptsTotal = invoice.receipts?.reduce((acc: number, curr: any) => acc + (curr.amountPaid || 0), 0) || 0;
+  const totalPaid = isPaid ? Math.max(formattedTotal, receiptsTotal) : receiptsTotal;
+  const balanceDue = Math.max(0, formattedTotal - totalPaid);
+  const progressPercent = formattedTotal > 0 ? Math.min(100, Math.round((totalPaid / formattedTotal) * 100)) : (isPaid ? 100 : 0);
 
   return (
     <div className="w-full max-w-[900px] print:!max-w-none mx-auto print:!mx-0 bg-white min-h-[1100px] print:!min-h-0 overflow-hidden print:!overflow-visible border border-gray-300 print:!border-none flex flex-col print:!block font-sans p-10 print:!p-6 print:!pb-12 text-gray-900">
@@ -124,11 +127,11 @@ export default function VariantThree({ invoice, company }: { invoice: any, compa
           
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500">Amount Paid</span>
-            <span className="font-semibold">{isPaid ? formatCurrency(formattedTotal) : formatCurrency(0)}</span>
+            <span className="font-semibold text-green-700">{formatCurrency(totalPaid)}</span>
           </div>
           <div className="flex justify-between items-center text-sm mt-1">
             <span className="font-bold">Amount Due</span>
-            <span className="font-bold text-lg">{isPaid ? formatCurrency(0) : formatCurrency(formattedTotal)}</span>
+            <span className="font-bold text-lg">{formatCurrency(balanceDue)}</span>
           </div>
         </div>
       </div>

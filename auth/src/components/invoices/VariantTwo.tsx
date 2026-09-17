@@ -11,7 +11,11 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
   };
 
   const isPaid = invoice.status === 'PAID';
-  const progressPercent = isPaid ? 100 : invoice.status === 'SENT' ? 25 : 0;
+  const receiptsTotal = invoice.receipts?.reduce((acc: number, curr: any) => acc + (curr.amountPaid || 0), 0) || 0;
+  const totalPaid = isPaid ? Math.max(formattedTotal, receiptsTotal) : receiptsTotal;
+  const balanceDue = Math.max(0, formattedTotal - totalPaid);
+  const paidPercent = formattedTotal > 0 ? Math.min(100, Math.round((totalPaid / formattedTotal) * 100)) : (isPaid ? 100 : 0);
+  const progressPercent = paidPercent;
 
   return (
     <div className="w-full max-w-[900px] print:!max-w-none mx-auto print:!mx-0 bg-white min-h-[1100px] print:!min-h-0 shadow-sm print:!shadow-none rounded-lg print:!rounded-none overflow-hidden print:!overflow-visible border border-gray-100 print:!border-none flex flex-col print:!block font-sans">
@@ -184,12 +188,12 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
                   <div className="flex items-center gap-2 text-xs">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#111827]"></div>
                     <span className="text-gray-600 font-medium w-12">Paid</span>
-                    <span className="font-bold text-gray-900">{isPaid ? '100%' : '0%'}</span>
+                    <span className="font-bold text-gray-900">{paidPercent}%</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
                     <span className="text-gray-600 font-medium w-12">Pending</span>
-                    <span className="font-bold text-gray-900">{isPaid ? '0%' : '100%'}</span>
+                    <span className="font-bold text-gray-900">{100 - paidPercent}%</span>
                   </div>
                 </div>
               </div>
@@ -209,9 +213,13 @@ export default function VariantTwo({ invoice }: { invoice: any }) {
               <span>Total</span>
               <span>{formatCurrency(formattedTotal)}</span>
             </div>
-            <div className="flex justify-between items-center pt-2 font-bold text-[#0C3B2E] text-xl bg-green-50 p-3 rounded-lg">
+            <div className="flex justify-between items-center pt-2 font-bold text-[#0C3B2E] text-base bg-green-50 p-3 rounded-lg">
               <span>Amount Paid</span>
-              <span>{isPaid ? formatCurrency(formattedTotal) : formatCurrency(0)}</span>
+              <span>{formatCurrency(totalPaid)}</span>
+            </div>
+            <div className="flex justify-between items-center font-bold text-red-600 text-lg px-3">
+              <span>Balance Due</span>
+              <span>{formatCurrency(balanceDue)}</span>
             </div>
           </div>
           

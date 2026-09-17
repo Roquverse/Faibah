@@ -60,6 +60,21 @@ class InvoicesNotifier extends AsyncNotifier<List<InvoiceModel>> {
     }
   }
 
+  Future<bool> updateInvoiceStatus(String id, String status) async {
+    try {
+      final dioClient = ref.read(dioClientProvider);
+      final response = await dioClient.dio.patch('/invoices/$id', data: {'status': status});
+      if (response.statusCode == 200) {
+        await fetchInvoices();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Failed to update invoice status: $e');
+      return false;
+    }
+  }
+
   Future<bool> deleteInvoice(String id) async {
     try {
       final dioClient = ref.read(dioClientProvider);

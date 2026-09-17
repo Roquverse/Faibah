@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/dio_provider.dart';
 import '../models/receipt_model.dart';
+import '../../../payments/data/providers/payments_provider.dart';
 
 
 class ReceiptsNotifier extends AsyncNotifier<List<ReceiptModel>> {
@@ -36,6 +37,7 @@ class ReceiptsNotifier extends AsyncNotifier<List<ReceiptModel>> {
       final response = await dioClient.dio.post('/receipts', data: receipt.toJson());
       if (response.statusCode == 201 || response.statusCode == 200) {
         await fetchReceipts();
+        ref.invalidate(paymentsProvider);
         return true;
       }
       return false;
