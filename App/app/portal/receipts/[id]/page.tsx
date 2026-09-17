@@ -3,20 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Printer, RefreshCcw, CheckCircle2, Building2, User, FileText } from 'lucide-react';
-import { ReceiptsApi } from '@/lib/api';
+import { ReceiptsApi, CompanyApi } from '@/lib/api';
 
 export default function ClientReceiptPreviewPage() {
   const { id } = useParams();
 
   const [receipt, setReceipt] = useState<any>(null);
+  const [company, setCompany]  = useState<any>(null);
   const [loading, setLoading]  = useState(true);
   const [error, setError]      = useState(false);
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const data = await ReceiptsApi.getById(id as string);
+        const [data, co] = await Promise.all([
+          ReceiptsApi.getById(id as string),
+          CompanyApi.getProfile().catch(() => null),
+        ]);
         setReceipt(data);
+        setCompany(co ?? null);
       } catch (e) {
         console.error(e);
         setError(true);
@@ -93,12 +98,20 @@ export default function ClientReceiptPreviewPage() {
           <div className="flex justify-between items-start mb-10">
             {/* Brand */}
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#0C3B2E] rounded-xl flex items-center justify-center shrink-0">
-                <span className="text-[#FFBA00] font-black text-xl">F</span>
-              </div>
+              {company?.logoUrl ? (
+                <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center">
+                  <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain" />
+                </div>
+              ) : (
+                <div className="w-12 h-12 bg-[#0C3B2E] rounded-xl flex items-center justify-center shrink-0">
+                  <span className="text-[#FFBA00] font-black text-xl">
+                    {company?.name ? company.name.charAt(0).toUpperCase() : 'F'}
+                  </span>
+                </div>
+              )}
               <div>
-                <div className="font-extrabold text-xl text-gray-900 leading-tight">Faibah</div>
-                <div className="text-[10px] text-gray-400 font-semibold tracking-widest uppercase">Digital Agency</div>
+                <div className="font-extrabold text-xl text-gray-900 leading-tight">{company?.name ?? 'Faibah'}</div>
+                <div className="text-[10px] text-gray-400 font-semibold tracking-widest uppercase">{company?.workType ?? 'Digital Agency'}</div>
               </div>
             </div>
 
@@ -144,7 +157,13 @@ export default function ClientReceiptPreviewPage() {
               </div>
               <div>
                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Issued By</div>
-                <div className="font-bold text-gray-900 text-base">Faibah Agency</div>
+                <div className="font-bold text-gray-900 text-base">{company?.name ?? 'Faibah Agency'}</div>
+                {company?.companyEmail && <div className="text-xs text-gray-500 mt-0.5">{company.companyEmail}</div>}
+                {company?.companyPhone && <div className="text-xs text-gray-500">{company.companyPhone}</div>}
+                {company?.address && <div className="text-xs text-gray-400 mt-1">{company.address}</div>}
+                {(company?.city || company?.country) && !company?.address && (
+                  <div className="text-xs text-gray-400">{[company?.city, company?.country].filter(Boolean).join(', ')}</div>
+                )}
               </div>
             </div>
           </div>
