@@ -19,42 +19,27 @@
  * | Channels      | -    | -          | ✓      |
  * | Schedule      | -    | -          | ✓      |
  */
+export const ALL_FEATURES = [
+  'overview',
+  'projects',
+  'clients',
+  'proposals',
+  'quotations',
+  'invoices',
+  'receipts',
+  'payments',
+  'subscriptions',
+  'tasks',
+  'team',
+  'channels',
+  'schedule',
+  'settings',
+] as const;
+
 export const TIER_FEATURES = {
-  solo: [
-    'overview',
-    'projects',
-    'clients',
-    'invoices',
-    'receipts',
-    'payments',
-    'subscriptions',
-    'settings',
-  ],
-  contractor: [
-    'overview',
-    'projects',
-    'clients',
-    'proposals',
-    'invoices',
-    'receipts',
-    'payments',
-    'settings',
-  ],
-  agency: [
-    'overview',
-    'projects',
-    'clients',
-    'proposals',
-    'quotations',
-    'invoices',
-    'receipts',
-    'payments',
-    'tasks',
-    'team',
-    'channels',
-    'schedule',
-    'settings',
-  ],
+  solo: ALL_FEATURES,
+  contractor: ALL_FEATURES,
+  agency: ALL_FEATURES,
 } as const;
 
 export type Tier = keyof typeof TIER_FEATURES;
@@ -78,20 +63,16 @@ export const FEATURE_ROUTES: Record<string, Feature> = {
   '/settings':     'settings',
 };
 
-/** Features that require Contractor or higher */
-export const CONTRACTOR_ONLY_FEATURES: Feature[] = ['proposals'];
+/** Features that require Contractor or higher (all free now) */
+export const CONTRACTOR_ONLY_FEATURES: Feature[] = [];
 
-/** Features that require Agency tier */
-export const AGENCY_ONLY_FEATURES: Feature[] = [
-  'quotations', 'tasks', 'team', 'channels', 'schedule',
-];
+/** Features that require Agency tier (all free now) */
+export const AGENCY_ONLY_FEATURES: Feature[] = [];
 
-export function tierCanAccess(tier: Tier, feature: string): boolean {
-  return (TIER_FEATURES[tier] as readonly string[]).includes(feature);
+export function tierCanAccess(_tier: Tier, _feature: string): boolean {
+  return true;
 }
 
-export function getUpgradeRequired(feature: string): Tier | null {
-  if ((TIER_FEATURES.solo as readonly string[]).includes(feature)) return null;
-  if ((TIER_FEATURES.contractor as readonly string[]).includes(feature)) return 'contractor';
-  return 'agency';
+export function getUpgradeRequired(_feature: string): Tier | null {
+  return null;
 }

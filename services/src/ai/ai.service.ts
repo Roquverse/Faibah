@@ -81,9 +81,15 @@ Ensure the financial items breakdown logically covers the scope of work and sums
   }
 
   async topUpTokens(companyId: string, amount: number) {
+    const company = await this.prisma.company.findUnique({
+      where: { id: companyId },
+      select: { aiTokens: true },
+    });
+    const current = company?.aiTokens || 0;
+    const newAmount = Math.min(5, Math.max(0, current + amount));
     const updatedCompany = await this.prisma.company.update({
       where: { id: companyId },
-      data: { aiTokens: { increment: amount } }
+      data: { aiTokens: newAmount }
     });
     return { aiTokens: updatedCompany.aiTokens };
   }

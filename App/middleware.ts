@@ -12,8 +12,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 // proxy the check.
 //
 // Routes that need auth (all dashboard routes) ↓
-const CONTRACTOR_ROUTES = ['/proposals'];
-const AGENCY_ROUTES = ['/quotations', '/tasks', '/team', '/channels', '/schedule'];
+const CONTRACTOR_ROUTES: string[] = [];
+const AGENCY_ROUTES: string[] = [];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })

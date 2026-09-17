@@ -17,12 +17,16 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   
-  // Ensure all companies have at least 50 AI tokens
+  // Ensure all companies have AI tokens set to 5 (capped at 5)
   try {
     const prisma = app.get(PrismaService);
     await prisma.company.updateMany({
-      where: { aiTokens: { gt: 3 } },
-      data: { aiTokens: 3 },
+      where: { aiTokens: { gt: 5 } },
+      data: { aiTokens: 5 },
+    });
+    await prisma.company.updateMany({
+      where: { aiTokens: { lt: 5 } },
+      data: { aiTokens: 5 },
     });
   } catch (e) {
     console.error('Failed to update company tokens on startup:', e);

@@ -149,7 +149,7 @@ export default function NewProjectProposal() {
 
   const handleTopUpTokens = async () => {
     try {
-      const result = await AiApi.topUpTokens(25);
+      const result = await AiApi.topUpTokens(5);
       setCompany((prev: any) => prev ? { ...prev, aiTokens: result.aiTokens } : prev);
     } catch (err) {
       console.error('Failed to top up tokens', err);
@@ -280,7 +280,7 @@ export default function NewProjectProposal() {
  </div>
  <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5 px-3 py-1 bg-white border border-indigo-100 rounded-lg shadow-sm">
-                    <span className="text-sm font-bold text-indigo-600">{company?.aiTokens || 0}</span>
+                    <span className="text-sm font-bold text-indigo-600">{company?.aiTokens ?? 0} / 5</span>
                     <span className="text-xs font-semibold text-gray-500">Tokens</span>
                   </div>
                   <button onClick={() => setIsAiModalOpen(false)} className="text-gray-400 hover:text-gray-900 p-2">
@@ -313,7 +313,7 @@ export default function NewProjectProposal() {
                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    Buy Tokens (Mock Top-Up)
+                    Refill Free Tokens (Limit: 5)
                   </button>
                 ) : (
                   <div /> // Spacer

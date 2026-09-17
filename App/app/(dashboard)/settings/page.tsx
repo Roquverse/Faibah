@@ -277,7 +277,7 @@ export default function SettingsPage() {
             <TabsContent value="billing" className="m-0 focus-visible:outline-none focus-visible:ring-0">
               <div className="mb-6">
                 <h2 className="text-xl font-bold">Subscription Plans</h2>
-                <p className="text-gray-500 text-sm mt-1">Upgrade your plan to unlock more features.</p>
+                <p className="text-gray-500 text-sm mt-1">All plans and features are completely free for now.</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
@@ -341,8 +341,8 @@ export default function SettingsPage() {
                   <CardHeader>
                     <CardTitle className="text-lg text-white">Agency</CardTitle>
                     <div className="flex items-baseline gap-1 mt-2">
-                      <span className="text-3xl font-bold">₦3,800</span>
-                      <span className="text-sm text-gray-300 font-medium">/month</span>
+                      <span className="text-3xl font-bold">Free</span>
+                      <span className="text-sm text-gray-300 font-medium">for now</span>
                     </div>
                     <CardDescription className="pt-2 text-gray-300">For growing teams & agencies.</CardDescription>
                   </CardHeader>
@@ -354,41 +354,15 @@ export default function SettingsPage() {
                     ))}
                   </CardContent>
                   <CardFooter>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          className={`w-full ${company?.planTier === 'agency' ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white text-indigo-900 hover:bg-gray-100 font-semibold'}`}
-                          disabled={company?.planTier === 'agency'}
-                        >
-                          {company?.planTier === 'agency' ? 'Active' : 'Upgrade to Agency'}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                          <DialogTitle>Upgrade to Agency Tier</DialogTitle>
-                          <DialogDescription>
-                            You are about to upgrade to the Agency tier for ₦3,800/month. This will instantly unlock Team management and Task boards.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="py-6 flex justify-center">
-                          {/* Paystack Payment Checkout */}
-                          <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 text-center space-y-4 w-full">
-                            <CreditCard className="w-12 h-12 text-indigo-600 mx-auto" />
-                            <div className="text-sm text-gray-500">Secure payment via Paystack</div>
-                            <div className="text-2xl font-bold text-gray-900">₦3,800</div>
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <PaystackCheckout 
-                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-10 px-4 py-2 rounded-md transition-colors" 
-                            {...componentProps} 
-                          />
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                    <Button 
+                      className={`w-full ${company?.planTier === 'agency' ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white text-indigo-900 hover:bg-gray-100 font-semibold'}`}
+                      disabled={company?.planTier === 'agency'}
+                      onClick={() => handleUpgradeTier('agency')}
+                    >
+                      {company?.planTier === 'agency' ? 'Active' : 'Upgrade to Agency'}
+                    </Button>
                   </CardFooter>
                 </Card>
-
               </div>
             </TabsContent>
 
