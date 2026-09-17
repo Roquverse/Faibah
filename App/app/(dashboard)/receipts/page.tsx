@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Download, Trash2, Printer, X, CheckCircle2 } from 'lucide-react';
-import { ReceiptsApi, InvoicesApi } from '@/lib/api';
+import { Plus, Search, Download, Trash2, Printer, X, CheckCircle2, Building2, User, FileText } from 'lucide-react';
+import { ReceiptsApi, InvoicesApi, CompanyApi } from '@/lib/api';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable';
 import { Input } from '@/components/ui/input';
@@ -20,8 +20,23 @@ type Receipt = {
     invoiceRef?: string;
     currency?: string;
     taxRate?: number | null;
-    client?: { name?: string | null; email?: string | null; whatsappNumber?: string | null } | null;
-    items?: { amount?: number | null }[] | null;
+    status?: string | null;
+    dueDate?: string | null;
+    createdAt?: string | null;
+    client?: {
+      name?: string | null;
+      email?: string | null;
+      whatsappNumber?: string | null;
+      address?: string | null;
+      city?: string | null;
+      country?: string | null;
+    } | null;
+    items?: {
+      amount?: number | null;
+      quantity?: number | null;
+      unitPrice?: number | null;
+      description?: string | null;
+    }[] | null;
     receipts?: { amountPaid?: number | null }[] | null;
   } | null;
 };
@@ -29,6 +44,7 @@ type Receipt = {
 export default function ReceiptsPage() {
   const [receipts, setReceipts]           = useState<Receipt[]>([]);
   const [invoices, setInvoices]           = useState<any[]>([]);
+  const [company, setCompany]             = useState<any>(null);
   const [search, setSearch]               = useState('');
   const [loading, setLoading]             = useState(true);
   const [showCreate, setShowCreate]       = useState(false);
@@ -42,8 +58,12 @@ export default function ReceiptsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [r, i] = await Promise.all([ReceiptsApi.getAll(), InvoicesApi.getAll()]);
-      setReceipts(r ?? []); setInvoices(i ?? []);
+      const [r, i, c] = await Promise.all([
+        ReceiptsApi.getAll(),
+        InvoicesApi.getAll(),
+        CompanyApi.getProfile().catch(() => null),
+      ]);
+      setReceipts(r ?? []); setInvoices(i ?? []); setCompany(c ?? null);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -258,89 +278,297 @@ export default function ReceiptsPage() {
         );
       })()}
 
-      {/* View / Print Modal — preserved exactly */}
+      {/* View / Print Modal — Full Professional Receipt */}
       {selectedReceipt && (() => {
-        const rcptInvSubtotal = selectedReceipt.invoice?.items?.reduce((s: number, item: any) => s + (item.amount || 0), 0) || 0;
-        const rcptInvTax = rcptInvSubtotal * ((selectedReceipt.invoice?.taxRate || 0) / 100);
-        const rcptInvTotal = rcptInvSubtotal + rcptInvTax;
-        const rcptTotalPaid = selectedReceipt.invoice?.receipts?.reduce((s: number, r: any) => s + (r.amountPaid || 0), 0) || Number(selectedReceipt.amountPaid);
-        const rcptRemainingBalance = Math.max(0, rcptInvTotal - rcptTotalPaid);
-        const rcptSym = selectedReceipt.invoice?.currency === 'USD' ? '$' : '₦';
+        const inv = selectedReceipt.invoice;
+        const sym = inv?.currency === 'USD' ? '$' : inv?.currency === 'NGN' ? '₦' : (inv?.currency ?? '₦');
+        const formatCurrency = (n: number) => `${sym}${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        const subtotal = inv?.items?.reduce((s, item) => s + (item.amount || 0), 0) ?? 0;
+        const tax      = subtotal * ((inv?.taxRate || 0) / 100);
+        const invTotal = subtotal + tax;
+        const totalPaid = inv?.receipts?.reduce((s, r) => s + (r.amountPaid || 0), 0) ?? Number(selectedReceipt.amountPaid);
+        const balance  = Math.max(0, invTotal - totalPaid);
+        const isFullyPaid = balance === 0 && invTotal > 0;
+        const paidPct = invTotal > 0 ? Math.min(100, Math.round((totalPaid / invTotal) * 100)) : (isFullyPaid ? 100 : 0);
+
+        const rcpRef   = selectedReceipt.receiptRef ?? `RCP-${selectedReceipt.id.slice(0, 6).toUpperCase()}`;
+        const rcpDate  = new Date(selectedReceipt.paymentDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
         return (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-gray-100 relative max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6 print:hidden">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Official Payment Receipt</span>
-                <div className="flex items-center gap-2">
-                  <ShareDropdown
-                    itemType="Receipt"
-                    itemRef={selectedReceipt.receiptRef ?? `RCP-${selectedReceipt.id.slice(0, 6).toUpperCase()}`}
-                    publicUrl={typeof window !== 'undefined' ? `${window.location.origin}/portal/receipts/${selectedReceipt.id}` : ''}
-                    client={selectedReceipt.invoice?.client}
-                    triggerClassName="!bg-white !text-gray-700 !border-gray-200 hover:!bg-gray-50 !py-1.5"
-                  />
-                  <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0C3B2E] text-white rounded-lg text-xs font-bold hover:bg-[#082B21] transition-colors">
-                    <Printer size={13} /> Print / PDF
-                  </button>
-                  <button onClick={() => setSelectedReceipt(null)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg"><X size={18} /></button>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            {/* Toolbar — print:hidden */}
+            <div className="absolute top-4 right-4 flex items-center gap-2 print:hidden z-10">
+              <ShareDropdown
+                itemType="Receipt"
+                itemRef={rcpRef}
+                publicUrl={typeof window !== 'undefined' ? `${window.location.origin}/portal/receipts/${selectedReceipt.id}` : ''}
+                client={inv?.client}
+                triggerClassName="!bg-white !text-gray-700 !border-gray-200 hover:!bg-gray-50 !py-1.5"
+              />
+              <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0C3B2E] text-white rounded-lg text-xs font-bold hover:bg-[#082B21] transition-colors">
+                <Printer size={13} /> Print / PDF
+              </button>
+              <button onClick={() => setSelectedReceipt(null)} className="p-1.5 bg-white text-gray-500 hover:text-gray-800 rounded-lg shadow">
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Receipt Document */}
+            <div className="bg-white w-full max-w-[820px] max-h-[92vh] overflow-y-auto rounded-2xl shadow-2xl print:!shadow-none print:!rounded-none print:!max-h-none print:!overflow-visible font-sans">
+              <div className="p-10 print:p-8 relative">
+
+                {/* Watermark */}
+                <div className={`absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.04] rotate-[-30deg] text-[110px] font-black tracking-widest uppercase ${
+                  isFullyPaid ? 'text-green-700' : 'text-yellow-600'
+                }`}>
+                  {isFullyPaid ? 'PAID' : 'PARTIAL'}
                 </div>
-              </div>
-              <div className="space-y-6">
-                <div className="flex justify-between items-start border-b border-gray-200 pb-6">
-                  <div>
-                    <div className="text-xl font-extrabold text-[#0C3B2E] tracking-tight">FAIBAH PLATFORM</div>
-                    <div className="text-xs text-gray-500 mt-1">Payment Confirmation Receipt</div>
+
+                {/* ── Header ── */}
+                <div className="flex justify-between items-start mb-10">
+                  {/* Brand */}
+                  <div className="flex items-center gap-3">
+                    {company?.logoUrl ? (
+                      <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center">
+                        <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 bg-[#0C3B2E] rounded-xl flex items-center justify-center shrink-0">
+                        <span className="text-[#FFBA00] font-black text-xl">
+                          {company?.name ? company.name.charAt(0).toUpperCase() : 'F'}
+                        </span>
+                      </div>
+                    )}
+                    <div>
+                      <div className="font-extrabold text-xl text-gray-900 leading-tight">{company?.name ?? 'Faibah'}</div>
+                      <div className="text-[10px] text-gray-400 font-semibold tracking-widest uppercase">{company?.workType ?? 'Digital Agency'}</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-base font-bold text-gray-900">{selectedReceipt.receiptRef ?? `RCP-${selectedReceipt.id.slice(0, 6).toUpperCase()}`}</div>
-                    <div className="text-xs text-gray-500 font-semibold mt-0.5">Date: {new Date(selectedReceipt.paymentDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
-                  <div>
-                    <span className="text-gray-400 font-semibold block mb-1">Received From:</span>
-                    <span className="font-bold text-gray-900 text-sm block">{selectedReceipt.invoice?.client?.name ?? 'Valued Client'}</span>
-                    <span className="text-gray-500">{selectedReceipt.invoice?.client?.email ?? ''}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 font-semibold block mb-1">Invoice Reference:</span>
-                    <span className="font-bold text-gray-900 text-sm block">#{selectedReceipt.invoice?.invoiceRef ?? selectedReceipt.invoiceId?.slice(0, 8)}</span>
-                    <span className="text-gray-500">Payment Method: {selectedReceipt.paymentMethod ?? 'Bank Transfer'}</span>
-                  </div>
-                </div>
-                <div className="bg-green-50/70 border border-green-200/80 p-6 rounded-2xl text-center">
-                  <div className="text-xs font-bold text-green-800 uppercase tracking-wider mb-1">Amount Paid</div>
-                  <div className="text-3xl font-extrabold text-green-900">
-                    {rcptSym}{Number(selectedReceipt.amountPaid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                  <div className="inline-flex items-center gap-1 mt-3 px-3 py-1 bg-green-600 text-white text-[11px] font-bold rounded-full">
-                    <CheckCircle2 size={12} /> Payment Successful
+
+                  {/* Receipt badge */}
+                  <div className="bg-[#0C3B2E] text-white p-5 rounded-2xl shadow-lg min-w-[200px]">
+                    <div className="text-[10px] font-bold text-green-300 uppercase tracking-widest mb-1">Payment Receipt</div>
+                    <div className="font-black text-lg tracking-tight">{rcpRef}</div>
+                    <div className="text-xs text-green-200 mt-1">{rcpDate}</div>
+                    <div className="mt-3 pt-3 border-t border-green-700/40 flex items-center justify-between">
+                      <span className="text-xs text-green-300">Status</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                        isFullyPaid ? 'bg-green-400 text-green-900' : 'bg-[#FFBA00] text-yellow-900'
+                      }`}>
+                        {isFullyPaid ? 'PAID' : 'PARTIAL'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {rcptInvTotal > 0 && (
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs space-y-2">
-                    <div className="flex justify-between items-center text-gray-600">
-                      <span>Total Invoice Amount</span>
-                      <span className="font-semibold text-gray-900">{rcptSym}{rcptInvTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                {/* ── Parties ── */}
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  {/* Bill To */}
+                  <div className="bg-gray-50 border border-gray-100 p-5 rounded-2xl flex items-start gap-4">
+                    <div className="w-9 h-9 bg-[#0C3B2E]/10 text-[#0C3B2E] rounded-xl flex items-center justify-center shrink-0">
+                      <User size={18} />
                     </div>
-                    <div className="flex justify-between items-center text-gray-600">
-                      <span>Total Paid to Date</span>
-                      <span className="font-semibold text-green-700">{rcptSym}{rcptTotalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <div>
+                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Received From</div>
+                      <div className="font-bold text-gray-900 text-base">{inv?.client?.name ?? 'Valued Client'}</div>
+                      {inv?.client?.email && <div className="text-xs text-gray-500 mt-0.5">{inv.client.email}</div>}
+                      {inv?.client?.whatsappNumber && <div className="text-xs text-gray-500">{inv.client.whatsappNumber}</div>}
+                      {inv?.client?.address && <div className="text-xs text-gray-400 mt-1">{inv.client.address}</div>}
+                      {(inv?.client?.city || inv?.client?.country) && (
+                        <div className="text-xs text-gray-400">{[inv?.client?.city, inv?.client?.country].filter(Boolean).join(', ')}</div>
+                      )}
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-gray-200 font-bold">
-                      <span className="text-gray-900">Balance Remaining</span>
-                      <span className={rcptRemainingBalance > 0 ? 'text-red-600' : 'text-green-700'}>
-                        {rcptRemainingBalance > 0 ? `${rcptSym}${rcptRemainingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Fully Paid (₦0.00)'}
-                      </span>
+                  </div>
+
+                  {/* From */}
+                  <div className="bg-gray-50 border border-gray-100 p-5 rounded-2xl flex items-start gap-4">
+                    <div className="w-9 h-9 bg-[#0C3B2E]/10 text-[#0C3B2E] rounded-xl flex items-center justify-center shrink-0">
+                      <Building2 size={18} />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Issued By</div>
+                      <div className="font-bold text-gray-900 text-base">{company?.name ?? 'Faibah Agency'}</div>
+                      {company?.companyEmail && <div className="text-xs text-gray-500 mt-0.5">{company.companyEmail}</div>}
+                      {company?.companyPhone && <div className="text-xs text-gray-500">{company.companyPhone}</div>}
+                      {company?.address && <div className="text-xs text-gray-400 mt-1">{company.address}</div>}
+                      {(company?.city || company?.country) && (
+                        <div className="text-xs text-gray-400">{[company?.city, company?.country].filter(Boolean).join(', ')}</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Receipt & Invoice meta */}
+                <div className="grid grid-cols-3 gap-3 mb-8">
+                  {[{
+                    label: 'Invoice Ref',
+                    value: inv?.invoiceRef ? `#${inv.invoiceRef}` : `#${selectedReceipt.invoiceId?.slice(0,8).toUpperCase() ?? '—'}`,
+                  }, {
+                    label: 'Payment Method',
+                    value: selectedReceipt.paymentMethod ?? 'Bank Transfer',
+                  }, {
+                    label: 'Payment Date',
+                    value: rcpDate,
+                  }].map(({ label, value }) => (
+                    <div key={label} className="bg-[#0C3B2E]/5 border border-[#0C3B2E]/10 rounded-xl p-3.5">
+                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{label}</div>
+                      <div className="font-semibold text-gray-900 text-sm">{value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ── Items Table ── */}
+                {inv?.items && inv.items.length > 0 && (
+                  <div className="mb-8 rounded-2xl overflow-hidden border border-gray-100">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-[#0C3B2E] text-white">
+                        <tr>
+                          <th className="px-5 py-3.5 font-semibold text-[11px] uppercase tracking-wider w-10">#</th>
+                          <th className="px-5 py-3.5 font-semibold text-[11px] uppercase tracking-wider">Item &amp; Description</th>
+                          <th className="px-5 py-3.5 font-semibold text-[11px] uppercase tracking-wider text-center">Qty</th>
+                          <th className="px-5 py-3.5 font-semibold text-[11px] uppercase tracking-wider text-right">Rate</th>
+                          <th className="px-5 py-3.5 font-semibold text-[11px] uppercase tracking-wider text-right">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {inv.items.map((item, idx) => {
+                          const parts = item.description ? item.description.split('|||') : ['Service'];
+                          const itemName    = parts[0];
+                          const itemDetails = parts.length > 1 ? parts.slice(1).join('') : '';
+                          return (
+                            <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}>
+                              <td className="px-5 py-4 text-gray-400 font-semibold text-xs">{String(idx + 1).padStart(2, '0')}</td>
+                              <td className="px-5 py-4">
+                                <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                                    <FileText size={14} />
+                                  </div>
+                                  <div>
+                                    <div className="font-bold text-gray-900 text-sm">{itemName}</div>
+                                    {itemDetails && <div className="text-xs text-gray-500 mt-0.5 line-clamp-2">{itemDetails}</div>}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-5 py-4 text-center text-gray-700 font-medium">{item.quantity ?? 1}</td>
+                              <td className="px-5 py-4 text-right text-gray-700 font-medium">{formatCurrency(item.unitPrice ?? 0)}</td>
+                              <td className="px-5 py-4 text-right font-bold text-[#0C3B2E]">{formatCurrency(item.amount ?? 0)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* ── Totals + Payment Summary ── */}
+                <div className="flex gap-6 mb-8">
+                  {/* Payment progress */}
+                  <div className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center gap-3">
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Payment Progress</div>
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center shadow-inner"
+                      style={{ background: `conic-gradient(#0C3B2E ${paidPct}%, #e5e7eb ${paidPct}%)` }}
+                    >
+                      <div className="w-14 h-14 bg-gray-50 rounded-full flex flex-col items-center justify-center">
+                        <span className="font-black text-[#0C3B2E] text-base leading-none">{paidPct}%</span>
+                        <span className="text-[9px] font-semibold text-gray-500">{isFullyPaid ? 'Paid' : 'Partial'}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 w-full">
+                      <div className="flex items-center gap-2 text-xs">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#0C3B2E]"></div>
+                        <span className="text-gray-500 flex-1">Paid</span>
+                        <span className="font-bold text-gray-900">{paidPct}%</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
+                        <span className="text-gray-500 flex-1">Remaining</span>
+                        <span className="font-bold text-gray-900">{100 - paidPct}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Amounts */}
+                  <div className="flex-[2] flex flex-col justify-end">
+                    <div className="space-y-2.5 px-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Subtotal</span>
+                        <span className="font-semibold text-gray-900">{formatCurrency(subtotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">VAT ({inv?.taxRate ?? 0}%)</span>
+                        <span className="font-semibold text-gray-900">{formatCurrency(tax)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
+                        <span className="font-bold text-gray-900">Invoice Total</span>
+                        <span className="font-bold text-gray-900">{formatCurrency(invTotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">This Payment</span>
+                        <span className="font-semibold text-green-700">{formatCurrency(Number(selectedReceipt.amountPaid))}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Total Paid to Date</span>
+                        <span className="font-semibold text-green-700">{formatCurrency(totalPaid)}</span>
+                      </div>
+                    </div>
+                    <div className={`p-5 rounded-xl flex justify-between items-center shadow-md ${
+                      isFullyPaid
+                        ? 'bg-green-600'
+                        : 'bg-[#0C3B2E]'
+                    }`}>
+                      <div>
+                        <div className="text-xs text-white/70 font-medium">Balance Remaining</div>
+                        <div className="text-2xl font-black text-white">
+                          {isFullyPaid ? 'Fully Paid' : formatCurrency(balance)}
+                        </div>
+                      </div>
+                      {isFullyPaid && (
+                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                          <CheckCircle2 size={22} className="text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Bank Details ── */}
+                {(company?.bankName || company?.accountNumber) && (
+                  <div className="border-t border-gray-100 pt-6 mb-6">
+                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3">Bank Details</div>
+                    <div className="grid grid-cols-3 gap-3 text-xs">
+                      {company?.bankName && (
+                        <div><span className="font-semibold text-gray-700">Bank:</span> <span className="text-gray-600">{company.bankName}</span></div>
+                      )}
+                      {company?.accountName && (
+                        <div><span className="font-semibold text-gray-700">Account Name:</span> <span className="text-gray-600">{company.accountName}</span></div>
+                      )}
+                      {company?.accountNumber && (
+                        <div><span className="font-semibold text-gray-700">Account No:</span> <span className="text-gray-600">{company.accountNumber}</span></div>
+                      )}
+                      {company?.routingNumber && (
+                        <div><span className="font-semibold text-gray-700">Routing:</span> <span className="text-gray-600">{company.routingNumber}</span></div>
+                      )}
+                      {company?.swiftCode && (
+                        <div><span className="font-semibold text-gray-700">SWIFT:</span> <span className="text-gray-600">{company.swiftCode}</span></div>
+                      )}
                     </div>
                   </div>
                 )}
 
-                <div className="pt-6 border-t border-gray-100 text-center text-xs text-gray-400">
-                  Thank you for your business! This is an official computer-generated payment receipt.
+                {/* ── Footer ── */}
+                <div className="border-t border-gray-100 pt-5 flex items-center justify-between">
+                  <div className="text-xs text-gray-400">
+                    This is an official computer-generated receipt.<br />
+                    <span className="font-semibold text-gray-500">Thank you for your business!</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-gray-400 font-medium">Receipt #{rcpRef}</div>
+                    <div className="text-[10px] text-gray-300">Generated by Faibah Platform</div>
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>
