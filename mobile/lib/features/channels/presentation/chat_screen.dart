@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,6 +36,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final FocusNode _messageFocusNode = FocusNode();
   final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isRecording = false;
+  Timer? _recordingTimer;
+  int _recordingDuration = 0;
+  String? _recordedVoicePath;
+
+  AudioPlayer? _previewPlayer;
+  bool _isPlayingPreview = false;
+  Duration _previewDuration = Duration.zero;
+  Duration _previewPosition = Duration.zero;
+
   bool _showActionIcons = false;
   bool _isUploadingAttachment = false;
 
@@ -51,6 +61,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _sendMessage() {
+    if (_recordedVoicePath != null) {
+      _sendVoiceNote();
+      return;
+    }
     if (_messageController.text.trim().isEmpty) return;
 
     ref.read(chatProvider.notifier).sendMessage(_messageController.text);
@@ -60,6 +74,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    _recordingTimer?.cancel();
+    _previewPlayer?.dispose();
     _messageController.dispose();
     _messageFocusNode.dispose();
     _audioRecorder.dispose();
@@ -301,54 +317,188 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  Future<void> _toggleVoiceRecording() async {
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  Future<void> _startRecording() async {
     try {
-      if (_isRecording) {
-        final path = await _audioRecorder.stop();
-        setState(() => _isRecording = false);
-        if (path != null) {
-          setState(() => _isUploadingAttachment = true);
-          final dioClient = ref.read(dioClientProvider);
-          final formData = FormData.fromMap({
-            'file': await MultipartFile.fromFile(
-              path,
-              filename: 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a',
-            ),
-          });
-          final res = await dioClient.dio.post('/upload/image', data: formData);
-          final url = res.data?['url'] as String?;
-          if (url != null) {
-            await ref.read(chatProvider.notifier).sendMessage(
-                  'Voice message',
-                  attachmentUrl: url,
-                  messageType: 'FILE',
-                );
+      if (await _audioRecorder.hasPermission()) {
+        final dir = await getTemporaryDirectory();
+        final path =
+            '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        await _audioRecorder.start(const RecordConfig(), path: path);
+        _recordingDuration = 0;
+        _recordingTimer?.cancel();
+        _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (mounted) {
+            setState(() => _recordingDuration++);
           }
-          setState(() => _isUploadingAttachment = false);
-        }
+        });
+        setState(() {
+          _isRecording = true;
+          _recordedVoicePath = null;
+          _showActionIcons = false;
+        });
       } else {
-        if (await _audioRecorder.hasPermission()) {
-          final dir = await getTemporaryDirectory();
-          final path =
-              '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-          await _audioRecorder.start(const RecordConfig(), path: path);
-          setState(() {
-            _isRecording = true;
-          });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Microphone permission is required to record voice notes.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
         }
       }
     } catch (e) {
-      setState(() {
-        _isRecording = false;
-        _isUploadingAttachment = false;
-      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error with voice recording: $e'),
-              backgroundColor: Colors.redAccent),
+            content: Text('Could not start recording: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    try {
+      _recordingTimer?.cancel();
+      final path = await _audioRecorder.stop();
+      if (path != null) {
+        _initPreviewPlayer(path);
+      }
+      setState(() {
+        _isRecording = false;
+        _recordedVoicePath = path;
+      });
+    } catch (e) {
+      setState(() => _isRecording = false);
+    }
+  }
+
+  Future<void> _cancelRecording() async {
+    try {
+      _recordingTimer?.cancel();
+      await _audioRecorder.stop();
+      _previewPlayer?.dispose();
+      _previewPlayer = null;
+      setState(() {
+        _isRecording = false;
+        _recordedVoicePath = null;
+        _recordingDuration = 0;
+      });
+    } catch (e) {
+      setState(() => _isRecording = false);
+    }
+  }
+
+  void _initPreviewPlayer(String path) {
+    _previewPlayer?.dispose();
+    final player = AudioPlayer();
+    _previewPlayer = player;
+    player.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() => _isPlayingPreview = state == PlayerState.playing);
+      }
+    });
+    player.onDurationChanged.listen((d) {
+      if (mounted) {
+        setState(() => _previewDuration = d);
+      }
+    });
+    player.onPositionChanged.listen((p) {
+      if (mounted) {
+        setState(() => _previewPosition = p);
+      }
+    });
+    player.onPlayerComplete.listen((_) {
+      if (mounted) {
+        setState(() {
+          _isPlayingPreview = false;
+          _previewPosition = Duration.zero;
+        });
+      }
+    });
+    player.setSource(DeviceFileSource(path)).catchError((_) {});
+  }
+
+  Future<void> _togglePreviewPlay() async {
+    if (_previewPlayer == null && _recordedVoicePath != null) {
+      _initPreviewPlayer(_recordedVoicePath!);
+    }
+    if (_isPlayingPreview) {
+      await _previewPlayer?.pause();
+    } else if (_recordedVoicePath != null) {
+      await _previewPlayer?.play(DeviceFileSource(_recordedVoicePath!));
+    }
+  }
+
+  void _discardVoicePreview() {
+    _previewPlayer?.stop();
+    _previewPlayer?.dispose();
+    _previewPlayer = null;
+    setState(() {
+      _recordedVoicePath = null;
+      _isPlayingPreview = false;
+      _previewPosition = Duration.zero;
+      _previewDuration = Duration.zero;
+      _recordingDuration = 0;
+    });
+  }
+
+  Future<void> _sendVoiceNote() async {
+    if (_recordedVoicePath == null || _isUploadingAttachment) return;
+    final path = _recordedVoicePath!;
+
+    await _previewPlayer?.stop();
+    setState(() => _isUploadingAttachment = true);
+
+    try {
+      final dioClient = ref.read(dioClientProvider);
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          path,
+          filename: 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a',
+        ),
+      });
+
+      final res = await dioClient.dio.post('/upload/image', data: formData);
+      final url = res.data?['url'] as String?;
+      if (url != null) {
+        await ref.read(chatProvider.notifier).sendMessage(
+              'Voice message',
+              attachmentUrl: url,
+              messageType: 'FILE',
+            );
+        _discardVoicePreview();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send voice message: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingAttachment = false);
+      }
+    }
+  }
+
+  Future<void> _toggleVoiceRecording() async {
+    if (_isRecording) {
+      await _stopRecording();
+    } else if (_recordedVoicePath != null) {
+      _discardVoicePreview();
+    } else {
+      await _startRecording();
     }
   }
 
@@ -422,7 +572,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         lower.contains('.ogg') ||
         lower.contains('.aac') ||
         lower.contains('.webm') ||
-        lower.contains('/audio/upload/');
+        lower.contains('/audio/upload/') ||
+        lower.contains('/video/upload/');
   }
 
   @override
@@ -565,57 +716,203 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: context.inputFillColor,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: context.borderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                                _showActionIcons ? Icons.close : Icons.add,
-                                color: context.textSecondary),
-                            onPressed: () {
-                              setState(() {
-                                _showActionIcons = !_showActionIcons;
-                              });
-                            },
-                          ),
-                          Expanded(
-                            child: TextField(
-                              controller: _messageController,
-                              focusNode: _messageFocusNode,
-                              cursorColor: AppTheme.yellow,
-                              style: TextStyle(color: context.textPrimary),
-                              decoration: InputDecoration(
-                                hintText: 'Send to ${widget.channelName}',
-                                hintStyle: TextStyle(
-                                    color: context.textSecondary.withValues(alpha: 0.6), fontSize: 16),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                    if (_isRecording)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                              color: Colors.redAccent.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
                               ),
-                              maxLines: 4,
-                              minLines: 1,
-                              textInputAction: TextInputAction.send,
-                              onSubmitted: (_) => _sendMessage(),
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.send_outlined,
-                                color: AppTheme.yellow),
-                            onPressed: _sendMessage,
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Text(
+                              _formatDuration(
+                                  Duration(seconds: _recordingDuration)),
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Recording voice note...',
+                                style: TextStyle(
+                                  color: context.textSecondary,
+                                  fontSize: 13,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Cancel',
+                              icon: const Icon(Icons.delete_outline,
+                                  color: Colors.redAccent, size: 22),
+                              onPressed: _cancelRecording,
+                            ),
+                            IconButton(
+                              tooltip: 'Stop & Review',
+                              icon: const Icon(Icons.stop_circle_outlined,
+                                  color: AppTheme.yellow, size: 26),
+                              onPressed: _stopRecording,
+                            ),
+                            IconButton(
+                              tooltip: 'Send',
+                              icon: const Icon(Icons.send_rounded,
+                                  color: AppTheme.yellow, size: 22),
+                              onPressed: () async {
+                                await _stopRecording();
+                                await _sendVoiceNote();
+                              },
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (_recordedVoicePath != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: context.inputFillColor,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                              color: AppTheme.yellow.withValues(alpha: 0.5)),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                _isPlayingPreview
+                                    ? Icons.pause_circle_filled
+                                    : Icons.play_circle_filled,
+                                color: AppTheme.yellow,
+                                size: 32,
+                              ),
+                              onPressed: _togglePreviewPlay,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Voice note recorded',
+                                    style: TextStyle(
+                                      color: context.textPrimary,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _previewDuration > Duration.zero
+                                        ? '${_formatDuration(_previewPosition)} / ${_formatDuration(_previewDuration)}'
+                                        : _formatDuration(Duration(
+                                            seconds: _recordingDuration)),
+                                    style: TextStyle(
+                                      color: context.textSecondary,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Discard',
+                              icon: const Icon(Icons.delete_outline,
+                                  color: Colors.redAccent, size: 22),
+                              onPressed: _discardVoicePreview,
+                            ),
+                            if (_isUploadingAttachment)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppTheme.yellow,
+                                  ),
+                                ),
+                              )
+                            else
+                              IconButton(
+                                tooltip: 'Send Voice Note',
+                                icon: const Icon(Icons.send_rounded,
+                                    color: AppTheme.yellow, size: 22),
+                                onPressed: _sendVoiceNote,
+                              ),
+                          ],
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: context.inputFillColor,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: context.borderColor),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                  _showActionIcons ? Icons.close : Icons.add,
+                                  color: context.textSecondary),
+                              onPressed: () {
+                                setState(() {
+                                  _showActionIcons = !_showActionIcons;
+                                });
+                              },
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: _messageController,
+                                focusNode: _messageFocusNode,
+                                cursorColor: AppTheme.yellow,
+                                style: TextStyle(color: context.textPrimary),
+                                decoration: InputDecoration(
+                                  hintText: 'Send to ${widget.channelName}',
+                                  hintStyle: TextStyle(
+                                      color: context.textSecondary
+                                          .withValues(alpha: 0.6),
+                                      fontSize: 16),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 12),
+                                ),
+                                maxLines: 4,
+                                minLines: 1,
+                                textInputAction: TextInputAction.send,
+                                onSubmitted: (_) => _sendMessage(),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.send_outlined,
+                                  color: AppTheme.yellow),
+                              onPressed: _sendMessage,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    if (_showActionIcons)
+                    if (_showActionIcons && !_isRecording && _recordedVoicePath == null)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                         child: Row(
@@ -630,9 +927,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             _buildActionIcon(Icons.attach_file, 'Attachment',
                                 _showAttachmentPicker,
                                 color: context.textSecondary),
-                            _buildActionIcon(Icons.mic_none, 'Voice',
+                            _buildActionIcon(
+                                _isRecording
+                                    ? Icons.mic
+                                    : (_recordedVoicePath != null
+                                        ? Icons.mic_external_on
+                                        : Icons.mic_none),
+                                'Voice',
                                 _toggleVoiceRecording,
-                                color: _isRecording ? Colors.red : context.textSecondary),
+                                color: _isRecording
+                                    ? Colors.red
+                                    : (_recordedVoicePath != null
+                                        ? AppTheme.yellow
+                                        : context.textSecondary)),
                           ],
                         ),
                       ),
@@ -694,9 +1001,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     final attachmentUrl =
         (message['attachmentUrl'] ?? message['image'])?.toString();
-    final hasVoice =
-        message['isVoice'] == true || (attachmentUrl != null && _isAudioUrl(attachmentUrl));
     final contentText = (message['content'] ?? message['text'] ?? '').toString();
+    final hasVoice = message['isVoice'] == true ||
+        contentText.toLowerCase().contains('voice message') ||
+        (attachmentUrl != null && _isAudioUrl(attachmentUrl));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
@@ -707,7 +1015,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             radius: 20,
             backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.2),
             backgroundImage: NetworkImage(avatarUrl),
-            onBackgroundImageError: (_, __) {},
+            onBackgroundImageError: (_, _) {},
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -903,6 +1211,14 @@ class _AudioAttachmentPlayerState extends State<_AudioAttachmentPlayer> {
     });
     _player.onPositionChanged.listen((p) {
       if (mounted) setState(() => _position = p);
+    });
+    _player.onPlayerComplete.listen((_) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = false;
+          _position = Duration.zero;
+        });
+      }
     });
   }
 
