@@ -296,9 +296,9 @@ export default function ReceiptsPage() {
         const rcpDate  = new Date(selectedReceipt.paymentDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
         return (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:!bg-transparent print:!backdrop-filter-none print:!block print:!p-0">
             {/* Toolbar — print:hidden */}
-            <div className="absolute top-4 right-4 flex items-center gap-2 print:hidden z-10">
+            <div className="absolute top-4 right-4 flex items-center gap-2 print:!hidden z-10">
               <ShareDropdown
                 itemType="Receipt"
                 itemRef={rcpRef}
@@ -315,8 +315,8 @@ export default function ReceiptsPage() {
             </div>
 
             {/* Receipt Document */}
-            <div className="bg-white w-full max-w-[820px] max-h-[92vh] overflow-y-auto rounded-2xl shadow-2xl print:!shadow-none print:!rounded-none print:!max-h-none print:!overflow-visible font-sans">
-              <div className="p-10 print:p-8 relative">
+            <div className="receipt-print-zone bg-white w-full max-w-[820px] max-h-[92vh] overflow-y-auto rounded-2xl shadow-2xl font-sans">
+              <div className="p-10 relative">
 
                 {/* Watermark */}
                 <div className={`absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.04] rotate-[-30deg] text-[110px] font-black tracking-widest uppercase ${

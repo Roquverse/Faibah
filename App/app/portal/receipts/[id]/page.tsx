@@ -80,7 +80,7 @@ export default function ClientReceiptPreviewPage() {
 
       {/* ── Receipt Document ── */}
       <div className="max-w-[820px] mx-auto my-8 print:my-0 print:max-w-none">
-        <div className="bg-white rounded-2xl shadow-xl print:shadow-none print:rounded-none p-10 print:p-8 relative font-sans overflow-hidden">
+        <div className="receipt-print-zone bg-white rounded-2xl shadow-xl p-10 print:p-8 relative font-sans overflow-hidden">
 
           {/* Watermark */}
           <div className={`absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.04] rotate-[-30deg] text-[110px] font-black tracking-widest uppercase ${

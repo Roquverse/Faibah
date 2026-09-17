@@ -178,42 +178,30 @@ input:-webkit-autofill:active {
     print-color-adjust: exact !important;
   }
 
-  /* Hide the full-page overlay backdrop when printing */
-  body > *:not([data-print-receipt]) {
-    display: none !important;
+  /* Hide everything on the page by default */
+  body * {
+    visibility: hidden;
   }
 
-  /* Hide the dashboard shell, nav, sidebars, etc. */
-  .dashboard-layout,
-  nav,
-  aside,
-  header,
-  [class*="sidebar"],
-  [class*="Sidebar"] {
-    display: none !important;
+  /* Show only the receipt print zone and all its children */
+  .receipt-print-zone,
+  .receipt-print-zone * {
+    visibility: visible;
   }
 
-  /* Hide the dark overlay and toolbar; show only the receipt card */
-  .fixed.inset-0 {
-    position: static !important;
-    background: none !important;
-    backdrop-filter: none !important;
-    display: block !important;
-    padding: 0 !important;
-  }
-
-  /* The receipt document itself */
-  .fixed.inset-0 > div:last-child {
-    box-shadow: none !important;
-    border-radius: 0 !important;
+  /* Position the receipt zone to fill the page */
+  .receipt-print-zone {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
     max-height: none !important;
     overflow: visible !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  /* Hide toolbar buttons inside the overlay */
-  .fixed.inset-0 > div:first-child {
-    display: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 }
