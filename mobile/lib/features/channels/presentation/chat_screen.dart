@@ -462,7 +462,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         });
       }
     });
-    player.setSource(DeviceFileSource(path)).catchError((_) {});
   }
 
   Future<void> _togglePreviewPlay() async {
