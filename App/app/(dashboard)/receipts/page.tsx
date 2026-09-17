@@ -306,7 +306,10 @@ export default function ReceiptsPage() {
                 client={inv?.client}
                 triggerClassName="!bg-white !text-gray-700 !border-gray-200 hover:!bg-gray-50 !py-1.5"
               />
-              <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0C3B2E] text-white rounded-lg text-xs font-bold hover:bg-[#082B21] transition-colors">
+              <button
+                onClick={() => window.open(`/portal/receipts/${selectedReceipt.id}`, '_blank')}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0C3B2E] text-white rounded-lg text-xs font-bold hover:bg-[#082B21] transition-colors"
+              >
                 <Printer size={13} /> Print / PDF
               </button>
               <button onClick={() => setSelectedReceipt(null)} className="p-1.5 bg-white text-gray-500 hover:text-gray-800 rounded-lg shadow">
