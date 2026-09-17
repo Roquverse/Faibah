@@ -375,7 +375,7 @@ export default function ReceiptsPage() {
                       {inv?.client?.email && <div className="text-xs text-gray-500 mt-0.5">{inv.client.email}</div>}
                       {inv?.client?.whatsappNumber && <div className="text-xs text-gray-500">{inv.client.whatsappNumber}</div>}
                       {inv?.client?.address && <div className="text-xs text-gray-400 mt-1">{inv.client.address}</div>}
-                      {(inv?.client?.city || inv?.client?.country) && (
+                      {(inv?.client?.city || inv?.client?.country) && !inv?.client?.address && (
                         <div className="text-xs text-gray-400">{[inv?.client?.city, inv?.client?.country].filter(Boolean).join(', ')}</div>
                       )}
                     </div>

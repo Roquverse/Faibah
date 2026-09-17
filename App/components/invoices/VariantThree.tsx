@@ -63,7 +63,7 @@ export default function VariantThree({ invoice, company }: { invoice: any, compa
         <span className="font-bold text-lg mb-1 block">{invoice.client?.name || 'Unknown Client'}</span>
         <div className="text-sm text-gray-600 space-y-1">
           {invoice.client?.address && <p>{invoice.client.address}</p>}
-          {(invoice.client?.city || invoice.client?.country) && <p>{[invoice.client?.city, invoice.client?.country].filter(Boolean).join(', ')}</p>}
+          {(invoice.client?.city || invoice.client?.country) && !invoice.client?.address && <p>{[invoice.client?.city, invoice.client?.country].filter(Boolean).join(', ')}</p>}
           {invoice.client?.email && <p>{invoice.client.email}</p>}
           {invoice.client?.whatsappNumber && <p>{invoice.client.whatsappNumber}</p>}
         </div>

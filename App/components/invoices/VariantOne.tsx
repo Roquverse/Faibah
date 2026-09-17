@@ -77,7 +77,7 @@ export default function VariantOne({ invoice, company }: { invoice: any, company
             <span className="font-bold text-gray-900 text-lg mb-2">{invoice.client?.name || 'Unknown Client'}</span>
             <div className="text-sm text-gray-600 space-y-1">
               {invoice.client?.address && <p>{invoice.client.address}</p>}
-              {(invoice.client?.city || invoice.client?.country) && <p>{[invoice.client?.city, invoice.client?.country].filter(Boolean).join(', ')}</p>}
+              {(invoice.client?.city || invoice.client?.country) && !invoice.client?.address && <p>{[invoice.client?.city, invoice.client?.country].filter(Boolean).join(', ')}</p>}
               {invoice.client?.email && <p className="mt-2 text-gray-800">{invoice.client.email}</p>}
               {invoice.client?.whatsappNumber && <p className="text-gray-800">{invoice.client.whatsappNumber}</p>}
             </div>
