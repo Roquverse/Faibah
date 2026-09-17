@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../data/models/invoice_model.dart';
 import '../data/providers/company_profile_provider.dart';
+import '../data/providers/invoices_provider.dart';
 
 enum InvoiceVariant { classic, professional, enterprise }
 
@@ -505,7 +506,8 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
                 final success = await ref
                     .read(invoicesProvider.notifier)
                     .updateInvoiceStatus(_currentInvoice.id, 'PAID');
-                if (mounted && success) {
+                if (!context.mounted) return;
+                if (success) {
                   setState(() {
                     _currentInvoice = _currentInvoice.copyWith(status: 'PAID');
                   });
