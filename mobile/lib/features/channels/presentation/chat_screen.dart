@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,6 +49,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   bool _showActionIcons = false;
   bool _isUploadingAttachment = false;
 
+  // Staged attachment for Slack-style preview + text caption
+  String? _pendingAttachmentPath;
+  String? _pendingAttachmentName;
+  bool _isPendingAttachmentPdf = false;
+
   @override
   void initState() {
     super.initState();
@@ -60,15 +66,65 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
+    if (_isUploadingAttachment) return;
+
     if (_recordedVoicePath != null) {
-      _sendVoiceNote();
+      await _sendVoiceNote();
       return;
     }
-    if (_messageController.text.trim().isEmpty) return;
 
-    ref.read(chatProvider.notifier).sendMessage(_messageController.text);
+    final text = _messageController.text.trim();
 
+    // If an attachment is staged, upload and send with optional caption text
+    if (_pendingAttachmentPath != null) {
+      final filePath = _pendingAttachmentPath!;
+      final fileName = _pendingAttachmentName ?? 'attachment';
+      final isPdf = _isPendingAttachmentPdf;
+
+      setState(() => _isUploadingAttachment = true);
+      try {
+        final dioClient = ref.read(dioClientProvider);
+        final endpoint = isPdf ? '/upload/pdf' : '/upload/image';
+        final formData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(filePath, filename: fileName),
+        });
+
+        final response = await dioClient.dio.post(endpoint, data: formData);
+        final url = response.data?['url'] as String?;
+
+        if (url != null) {
+          await ref.read(chatProvider.notifier).sendMessage(
+                text,
+                attachmentUrl: url,
+                messageType: 'FILE',
+              );
+          _messageController.clear();
+          setState(() {
+            _pendingAttachmentPath = null;
+            _pendingAttachmentName = null;
+            _isPendingAttachmentPdf = false;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Failed to upload attachment: $e'),
+                backgroundColor: Colors.redAccent),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isUploadingAttachment = false);
+        }
+      }
+      return;
+    }
+
+    if (text.isEmpty) return;
+
+    ref.read(chatProvider.notifier).sendMessage(text);
     _messageController.clear();
   }
 
@@ -256,7 +312,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (choice == null) return;
 
     try {
-      setState(() => _isUploadingAttachment = true);
       String? filePath;
       String? fileName;
       bool isPdf = false;
@@ -281,38 +336,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         }
       }
 
-      if (filePath == null) {
-        setState(() => _isUploadingAttachment = false);
-        return;
-      }
-
-      final dioClient = ref.read(dioClientProvider);
-      final endpoint = isPdf ? '/upload/pdf' : '/upload/image';
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(filePath, filename: fileName),
-      });
-
-      final response = await dioClient.dio.post(endpoint, data: formData);
-      final url = response.data?['url'] as String?;
-
-      if (url != null) {
-        await ref.read(chatProvider.notifier).sendMessage(
-              '',
-              attachmentUrl: url,
-              messageType: 'FILE',
-            );
+      if (filePath != null) {
+        setState(() {
+          _pendingAttachmentPath = filePath;
+          _pendingAttachmentName = fileName;
+          _isPendingAttachmentPdf = isPdf;
+          _showActionIcons = false;
+        });
+        _messageFocusNode.requestFocus();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed to upload attachment: $e'),
+              content: Text('Failed to select attachment: $e'),
               backgroundColor: Colors.redAccent),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isUploadingAttachment = false);
       }
     }
   }
@@ -859,7 +898,93 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           ],
                         ),
                       )
-                    else
+                    else ...[
+                      if (_pendingAttachmentPath != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  constraints: const BoxConstraints(
+                                      maxWidth: 220, maxHeight: 100),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(color: context.borderColor),
+                                    color: context.inputFillColor,
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: _isPendingAttachmentPdf
+                                        ? Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 10),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                    Icons
+                                                        .picture_as_pdf_outlined,
+                                                    color: Colors.redAccent,
+                                                    size: 28),
+                                                const SizedBox(width: 8),
+                                                Flexible(
+                                                  child: Text(
+                                                    _pendingAttachmentName ??
+                                                        'Document.pdf',
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color:
+                                                          context.textPrimary,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        : Image.file(
+                                            File(_pendingAttachmentPath!),
+                                            fit: BoxFit.cover,
+                                            width: 90,
+                                            height: 90,
+                                          ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: -6,
+                                  right: -6,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _pendingAttachmentPath = null;
+                                        _pendingAttachmentName = null;
+                                        _isPendingAttachmentPdf = false;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black87,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: Colors.white, width: 1.5),
+                                      ),
+                                      child: const Icon(Icons.close,
+                                          color: Colors.white, size: 12),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 4, vertical: 4),
@@ -887,7 +1012,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 cursorColor: AppTheme.yellow,
                                 style: TextStyle(color: context.textPrimary),
                                 decoration: InputDecoration(
-                                  hintText: 'Send to ${widget.channelName}',
+                                  hintText: _pendingAttachmentPath != null
+                                      ? 'Add a message or send...'
+                                      : 'Send to ${widget.channelName}',
                                   hintStyle: TextStyle(
                                       color: context.textSecondary
                                           .withValues(alpha: 0.6),
@@ -904,14 +1031,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 onSubmitted: (_) => _sendMessage(),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.send_outlined,
-                                  color: AppTheme.yellow),
-                              onPressed: _sendMessage,
-                            ),
+                            if (_isUploadingAttachment)
+                              const Padding(
+                                padding: EdgeInsets.all(12),
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppTheme.yellow,
+                                  ),
+                                ),
+                              )
+                            else
+                              IconButton(
+                                icon: const Icon(Icons.send_outlined,
+                                    color: AppTheme.yellow),
+                                onPressed: _sendMessage,
+                              ),
                           ],
                         ),
                       ),
+                    ],
                     if (_showActionIcons && !_isRecording && _recordedVoicePath == null)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
@@ -926,7 +1067,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 color: context.textSecondary),
                             _buildActionIcon(Icons.attach_file, 'Attachment',
                                 _showAttachmentPicker,
-                                color: context.textSecondary),
+                                color: _pendingAttachmentPath != null
+                                    ? AppTheme.yellow
+                                    : context.textSecondary),
                             _buildActionIcon(
                                 _isRecording
                                     ? Icons.mic
