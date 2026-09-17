@@ -19,7 +19,10 @@ type Receipt = {
   invoice?: {
     invoiceRef?: string;
     currency?: string;
+    taxRate?: number | null;
     client?: { name?: string | null; email?: string | null; whatsappNumber?: string | null } | null;
+    items?: { amount?: number | null }[] | null;
+    receipts?: { amountPaid?: number | null }[] | null;
   } | null;
 };
 
